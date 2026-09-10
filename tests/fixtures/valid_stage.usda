@@ -40,8 +40,8 @@ def Xform "World"
     def Xform "Character"
     {
         double3 xformOp:translate.timeSamples = {
-            1:  (0, 0, 0),
-            60: (2, 0, 0),
+            1:   (0, 0, 0),
+            60:  (2, 0, 0),
             120: (4, 0, 0)
         }
 
@@ -117,6 +117,20 @@ def Xform "World"
                 ]
             }
         }
+    }
+
+    def Xform "ReferencedAsset"
+    (
+        references = @referenced_stage.usda@
+    )
+    {
+    }
+
+    def Xform "PayloadAsset"
+    (
+        payload = @referenced_stage.usda@
+    )
+    {
     }
 
     def Camera "Camera"

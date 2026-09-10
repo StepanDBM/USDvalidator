@@ -48,18 +48,18 @@ def test_scene_statistics_are_extracted():
     report = get_report()
     scene = report.stage_health.scene
 
-    assert scene.total_prims == 11
-    assert scene.active_prims == 11
+    assert scene.total_prims == 15
+    assert scene.active_prims == 15
     assert scene.inactive_prims == 0
-    assert scene.defined_prims == 11
+    assert scene.defined_prims == 15
 
 
 def test_type_counts_are_extracted():
     report = get_report()
     types = report.stage_health.types
 
-    assert types.meshes == 3
-    assert types.xforms == 4
+    assert types.meshes == 5
+    assert types.xforms == 6
     assert types.cameras == 1
     assert types.materials == 1
     assert types.curves == 0
@@ -72,8 +72,8 @@ def test_composition_statistics_are_extracted():
 
     assert composition.used_layers >= 1
     assert composition.sublayers == 0
-    assert composition.references == 0
-    assert composition.payloads == 0
+    assert composition.references == 1
+    assert composition.payloads == 1
     assert composition.variant_sets == 0
 
 
