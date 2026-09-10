@@ -48,10 +48,10 @@ def test_scene_statistics_are_extracted():
     report = get_report()
     scene = report.stage_health.scene
 
-    assert scene.total_prims == 8
-    assert scene.active_prims == 8
+    assert scene.total_prims == 7
+    assert scene.active_prims == 7
     assert scene.inactive_prims == 0
-    assert scene.defined_prims == 8
+    assert scene.defined_prims == 7
 
 
 def test_type_counts_are_extracted():

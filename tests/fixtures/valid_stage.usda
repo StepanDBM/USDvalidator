@@ -42,7 +42,7 @@ def Xform "World"
 
     def BasisCurves "Curve"
     {
-        type = "linear"
+        token type = "linear"
         point3f[] points = [
             (0, 0, 0),
             (1, 0, 0)
