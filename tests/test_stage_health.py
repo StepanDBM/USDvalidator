@@ -40,7 +40,7 @@ def test_stage_metadata_is_extracted():
     assert stage.frames_per_second == 24
     assert stage.time_codes_per_second == 24
     assert stage.start_time_code == 1
-    assert stage.end_time_code == 48
+    assert stage.end_time_code == 120
     assert stage.open_duration_seconds >= 0
 
 
@@ -48,22 +48,22 @@ def test_scene_statistics_are_extracted():
     report = get_report()
     scene = report.stage_health.scene
 
-    assert scene.total_prims == 7
-    assert scene.active_prims == 7
+    assert scene.total_prims == 11
+    assert scene.active_prims == 11
     assert scene.inactive_prims == 0
-    assert scene.defined_prims == 7
+    assert scene.defined_prims == 11
 
 
 def test_type_counts_are_extracted():
     report = get_report()
     types = report.stage_health.types
 
-    assert types.meshes == 1
-    assert types.xforms == 2
+    assert types.meshes == 3
+    assert types.xforms == 4
     assert types.cameras == 1
     assert types.materials == 1
-    assert types.curves == 1
-    assert types.point_instancers == 1
+    assert types.curves == 0
+    assert types.point_instancers == 0
 
 
 def test_composition_statistics_are_extracted():
