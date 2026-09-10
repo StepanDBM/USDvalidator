@@ -82,3 +82,10 @@ def test_missing_stage_has_no_health_report():
     report = PublishChecker().check(source_path)
 
     assert report.stage_health is None
+
+def test_default_prim_validity_is_extracted():
+    report = get_report()
+    stage = report.stage_health.stage
+
+    assert stage.default_prim == "/World"
+    assert stage.default_prim_valid is True

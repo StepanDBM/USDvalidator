@@ -31,6 +31,7 @@ class StageHealthExtractor:
                 open_duration_seconds=open_duration_seconds,
                 root_layer=stage.GetRootLayer().identifier,
                 default_prim=self._get_default_prim_name(stage),
+                default_prim_valid=self._is_default_prim_valid(stage),
                 up_axis=UsdGeom.GetStageUpAxis(stage),
                 meters_per_unit=UsdGeom.GetStageMetersPerUnit(stage),
                 frames_per_second=stage.GetFramesPerSecond(),
@@ -54,12 +55,24 @@ class StageHealthExtractor:
 
     @staticmethod
     def _get_default_prim_name(stage):
-        default_prim = stage.GetDefaultPrim()
+        default_prim_name = stage.GetMetadata("defaultPrim")
 
-        if not default_prim:
+        if not default_prim_name:
             return ""
 
-        return default_prim.GetPath().pathString
+        return f"/{default_prim_name}"
+
+
+    @staticmethod
+    def _is_default_prim_valid(stage):
+        default_prim_name = stage.GetMetadata("defaultPrim")
+
+        if not default_prim_name:
+            return None
+
+        default_prim_path = f"/{default_prim_name}"
+
+        return stage.GetPrimAtPath(default_prim_path).IsValid()
 
     @staticmethod
     def _count_scene_prim(statistics, prim):

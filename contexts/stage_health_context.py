@@ -16,6 +16,7 @@ class StageMetadata:
     open_duration_seconds: float = 0.0
     root_layer: str = ""
     default_prim: str = ""
+    default_prim_valid: bool | None = None
     up_axis: str = ""
     meters_per_unit: float | None = None
     frames_per_second: float | None = None
