@@ -16,7 +16,7 @@ def test_valid_stage_opens():
     assert report.publish_passed
     assert report.root_layer
     assert report.stage_health is not None
-    assert len(report.results) == 1
+    assert len(report.results) == 2
     assert report.results[0].check_id == "USD_STAGE_CAN_OPEN"
     assert report.results[0].status is CheckStatus.PASSED
 
@@ -28,6 +28,6 @@ def test_missing_stage_fails():
     assert not report.stage_opened
     assert not report.publish_passed
     assert report.stage_health is None
-    assert len(report.results) == 1
+    assert len(report.results) == 2
     assert report.results[0].check_id == "USD_STAGE_CAN_OPEN"
     assert report.results[0].status is CheckStatus.FAILED
