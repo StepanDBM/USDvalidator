@@ -57,6 +57,11 @@ class StageHealthExtractor:
         health.composition.sublayers = len(
             stage.GetRootLayer().subLayerPaths
         )
+
+        self._extract_composition_errors(
+            stage, health.composition,
+        )
+
         health.geometry = GeometryExtractor().extract(stage)
         health.animation = AnimationExtractor().extract(stage)
 
@@ -82,6 +87,23 @@ class StageHealthExtractor:
         default_prim_path = f"/{default_prim_name}"
 
         return stage.GetPrimAtPath(default_prim_path).IsValid()
+
+    @staticmethod
+    def _extract_composition_errors(stage, composition):
+        for prim in stage.TraverseAll():
+            prim_index = prim.GetPrimIndex()
+
+            for error in prim_index.localErrors:
+                message = str(error)
+
+                if "for reference " in message:
+                    composition.unresolved_references += 1
+
+                elif "for payload " in message:
+                    composition.unresolved_payloads += 1
+
+                else:
+                    composition.unexpected_arcs += 1
 
     @staticmethod
     def _count_scene_prim(statistics, prim):
