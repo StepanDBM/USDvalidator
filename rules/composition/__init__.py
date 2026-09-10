@@ -1,3 +1,4 @@
+# rules/composition/__init__.py
 from .checks import (
     check_no_unresolved_references,
     check_no_unresolved_payloads,

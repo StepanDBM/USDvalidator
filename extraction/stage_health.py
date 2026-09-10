@@ -5,6 +5,7 @@ from pathlib import Path
 from pxr import UsdGeom, UsdShade
 
 from extraction.geometry import GeometryExtractor
+from extraction.animation import AnimationExtractor
 
 # I intentionally do not use schema wrappers such as:
 # UsdGeom.Mesh(prim)
@@ -57,7 +58,8 @@ class StageHealthExtractor:
             stage.GetRootLayer().subLayerPaths
         )
         health.geometry = GeometryExtractor().extract(stage)
-        
+        health.animation = AnimationExtractor().extract(stage)
+
         return health
 
     @staticmethod

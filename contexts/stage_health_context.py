@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 from .geometry_context import GeometryStatistics
 
+from .animation_context import AnimationStatistics
+
 
 @dataclass
 class FileHealth:
@@ -68,3 +70,4 @@ class StageHealthContext:
     types: TypeCounts = field(default_factory=TypeCounts)
     composition: CompositionStatistics = field(default_factory=CompositionStatistics)
     geometry: GeometryStatistics = field(default_factory=GeometryStatistics)
+    animation: AnimationStatistics = field(default_factory=AnimationStatistics)

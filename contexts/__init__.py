@@ -13,12 +13,15 @@ from .geometry_context import (
     MeshGeometry,
 )
 
+from .animation_context import AnimationStatistics
+
 __all__ = [
     "CompositionStatistics",
     "FileHealth",
     "SceneStatistics",
     "GeometryStatistics",
     "MeshGeometry",
+    "AnimationStatistics",
     "StageContext",
     "StageHealthContext",
     "StageMetadata",
