@@ -5,6 +5,7 @@ from .metadata import register_metadata_checks
 from .composition import register_composition_checks
 from .geometry import register_geometry_checks
 from .animation import register_animation_checks
+from .dependencies import register_dependency_checks
 
 
 def build_registry():
@@ -14,6 +15,7 @@ def build_registry():
     register_composition_checks(registry)
     register_geometry_checks(registry)
     register_animation_checks(registry)
+    register_dependency_checks(registry)
     return registry
 
 

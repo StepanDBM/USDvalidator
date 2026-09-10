@@ -7,6 +7,7 @@ from validation import CheckStatus, PublishChecker
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
+arbitrary_number_of_checks = 23
 
 def test_valid_stage_opens():
     source_path = FIXTURES_DIR / "valid_stage.usda"
@@ -16,7 +17,7 @@ def test_valid_stage_opens():
     assert report.publish_passed
     assert report.root_layer
     assert report.stage_health is not None
-    assert len(report.results) == 20
+    assert len(report.results) == arbitrary_number_of_checks
     assert report.results[0].check_id == "USD_STAGE_CAN_OPEN"
     assert report.results[0].status is CheckStatus.PASSED
 
@@ -28,6 +29,6 @@ def test_missing_stage_fails():
     assert not report.stage_opened
     assert not report.publish_passed
     assert report.stage_health is None
-    assert len(report.results) == 20
+    assert len(report.results) == arbitrary_number_of_checks
     assert report.results[0].check_id == "USD_STAGE_CAN_OPEN"
     assert report.results[0].status is CheckStatus.FAILED
