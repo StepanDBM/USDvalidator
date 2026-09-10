@@ -1,7 +1,7 @@
 # rules/metadata/checks.py
-
 from validation.enums import CheckStatus
 from validation.models import CheckResult
+
 
 def check_default_prim_authored(context, runtime_context):
     default_prim = context.stage.default_prim
@@ -15,6 +15,9 @@ def check_default_prim_authored(context, runtime_context):
             severity=runtime_context.default_severity,
             message=f"The stage has an authored default prim: {default_prim}.",
             location=default_prim,
+            details={
+                "default_prim": default_prim,
+            },
         )]
 
     return [CheckResult(
@@ -25,6 +28,9 @@ def check_default_prim_authored(context, runtime_context):
         severity=runtime_context.default_severity,
         message="The stage does not have an authored default prim.",
         suggestion="Author a valid default prim before publishing.",
+        details={
+            "default_prim": None,
+        },
     )]
 
 
@@ -38,7 +44,11 @@ def check_default_prim_valid(context, runtime_context):
             category="Metadata",
             status=CheckStatus.SKIPPED,
             severity=runtime_context.default_severity,
-            message="No defaultPrim is authored; validity cannot be evaluated."
+            message="No defaultPrim is authored; validity cannot be evaluated.",
+            details={
+                "default_prim": None,
+                "valid": None,
+            },
         )]
 
     if context.stage.default_prim_valid:
@@ -51,6 +61,10 @@ def check_default_prim_valid(context, runtime_context):
             message="The authored defaultPrim resolves to a valid prim.",
             location=default_prim_path,
             layer=context.stage.root_layer,
+            details={
+                "default_prim": default_prim_path,
+                "valid": True,
+            },
         )]
 
     return [CheckResult(
@@ -65,5 +79,9 @@ def check_default_prim_valid(context, runtime_context):
         ),
         location=default_prim_path,
         layer=context.stage.root_layer,
-        suggestion="Set defaultPrim to the path of an existing valid prim."
+        suggestion="Set defaultPrim to the path of an existing valid prim.",
+        details={
+            "default_prim": default_prim_path,
+            "valid": False,
+        },
     )]
