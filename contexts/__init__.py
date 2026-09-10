@@ -8,11 +8,17 @@ from .stage_health_context import (
     StageMetadata,
     TypeCounts,
 )
+from .geometry_context import (
+    GeometryStatistics,
+    MeshGeometry,
+)
 
 __all__ = [
     "CompositionStatistics",
     "FileHealth",
     "SceneStatistics",
+    "GeometryStatistics",
+    "MeshGeometry",
     "StageContext",
     "StageHealthContext",
     "StageMetadata",

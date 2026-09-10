@@ -22,6 +22,9 @@ def Xform "World"
                 (-1, 1, -1)
             ]
 
+            int[] faceVertexCounts = [4]
+            int[] faceVertexIndices = [0, 1, 2, 3]
+
             color3f[] primvars:displayColor = [
                 (0.1, 0.4, 1)
             ]

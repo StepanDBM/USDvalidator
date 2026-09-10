@@ -4,6 +4,8 @@ from pathlib import Path
 
 from pxr import UsdGeom, UsdShade
 
+from extraction.geometry import GeometryExtractor
+
 # I intentionally do not use schema wrappers such as:
 # UsdGeom.Mesh(prim)
 # just to count types. For a factual health scan, prim.GetTypeName() is simpler and cheaper.
@@ -40,17 +42,22 @@ class StageHealthExtractor:
                 end_time_code=stage.GetEndTimeCode(),
             ),
         )
-
         for prim in stage.TraverseAll():
             self._count_scene_prim(health.scene, prim)
             self._count_type(health.types, prim)
             self._count_composition(health.composition, prim)
 
+        # Root prims are the direct children of the pseudo-root.
+        health.scene.root_prims = len(
+            stage.GetPseudoRoot().GetChildren()
+        )
+
         health.composition.used_layers = len(stage.GetUsedLayers())
         health.composition.sublayers = len(
             stage.GetRootLayer().subLayerPaths
         )
-
+        health.geometry = GeometryExtractor().extract(stage)
+        
         return health
 
     @staticmethod

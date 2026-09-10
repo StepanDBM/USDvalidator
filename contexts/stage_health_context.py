@@ -1,6 +1,7 @@
 # contexts/stage_health_context.py
 
 from dataclasses import dataclass, field
+from .geometry_context import GeometryStatistics
 
 
 @dataclass
@@ -28,6 +29,7 @@ class StageMetadata:
 @dataclass
 class SceneStatistics:
     total_prims: int = 0
+    root_prims: int = 0
     active_prims: int = 0
     inactive_prims: int = 0
     defined_prims: int = 0
@@ -53,7 +55,10 @@ class CompositionStatistics:
     references: int = 0
     payloads: int = 0
     variant_sets: int = 0
-
+    unresolved_references: int = 0
+    unresolved_payloads: int = 0
+    invalid_layers: int = 0
+    unexpected_arcs: int = 0
 
 @dataclass
 class StageHealthContext:
@@ -61,6 +66,5 @@ class StageHealthContext:
     stage: StageMetadata = field(default_factory=StageMetadata)
     scene: SceneStatistics = field(default_factory=SceneStatistics)
     types: TypeCounts = field(default_factory=TypeCounts)
-    composition: CompositionStatistics = field(
-        default_factory=CompositionStatistics
-    )
+    composition: CompositionStatistics = field(default_factory=CompositionStatistics)
+    geometry: GeometryStatistics = field(default_factory=GeometryStatistics)
