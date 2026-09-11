@@ -13,7 +13,7 @@
       "modification_time": 1789042434.9172273
     },
     "stage": {
-      "open_duration_seconds": 0.007359699986409396,
+      "open_duration_seconds": 0.009127700002864003,
       "root_layer": "E:/Work/3D/my_3D/KANEDA/Projects/Scripting/USDs/OpenUSD_Learning/lessons/USDvalidator/tests/fixtures/valid_stage.usda",
       "default_prim": "/World",
       "default_prim_valid": true,
@@ -112,8 +112,8 @@
     }
   },
   "summary": {
-    "total": 23,
-    "passed": 23,
+    "total": 13,
+    "passed": 13,
     "failed": 0,
     "skipped": 0,
     "internal_errors": 0,
@@ -166,53 +166,6 @@
       "check_version": "1"
     },
     {
-      "check_id": "USD_ANIMATION_FRAME_RATE_VALID",
-      "label": "Animation Frame Rate Valid",
-      "category": "Animation",
-      "status": "PASSED",
-      "severity": "ERROR",
-      "message": "The animation frame rate is valid: 24.0 FPS at 24.0 time codes per second.",
-      "location": "",
-      "layer": "",
-      "suggestion": "",
-      "details": {
-        "frames_per_second": 24.0,
-        "time_codes_per_second": 24.0
-      },
-      "check_version": "1"
-    },
-    {
-      "check_id": "USD_ANIMATION_HAS_NO_INVALID_TIME_SAMPLES",
-      "label": "Animation Has No Invalid Time Samples",
-      "category": "Animation",
-      "status": "PASSED",
-      "severity": "ERROR",
-      "message": "No invalid animation time samples were detected.",
-      "location": "",
-      "layer": "",
-      "suggestion": "",
-      "details": {
-        "invalid_sample_count": 0
-      },
-      "check_version": "1"
-    },
-    {
-      "check_id": "USD_STAGE_FRAME_RANGE_VALID",
-      "label": "Stage Frame Range Valid",
-      "category": "Animation",
-      "status": "PASSED",
-      "severity": "ERROR",
-      "message": "The stage frame range is valid: 1.0 to 120.0.",
-      "location": "",
-      "layer": "",
-      "suggestion": "",
-      "details": {
-        "start_time_code": 1.0,
-        "end_time_code": 120.0
-      },
-      "check_version": "1"
-    },
-    {
       "check_id": "USD_DEFAULT_PRIM_AUTHORED",
       "label": "Default Prim Authored",
       "category": "Metadata",
@@ -239,22 +192,6 @@
       "check_version": "1"
     },
     {
-      "check_id": "USD_FRAME_RATE_VALID",
-      "label": "Frame Rate Valid",
-      "category": "Metadata",
-      "status": "PASSED",
-      "severity": "ERROR",
-      "message": "The stage has valid rates: 24.0 FPS, 24.0 timeCodesPerSecond.",
-      "location": "",
-      "layer": "",
-      "suggestion": "",
-      "details": {
-        "frames_per_second": 24.0,
-        "time_codes_per_second": 24.0
-      },
-      "check_version": "1"
-    },
-    {
       "check_id": "USD_METERS_PER_UNIT_AUTHORED",
       "label": "Meters Per Unit Authored",
       "category": "Metadata",
@@ -266,22 +203,6 @@
       "suggestion": "",
       "details": {
         "meters_per_unit": 1.0
-      },
-      "check_version": "1"
-    },
-    {
-      "check_id": "USD_TIME_CODES_VALID",
-      "label": "Time Codes Valid",
-      "category": "Metadata",
-      "status": "PASSED",
-      "severity": "ERROR",
-      "message": "The stage has a valid time range: 1.0 - 120.0.",
-      "location": "",
-      "layer": "",
-      "suggestion": "",
-      "details": {
-        "start_time_code": 1.0,
-        "end_time_code": 120.0
       },
       "check_version": "1"
     },
@@ -361,21 +282,6 @@
       "check_version": "1"
     },
     {
-      "check_id": "USD_DEPENDENCIES_RESOLVE",
-      "label": "USD Dependencies Resolve",
-      "category": "Dependencies",
-      "status": "PASSED",
-      "severity": "ERROR",
-      "message": "All USD dependencies resolve successfully.",
-      "location": "",
-      "layer": "",
-      "suggestion": "",
-      "details": {
-        "unresolved_count": 0
-      },
-      "check_version": "1"
-    },
-    {
       "check_id": "USD_PAYLOADS_RESOLVE",
       "label": "USD Payloads Resolve",
       "category": "Dependencies",
@@ -402,70 +308,6 @@
       "suggestion": "",
       "details": {
         "unresolved_count": 0
-      },
-      "check_version": "1"
-    },
-    {
-      "check_id": "USD_MESH_FACE_VERTEX_COUNTS_VALID",
-      "label": "Mesh Face Vertex Counts Valid",
-      "category": "Geometry",
-      "status": "PASSED",
-      "severity": "ERROR",
-      "message": "All meshes have valid face vertex counts.",
-      "location": "",
-      "layer": "",
-      "suggestion": "",
-      "details": {
-        "mesh_count": 5,
-        "invalid_mesh_count": 0
-      },
-      "check_version": "1"
-    },
-    {
-      "check_id": "USD_MESH_HAS_VALID_POINTS",
-      "label": "Mesh Has Valid Points",
-      "category": "Geometry",
-      "status": "PASSED",
-      "severity": "ERROR",
-      "message": "All meshes have valid point data.",
-      "location": "",
-      "layer": "",
-      "suggestion": "",
-      "details": {
-        "mesh_count": 5,
-        "invalid_mesh_count": 0
-      },
-      "check_version": "1"
-    },
-    {
-      "check_id": "USD_MESH_HAS_VALID_TOPOLOGY",
-      "label": "Mesh Has Valid Topology",
-      "category": "Geometry",
-      "status": "PASSED",
-      "severity": "ERROR",
-      "message": "All meshes have valid topology.",
-      "location": "",
-      "layer": "",
-      "suggestion": "",
-      "details": {
-        "mesh_count": 5,
-        "invalid_mesh_count": 0
-      },
-      "check_version": "1"
-    },
-    {
-      "check_id": "USD_MESH_POLYGON_COUNT_LIMIT",
-      "label": "Mesh Polygon Count Limit",
-      "category": "Geometry",
-      "status": "PASSED",
-      "severity": "ERROR",
-      "message": "All meshes are within the polygon limit of 100000.",
-      "location": "",
-      "layer": "",
-      "suggestion": "",
-      "details": {
-        "polygon_count_limit": 100000,
-        "exceeding_mesh_count": 0
       },
       "check_version": "1"
     }

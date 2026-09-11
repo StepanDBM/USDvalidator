@@ -57,6 +57,11 @@ def parse_arguments():
         "source_path",
         help="Path to a .usd, .usda, .usdc, or .usdz file."
     )
+
+    parser.add_argument(
+        "--report",
+        help="Write the validation report to a JSON file.",
+    )
     return parser.parse_args()
 
 def main():
@@ -67,6 +72,8 @@ def main():
 
     checker = PublishChecker(profile=profile)
     report = checker.check(args.source_path)
+    if args.report:
+        report.write_json(args.report)
 
     print_report(report)
 
