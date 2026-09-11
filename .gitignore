@@ -3,5 +3,7 @@
 */__pycache__/*
 
 tests/fixtures/invalid_geometry_polygon_limit.usda
+batch_report.json
+report.json
 
 TO_IGNORE
