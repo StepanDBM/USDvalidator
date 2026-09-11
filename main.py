@@ -3,6 +3,8 @@
 import argparse
 
 from validation import PublishChecker
+from validation.profile_loader import ProfileLoader
+from validation.profiles import DEFAULT_PROFILE
 
 
 def print_report(report):
@@ -57,11 +59,15 @@ def parse_arguments():
     )
     return parser.parse_args()
 
-
 def main():
     args = parse_arguments()
-    checker = PublishChecker()
+
+    profile_loader = ProfileLoader("validation/profiles.json")
+    profile = profile_loader.get_profile(DEFAULT_PROFILE)
+
+    checker = PublishChecker(profile=profile)
     report = checker.check(args.source_path)
+
     print_report(report)
 
 

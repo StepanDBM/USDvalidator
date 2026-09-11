@@ -9,15 +9,20 @@ from .runner import execute_checks
 
 
 class PublishChecker:
-    def __init__(self, registry=None):
+    def __init__(self, registry=None, profile=None):
         self.registry = registry or build_registry()
+        self.profile = profile
 
     def check(self, source_path):
         session = UsdInspectionSession(source_path)
         targets = session.extract()
 
-        results = execute_checks(self.registry, targets)
+        if self.profile is None:
+            definitions = self.registry.resolve()
+        else:
+            definitions = self.registry.resolve_profile(self.profile)
 
+        results = execute_checks(definitions, targets)
         stage_context = next(
             target
             for target in targets

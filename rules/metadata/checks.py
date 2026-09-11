@@ -2,96 +2,21 @@
 from validation.enums import CheckStatus
 from validation.models import CheckResult
 
+from validation.check_ids import (
+    USD_DEFAULT_PRIM_AUTHORED,
+    USD_DEFAULT_PRIM_VALID,
+    USD_UP_AXIS_VALID,
+    USD_METERS_PER_UNIT_AUTHORED,
+    USD_TIME_CODES_VALID,
+    USD_FRAME_RATE_VALID
+)
 
 def check_default_prim_authored(context, runtime_context):
     default_prim = context.stage.default_prim
 
     if default_prim:
         return [CheckResult(
-            check_id="USD_DEFAULT_PRIM_AUTHORED",
-            label="Default Prim Authored",
-            category="Metadata",
-            status=CheckStatus.PASSED,
-            severity=runtime_context.default_severity,
-            message=f"The stage has an authored default prim: {default_prim}.",
-            location=default_prim,
-            details={
-                "default_prim": default_prim,
-            },
-        )]
-
-    return [CheckResult(
-        check_id="USD_DEFAULT_PRIM_AUTHORED",
-        label="Default Prim Authored",
-        category="Metadata",
-        status=CheckStatus.FAILED,
-        severity=runtime_context.default_severity,
-        message="The stage does not have an authored default prim.",
-        suggestion="Author a valid default prim before publishing.",
-        details={
-            "default_prim": None,
-        },
-    )]
-
-
-def check_default_prim_valid(context, runtime_context):
-    default_prim_path = context.stage.default_prim
-
-    if not default_prim_path:
-        return [CheckResult(
-            check_id="USD_DEFAULT_PRIM_VALID",
-            label="Default Prim Valid",
-            category="Metadata",
-            status=CheckStatus.SKIPPED,
-            severity=runtime_context.default_severity,
-            message="No defaultPrim is authored; validity cannot be evaluated.",
-            details={
-                "default_prim": None,
-                "valid": None,
-            },
-        )]
-
-    if context.stage.default_prim_valid:
-        return [CheckResult(
-            check_id="USD_DEFAULT_PRIM_VALID",
-            label="Default Prim Valid",
-            category="Metadata",
-            status=CheckStatus.PASSED,
-            severity=runtime_context.default_severity,
-            message="The authored defaultPrim resolves to a valid prim.",
-            location=default_prim_path,
-            layer=context.stage.root_layer,
-            details={
-                "default_prim": default_prim_path,
-                "valid": True,
-            },
-        )]
-
-    return [CheckResult(
-        check_id="USD_DEFAULT_PRIM_VALID",
-        label="Default Prim Valid",
-        category="Metadata",
-        status=CheckStatus.FAILED,
-        severity=runtime_context.default_severity,
-        message=(
-            f"The authored defaultPrim '{default_prim_path}' "
-            "does not resolve to a valid prim."
-        ),
-        location=default_prim_path,
-        layer=context.stage.root_layer,
-        suggestion="Set defaultPrim to the path of an existing valid prim.",
-        details={
-            "default_prim": default_prim_path,
-            "valid": False,
-        },
-    )]
-
-def check_default_prim_authored(context, runtime_context):
-    default_prim = context.stage.default_prim
-
-    if default_prim:
-        return [CheckResult(
-            check_id="USD_DEFAULT_PRIM_AUTHORED",
+            check_id=USD_DEFAULT_PRIM_AUTHORED,
             label="Default Prim Authored",
             category="Metadata",
             status=CheckStatus.PASSED,
@@ -101,7 +26,7 @@ def check_default_prim_authored(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_DEFAULT_PRIM_AUTHORED",
+        check_id=USD_DEFAULT_PRIM_AUTHORED,
         label="Default Prim Authored",
         category="Metadata",
         status=CheckStatus.FAILED,
@@ -110,13 +35,12 @@ def check_default_prim_authored(context, runtime_context):
         suggestion="Author a valid default prim before publishing.",
     )]
 
-
 def check_default_prim_valid(context, runtime_context):
     default_prim_path = context.stage.default_prim
 
     if not default_prim_path:
         return [CheckResult(
-            check_id="USD_DEFAULT_PRIM_VALID",
+            check_id=USD_DEFAULT_PRIM_VALID,
             label="Default Prim Valid",
             category="Metadata",
             status=CheckStatus.SKIPPED,
@@ -126,7 +50,7 @@ def check_default_prim_valid(context, runtime_context):
 
     if context.stage.default_prim_valid:
         return [CheckResult(
-            check_id="USD_DEFAULT_PRIM_VALID",
+            check_id=USD_DEFAULT_PRIM_VALID,
             label="Default Prim Valid",
             category="Metadata",
             status=CheckStatus.PASSED,
@@ -137,7 +61,7 @@ def check_default_prim_valid(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_DEFAULT_PRIM_VALID",
+        check_id=USD_DEFAULT_PRIM_VALID,
         label="Default Prim Valid",
         category="Metadata",
         status=CheckStatus.FAILED,
@@ -151,13 +75,12 @@ def check_default_prim_valid(context, runtime_context):
         suggestion="Set defaultPrim to the path of an existing valid prim."
     )]
 
-
 def check_up_axis_valid(context, runtime_context):
     up_axis = context.stage.up_axis
 
     if up_axis in {"Y", "Z"}:
         return [CheckResult(
-            check_id="USD_UP_AXIS_VALID",
+            check_id=USD_UP_AXIS_VALID,
             label="Up Axis Valid",
             category="Metadata",
             status=CheckStatus.PASSED,
@@ -169,7 +92,7 @@ def check_up_axis_valid(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_UP_AXIS_VALID",
+        check_id=USD_UP_AXIS_VALID,
         label="Up Axis Valid",
         category="Metadata",
         status=CheckStatus.FAILED,
@@ -181,13 +104,12 @@ def check_up_axis_valid(context, runtime_context):
         },
     )]
 
-
 def check_meters_per_unit_authored(context, runtime_context):
     meters_per_unit = context.stage.meters_per_unit
 
     if meters_per_unit is not None and meters_per_unit > 0:
         return [CheckResult(
-            check_id="USD_METERS_PER_UNIT_AUTHORED",
+            check_id=USD_METERS_PER_UNIT_AUTHORED,
             label="Meters Per Unit Authored",
             category="Metadata",
             status=CheckStatus.PASSED,
@@ -202,7 +124,7 @@ def check_meters_per_unit_authored(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_METERS_PER_UNIT_AUTHORED",
+        check_id=USD_METERS_PER_UNIT_AUTHORED,
         label="Meters Per Unit Authored",
         category="Metadata",
         status=CheckStatus.FAILED,
@@ -214,14 +136,13 @@ def check_meters_per_unit_authored(context, runtime_context):
         },
     )]
 
-
 def check_time_codes_valid(context, runtime_context):
     start_time_code = context.stage.start_time_code
     end_time_code = context.stage.end_time_code
 
     if start_time_code is None or end_time_code is None:
         return [CheckResult(
-            check_id="USD_TIME_CODES_VALID",
+            check_id=USD_TIME_CODES_VALID,
             label="Time Codes Valid",
             category="Metadata",
             status=CheckStatus.FAILED,
@@ -236,7 +157,7 @@ def check_time_codes_valid(context, runtime_context):
 
     if start_time_code <= end_time_code:
         return [CheckResult(
-            check_id="USD_TIME_CODES_VALID",
+            check_id=USD_TIME_CODES_VALID,
             label="Time Codes Valid",
             category="Metadata",
             status=CheckStatus.PASSED,
@@ -252,7 +173,7 @@ def check_time_codes_valid(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_TIME_CODES_VALID",
+        check_id=USD_TIME_CODES_VALID,
         label="Time Codes Valid",
         category="Metadata",
         status=CheckStatus.FAILED,
@@ -268,7 +189,6 @@ def check_time_codes_valid(context, runtime_context):
         },
     )]
 
-
 def check_frame_rate_valid(context, runtime_context):
     frames_per_second = context.stage.frames_per_second
     time_codes_per_second = context.stage.time_codes_per_second
@@ -280,7 +200,7 @@ def check_frame_rate_valid(context, runtime_context):
         and time_codes_per_second > 0
     ):
         return [CheckResult(
-            check_id="USD_FRAME_RATE_VALID",
+            check_id=USD_FRAME_RATE_VALID,
             label="Frame Rate Valid",
             category="Metadata",
             status=CheckStatus.PASSED,
@@ -297,7 +217,7 @@ def check_frame_rate_valid(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_FRAME_RATE_VALID",
+        check_id=USD_FRAME_RATE_VALID,
         label="Frame Rate Valid",
         category="Metadata",
         status=CheckStatus.FAILED,

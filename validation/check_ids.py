@@ -1,0 +1,60 @@
+# validation/check_ids.py
+
+# ============================================================
+# STAGE
+# ============================================================
+
+USD_STAGE_CAN_OPEN = "USD_STAGE_CAN_OPEN"
+USD_STAGE_HAS_PRIMS = "USD_STAGE_HAS_PRIMS"
+USD_STAGE_HAS_ROOT_PRIM = "USD_STAGE_HAS_ROOT_PRIM"
+
+USD_DEFAULT_PRIM_AUTHORED = "USD_DEFAULT_PRIM_AUTHORED"
+USD_DEFAULT_PRIM_VALID = "USD_DEFAULT_PRIM_VALID"
+
+USD_UP_AXIS_VALID = "USD_UP_AXIS_VALID"
+USD_METERS_PER_UNIT_AUTHORED = "USD_METERS_PER_UNIT_AUTHORED"
+
+USD_TIME_CODES_VALID = "USD_TIME_CODES_VALID"
+USD_FRAME_RATE_VALID = "USD_FRAME_RATE_VALID"
+
+
+# ============================================================
+# GEOMETRY
+# ============================================================
+
+USD_MESH_HAS_VALID_POINTS = "USD_MESH_HAS_VALID_POINTS"
+USD_MESH_FACE_VERTEX_COUNTS_VALID = "USD_MESH_FACE_VERTEX_COUNTS_VALID"
+USD_MESH_HAS_VALID_TOPOLOGY = "USD_MESH_HAS_VALID_TOPOLOGY"
+USD_MESH_POLYGON_COUNT_LIMIT = "USD_MESH_POLYGON_COUNT_LIMIT"
+
+
+# ============================================================
+# ANIMATION
+# ============================================================
+
+USD_STAGE_FRAME_RANGE_VALID = "USD_STAGE_FRAME_RANGE_VALID"
+USD_ANIMATION_FRAME_RATE_VALID = "USD_ANIMATION_FRAME_RATE_VALID"
+USD_ANIMATION_HAS_NO_INVALID_TIME_SAMPLES = (
+    "USD_ANIMATION_HAS_NO_INVALID_TIME_SAMPLES"
+)
+
+
+# ============================================================
+# DEPENDENCIES
+# ============================================================
+
+USD_DEPENDENCIES_RESOLVE = "USD_DEPENDENCIES_RESOLVE"
+
+USD_REFERENCES_RESOLVE = "USD_REFERENCES_RESOLVE"
+USD_NO_UNRESOLVED_REFERENCES = "USD_NO_UNRESOLVED_REFERENCES"
+
+USD_PAYLOADS_RESOLVE = "USD_PAYLOADS_RESOLVE"
+USD_NO_UNRESOLVED_PAYLOADS = "USD_NO_UNRESOLVED_PAYLOADS"
+
+
+# ============================================================
+# COMPOSITION
+# ============================================================
+
+USD_COMPOSITION_LAYERS_VALID = "USD_COMPOSITION_LAYERS_VALID"
+USD_NO_UNEXPECTED_ARCS = "USD_NO_UNEXPECTED_ARCS"

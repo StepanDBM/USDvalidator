@@ -3,6 +3,12 @@
 from validation.enums import CheckStatus
 from validation.models import CheckResult
 
+from validation.check_ids import (
+    USD_STAGE_FRAME_RANGE_VALID,
+    USD_ANIMATION_FRAME_RATE_VALID,
+    USD_ANIMATION_HAS_NO_INVALID_TIME_SAMPLES
+)
+
 
 def check_stage_frame_range_valid(context, runtime_context):
     start = context.stage.start_time_code
@@ -10,7 +16,7 @@ def check_stage_frame_range_valid(context, runtime_context):
 
     if start is None or end is None:
         return [CheckResult(
-            check_id="USD_STAGE_FRAME_RANGE_VALID",
+            check_id=USD_STAGE_FRAME_RANGE_VALID,
             label="Stage Frame Range Valid",
             category="Animation",
             status=CheckStatus.FAILED,
@@ -25,7 +31,7 @@ def check_stage_frame_range_valid(context, runtime_context):
 
     if start > end:
         return [CheckResult(
-            check_id="USD_STAGE_FRAME_RANGE_VALID",
+            check_id=USD_STAGE_FRAME_RANGE_VALID,
             label="Stage Frame Range Valid",
             category="Animation",
             status=CheckStatus.FAILED,
@@ -39,7 +45,7 @@ def check_stage_frame_range_valid(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_STAGE_FRAME_RANGE_VALID",
+        check_id=USD_STAGE_FRAME_RANGE_VALID,
         label="Stage Frame Range Valid",
         category="Animation",
         status=CheckStatus.PASSED,
@@ -58,7 +64,7 @@ def check_animation_frame_rate_valid(context, runtime_context):
 
     if fps is None or fps <= 0:
         return [CheckResult(
-            check_id="USD_ANIMATION_FRAME_RATE_VALID",
+            check_id=USD_ANIMATION_FRAME_RATE_VALID,
             label="Animation Frame Rate Valid",
             category="Animation",
             status=CheckStatus.FAILED,
@@ -73,7 +79,7 @@ def check_animation_frame_rate_valid(context, runtime_context):
 
     if time_codes_per_second is None or time_codes_per_second <= 0:
         return [CheckResult(
-            check_id="USD_ANIMATION_FRAME_RATE_VALID",
+            check_id=USD_ANIMATION_FRAME_RATE_VALID,
             label="Animation Frame Rate Valid",
             category="Animation",
             status=CheckStatus.FAILED,
@@ -87,7 +93,7 @@ def check_animation_frame_rate_valid(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_ANIMATION_FRAME_RATE_VALID",
+        check_id=USD_ANIMATION_FRAME_RATE_VALID,
         label="Animation Frame Rate Valid",
         category="Animation",
         status=CheckStatus.PASSED,
@@ -108,7 +114,7 @@ def check_animation_has_no_invalid_time_samples(context, runtime_context):
 
     if invalid_time_samples:
         return [CheckResult(
-            check_id="USD_ANIMATION_HAS_NO_INVALID_TIME_SAMPLES",
+            check_id=USD_ANIMATION_HAS_NO_INVALID_TIME_SAMPLES,
             label="Animation Has No Invalid Time Samples",
             category="Animation",
             status=CheckStatus.FAILED,
@@ -125,7 +131,7 @@ def check_animation_has_no_invalid_time_samples(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_ANIMATION_HAS_NO_INVALID_TIME_SAMPLES",
+        check_id=USD_ANIMATION_HAS_NO_INVALID_TIME_SAMPLES,
         label="Animation Has No Invalid Time Samples",
         category="Animation",
         status=CheckStatus.PASSED,

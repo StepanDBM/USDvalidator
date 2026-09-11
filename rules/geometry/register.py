@@ -12,9 +12,17 @@ from .checks import (
 )
 
 
+from validation.check_ids import (
+    USD_MESH_HAS_VALID_POINTS,
+    USD_MESH_FACE_VERTEX_COUNTS_VALID,
+    USD_MESH_HAS_VALID_TOPOLOGY,
+    USD_MESH_POLYGON_COUNT_LIMIT,
+)
+
+
 def register_geometry_checks(registry):
     registry.register(CheckDefinition(
-        check_id="USD_MESH_HAS_VALID_POINTS",
+        check_id=USD_MESH_HAS_VALID_POINTS,
         label="Mesh Has Valid Points",
         description="Checks whether USD meshes contain valid point data.",
         func=check_mesh_has_valid_points,
@@ -25,7 +33,7 @@ def register_geometry_checks(registry):
         tags=("geometry", "mesh", "publish", "required"),
     ))
     registry.register(CheckDefinition(
-        check_id="USD_MESH_FACE_VERTEX_COUNTS_VALID",
+        check_id=USD_MESH_FACE_VERTEX_COUNTS_VALID,
         label="Mesh Face Vertex Counts Valid",
         description="Checks whether mesh faceVertexCounts data is valid.",
         func=check_mesh_face_vertex_counts_valid,
@@ -36,7 +44,7 @@ def register_geometry_checks(registry):
         tags=("geometry", "mesh", "topology", "publish", "required"),
     ))
     registry.register(CheckDefinition(
-        check_id="USD_MESH_HAS_VALID_TOPOLOGY",
+        check_id=USD_MESH_HAS_VALID_TOPOLOGY,
         label="Mesh Has Valid Topology",
         description="Checks whether USD meshes have valid topology.",
         func=check_mesh_has_valid_topology,
@@ -48,7 +56,7 @@ def register_geometry_checks(registry):
     ))
 
     registry.register(CheckDefinition(
-        check_id="USD_MESH_POLYGON_COUNT_LIMIT",
+        check_id=USD_MESH_POLYGON_COUNT_LIMIT,
         label="Mesh Polygon Count Limit",
         description="Checks whether mesh polygon counts remain within the configured limit.",
         func=check_mesh_polygon_count_limit,

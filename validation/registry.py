@@ -17,6 +17,12 @@ class ValidationRegistry:
     def get(self, check_id):
         return self._definitions[check_id]
 
+    def resolve_profile(self, profile):
+        return self.resolve(
+            enabled_ids=profile.enabled_check_ids,
+            disabled_ids=profile.disabled_check_ids,
+        )
+
     def resolve(self, enabled_ids=None, disabled_ids=None):
         enabled_ids = set(enabled_ids or ())
         disabled_ids = set(disabled_ids or ())

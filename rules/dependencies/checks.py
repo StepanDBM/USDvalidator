@@ -1,6 +1,12 @@
 from validation.enums import CheckStatus
 from validation.models import CheckResult
 
+from validation.check_ids import (
+    USD_DEPENDENCIES_RESOLVE,
+    USD_REFERENCES_RESOLVE,
+    USD_PAYLOADS_RESOLVE
+)
+
 
 def check_dependencies_resolve(context, runtime_context):
     unresolved_count = (
@@ -10,7 +16,7 @@ def check_dependencies_resolve(context, runtime_context):
 
     if unresolved_count:
         return [CheckResult(
-            check_id="USD_DEPENDENCIES_RESOLVE",
+            check_id=USD_DEPENDENCIES_RESOLVE,
             label="USD Dependencies Resolve",
             category="Dependencies",
             status=CheckStatus.FAILED,
@@ -29,7 +35,7 @@ def check_dependencies_resolve(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_DEPENDENCIES_RESOLVE",
+        check_id=USD_DEPENDENCIES_RESOLVE,
         label="USD Dependencies Resolve",
         category="Dependencies",
         status=CheckStatus.PASSED,
@@ -44,7 +50,7 @@ def check_references_resolve(context, runtime_context):
 
     if unresolved_count:
         return [CheckResult(
-            check_id="USD_REFERENCES_RESOLVE",
+            check_id=USD_REFERENCES_RESOLVE,
             label="USD References Resolve",
             category="Dependencies",
             status=CheckStatus.FAILED,
@@ -63,7 +69,7 @@ def check_references_resolve(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_REFERENCES_RESOLVE",
+        check_id=USD_REFERENCES_RESOLVE,
         label="USD References Resolve",
         category="Dependencies",
         status=CheckStatus.PASSED,
@@ -78,7 +84,7 @@ def check_payloads_resolve(context, runtime_context):
 
     if unresolved_count:
         return [CheckResult(
-            check_id="USD_PAYLOADS_RESOLVE",
+            check_id=USD_PAYLOADS_RESOLVE,
             label="USD Payloads Resolve",
             category="Dependencies",
             status=CheckStatus.FAILED,
@@ -97,7 +103,7 @@ def check_payloads_resolve(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_PAYLOADS_RESOLVE",
+        check_id=USD_PAYLOADS_RESOLVE,
         label="USD Payloads Resolve",
         category="Dependencies",
         status=CheckStatus.PASSED,

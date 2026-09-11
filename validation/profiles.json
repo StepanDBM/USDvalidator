@@ -1,0 +1,149 @@
+{
+    "profiles": [
+        {
+            "name": "all_checks",
+            "description": "Complete checkings of all categories profile.",
+            "enabled_checks": [
+                "USD_STAGE_CAN_OPEN",
+                "USD_STAGE_HAS_PRIMS",
+                "USD_STAGE_HAS_ROOT_PRIM",
+                "USD_DEFAULT_PRIM_AUTHORED",
+                "USD_DEFAULT_PRIM_VALID",
+                "USD_UP_AXIS_VALID",
+                "USD_METERS_PER_UNIT_AUTHORED",
+                "USD_MESH_HAS_VALID_POINTS",
+                "USD_MESH_FACE_VERTEX_COUNTS_VALID",
+                "USD_MESH_HAS_VALID_TOPOLOGY",
+                "USD_MESH_POLYGON_COUNT_LIMIT",
+                "USD_REFERENCES_RESOLVE",
+                "USD_NO_UNRESOLVED_REFERENCES",
+                "USD_PAYLOADS_RESOLVE",
+                "USD_NO_UNRESOLVED_PAYLOADS",
+                "USD_COMPOSITION_LAYERS_VALID",
+                "USD_NO_UNEXPECTED_ARCS",
+                "USD_TIME_CODES_VALID",
+                "USD_FRAME_RATE_VALID",
+                "USD_STAGE_FRAME_RANGE_VALID",
+                "USD_ANIMATION_FRAME_RATE_VALID",
+                "USD_ANIMATION_HAS_NO_INVALID_TIME_SAMPLES",
+                "USD_DEPENDENCIES_RESOLVE"
+            ]
+        },
+        {
+            "name": "default",
+            "description": "General-purpose USD validation profile.",
+            "enabled_checks": [
+                "USD_STAGE_CAN_OPEN",
+                "USD_STAGE_HAS_PRIMS",
+                "USD_STAGE_HAS_ROOT_PRIM",
+                "USD_DEFAULT_PRIM_AUTHORED",
+                "USD_DEFAULT_PRIM_VALID",
+                "USD_UP_AXIS_VALID",
+                "USD_METERS_PER_UNIT_AUTHORED",
+                "USD_MESH_HAS_VALID_POINTS",
+                "USD_MESH_FACE_VERTEX_COUNTS_VALID",
+                "USD_MESH_HAS_VALID_TOPOLOGY",
+                "USD_MESH_POLYGON_COUNT_LIMIT",
+                "USD_REFERENCES_RESOLVE",
+                "USD_NO_UNRESOLVED_REFERENCES",
+                "USD_PAYLOADS_RESOLVE",
+                "USD_NO_UNRESOLVED_PAYLOADS",
+                "USD_COMPOSITION_LAYERS_VALID",
+                "USD_NO_UNEXPECTED_ARCS"
+            ]
+        },
+        {
+            "name": "model_publish",
+            "description": "Validation for static model assets.",
+            "enabled_checks": [
+                "USD_STAGE_CAN_OPEN",
+                "USD_STAGE_HAS_PRIMS",
+                "USD_STAGE_HAS_ROOT_PRIM",
+                "USD_DEFAULT_PRIM_AUTHORED",
+                "USD_DEFAULT_PRIM_VALID",
+                "USD_UP_AXIS_VALID",
+                "USD_METERS_PER_UNIT_AUTHORED",
+                "USD_MESH_HAS_VALID_POINTS",
+                "USD_MESH_FACE_VERTEX_COUNTS_VALID",
+                "USD_MESH_HAS_VALID_TOPOLOGY",
+                "USD_MESH_POLYGON_COUNT_LIMIT",
+                "USD_REFERENCES_RESOLVE",
+                "USD_NO_UNRESOLVED_REFERENCES",
+                "USD_PAYLOADS_RESOLVE",
+                "USD_NO_UNRESOLVED_PAYLOADS",
+                "USD_COMPOSITION_LAYERS_VALID",
+                "USD_NO_UNEXPECTED_ARCS"
+            ]
+        },
+        {
+            "name": "animation_publish",
+            "description": "Validation for animated USD assets.",
+            "enabled_checks": [
+                "USD_STAGE_CAN_OPEN",
+                "USD_STAGE_HAS_PRIMS",
+                "USD_STAGE_HAS_ROOT_PRIM",
+                "USD_DEFAULT_PRIM_AUTHORED",
+                "USD_DEFAULT_PRIM_VALID",
+                "USD_UP_AXIS_VALID",
+                "USD_METERS_PER_UNIT_AUTHORED",
+                "USD_STAGE_FRAME_RANGE_VALID",
+                "USD_ANIMATION_FRAME_RATE_VALID",
+                "USD_MESH_HAS_VALID_POINTS",
+                "USD_MESH_FACE_VERTEX_COUNTS_VALID",
+                "USD_MESH_HAS_VALID_TOPOLOGY",
+                "USD_REFERENCES_RESOLVE",
+                "USD_NO_UNRESOLVED_REFERENCES",
+                "USD_PAYLOADS_RESOLVE",
+                "USD_NO_UNRESOLVED_PAYLOADS",
+                "USD_COMPOSITION_LAYERS_VALID",
+                "USD_NO_UNEXPECTED_ARCS"
+            ]
+        },
+        {
+            "name": "layout_publish",
+            "description": "Validation for assembled layout and shot stages.",
+            "enabled_checks": [
+                "USD_STAGE_CAN_OPEN",
+                "USD_STAGE_HAS_PRIMS",
+                "USD_STAGE_HAS_ROOT_PRIM",
+                "USD_DEFAULT_PRIM_AUTHORED",
+                "USD_DEFAULT_PRIM_VALID",
+                "USD_UP_AXIS_VALID",
+                "USD_METERS_PER_UNIT_AUTHORED",
+                "USD_REFERENCES_RESOLVE",
+                "USD_NO_UNRESOLVED_REFERENCES",
+                "USD_PAYLOADS_RESOLVE",
+                "USD_NO_UNRESOLVED_PAYLOADS",
+                "USD_COMPOSITION_LAYERS_VALID",
+                "USD_NO_UNEXPECTED_ARCS"
+            ]
+        },
+        {
+            "name": "strict",
+            "description": "All currently available validation checks.",
+            "enabled_checks": [
+                "USD_STAGE_CAN_OPEN",
+                "USD_STAGE_HAS_PRIMS",
+                "USD_STAGE_HAS_ROOT_PRIM",
+                "USD_DEFAULT_PRIM_AUTHORED",
+                "USD_DEFAULT_PRIM_VALID",
+                "USD_UP_AXIS_VALID",
+                "USD_METERS_PER_UNIT_AUTHORED",
+                "USD_TIME_CODES_VALID",
+                "USD_FRAME_RATE_VALID",
+                "USD_MESH_HAS_VALID_POINTS",
+                "USD_MESH_FACE_VERTEX_COUNTS_VALID",
+                "USD_MESH_HAS_VALID_TOPOLOGY",
+                "USD_MESH_POLYGON_COUNT_LIMIT",
+                "USD_STAGE_FRAME_RANGE_VALID",
+                "USD_ANIMATION_FRAME_RATE_VALID",
+                "USD_REFERENCES_RESOLVE",
+                "USD_NO_UNRESOLVED_REFERENCES",
+                "USD_PAYLOADS_RESOLVE",
+                "USD_NO_UNRESOLVED_PAYLOADS",
+                "USD_COMPOSITION_LAYERS_VALID",
+                "USD_NO_UNEXPECTED_ARCS"
+            ]
+        }
+    ]
+}

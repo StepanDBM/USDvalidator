@@ -3,6 +3,12 @@
 from validation.enums import CheckStatus
 from validation.models import CheckResult
 
+from validation.check_ids import (
+    USD_MESH_HAS_VALID_POINTS,
+    USD_MESH_FACE_VERTEX_COUNTS_VALID,
+    USD_MESH_HAS_VALID_TOPOLOGY,
+    USD_MESH_POLYGON_COUNT_LIMIT,
+)
 
 def check_mesh_has_valid_points(context, runtime_context):
     invalid_meshes = [
@@ -12,7 +18,7 @@ def check_mesh_has_valid_points(context, runtime_context):
 
     if not invalid_meshes:
         return [CheckResult(
-            check_id="USD_MESH_HAS_VALID_POINTS",
+            check_id=USD_MESH_HAS_VALID_POINTS,
             label="Mesh Has Valid Points",
             category="Geometry",
             status=CheckStatus.PASSED,
@@ -25,7 +31,7 @@ def check_mesh_has_valid_points(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_MESH_HAS_VALID_POINTS",
+        check_id=USD_MESH_HAS_VALID_POINTS,
         label="Mesh Has Valid Points",
         category="Geometry",
         status=CheckStatus.FAILED,
@@ -50,7 +56,7 @@ def check_mesh_face_vertex_counts_valid(context, runtime_context):
 
     if not invalid_meshes:
         return [CheckResult(
-            check_id="USD_MESH_FACE_VERTEX_COUNTS_VALID",
+            check_id=USD_MESH_FACE_VERTEX_COUNTS_VALID,
             label="Mesh Face Vertex Counts Valid",
             category="Geometry",
             status=CheckStatus.PASSED,
@@ -63,7 +69,7 @@ def check_mesh_face_vertex_counts_valid(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_MESH_FACE_VERTEX_COUNTS_VALID",
+        check_id=USD_MESH_FACE_VERTEX_COUNTS_VALID,
         label="Mesh Face Vertex Counts Valid",
         category="Geometry",
         status=CheckStatus.FAILED,
@@ -91,7 +97,7 @@ def check_mesh_has_valid_topology(context, runtime_context):
 
     if not invalid_meshes:
         return [CheckResult(
-            check_id="USD_MESH_HAS_VALID_TOPOLOGY",
+            check_id=USD_MESH_HAS_VALID_TOPOLOGY,
             label="Mesh Has Valid Topology",
             category="Geometry",
             status=CheckStatus.PASSED,
@@ -104,7 +110,7 @@ def check_mesh_has_valid_topology(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_MESH_HAS_VALID_TOPOLOGY",
+        check_id=USD_MESH_HAS_VALID_TOPOLOGY,
         label="Mesh Has Valid Topology",
         category="Geometry",
         status=CheckStatus.FAILED,
@@ -132,7 +138,7 @@ def check_mesh_polygon_count_limit(context, runtime_context):
 
     if not exceeding_meshes:
         return [CheckResult(
-            check_id="USD_MESH_POLYGON_COUNT_LIMIT",
+            check_id=USD_MESH_POLYGON_COUNT_LIMIT,
             label="Mesh Polygon Count Limit",
             category="Geometry",
             status=CheckStatus.PASSED,
@@ -148,7 +154,7 @@ def check_mesh_polygon_count_limit(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_MESH_POLYGON_COUNT_LIMIT",
+        check_id=USD_MESH_POLYGON_COUNT_LIMIT,
         label="Mesh Polygon Count Limit",
         category="Geometry",
         status=CheckStatus.FAILED,

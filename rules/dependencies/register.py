@@ -8,10 +8,15 @@ from .checks import (
     check_references_resolve,
 )
 
+from validation.check_ids import (
+    USD_DEPENDENCIES_RESOLVE,
+    USD_REFERENCES_RESOLVE,
+    USD_PAYLOADS_RESOLVE
+)
 
 def register_dependency_checks(registry):
     registry.register(CheckDefinition(
-        check_id="USD_DEPENDENCIES_RESOLVE",
+        check_id=USD_DEPENDENCIES_RESOLVE,
         label="USD Dependencies Resolve",
         description="Checks whether all referenced and payload USD dependencies resolve.",
         func=check_dependencies_resolve,
@@ -23,7 +28,7 @@ def register_dependency_checks(registry):
     ))
 
     registry.register(CheckDefinition(
-        check_id="USD_REFERENCES_RESOLVE",
+        check_id=USD_REFERENCES_RESOLVE,
         label="USD References Resolve",
         description="Checks whether all USD references resolve successfully.",
         func=check_references_resolve,
@@ -35,7 +40,7 @@ def register_dependency_checks(registry):
     ))
 
     registry.register(CheckDefinition(
-        check_id="USD_PAYLOADS_RESOLVE",
+        check_id=USD_PAYLOADS_RESOLVE,
         label="USD Payloads Resolve",
         description="Checks whether all USD payloads resolve successfully.",
         func=check_payloads_resolve,

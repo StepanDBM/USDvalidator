@@ -3,13 +3,19 @@
 from validation.enums import CheckStatus
 from validation.models import CheckResult
 
+from validation.check_ids import (
+    USD_NO_UNRESOLVED_REFERENCES,
+    USD_NO_UNRESOLVED_PAYLOADS,
+    USD_COMPOSITION_LAYERS_VALID,
+    USD_NO_UNEXPECTED_ARCS
+)
 
 def check_no_unresolved_references(context, runtime_context):
     unresolved = context.composition.unresolved_references
 
     if unresolved == 0:
         return [CheckResult(
-            check_id="USD_NO_UNRESOLVED_REFERENCES",
+            check_id=USD_NO_UNRESOLVED_REFERENCES,
             label="No Unresolved References",
             category="Composition",
             status=CheckStatus.PASSED,
@@ -21,7 +27,7 @@ def check_no_unresolved_references(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_NO_UNRESOLVED_REFERENCES",
+        check_id=USD_NO_UNRESOLVED_REFERENCES,
         label="No Unresolved References",
         category="Composition",
         status=CheckStatus.FAILED,
@@ -43,7 +49,7 @@ def check_no_unresolved_payloads(context, runtime_context):
 
     if unresolved == 0:
         return [CheckResult(
-            check_id="USD_NO_UNRESOLVED_PAYLOADS",
+            check_id=USD_NO_UNRESOLVED_PAYLOADS,
             label="No Unresolved Payloads",
             category="Composition",
             status=CheckStatus.PASSED,
@@ -55,7 +61,7 @@ def check_no_unresolved_payloads(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_NO_UNRESOLVED_PAYLOADS",
+        check_id=USD_NO_UNRESOLVED_PAYLOADS,
         label="No Unresolved Payloads",
         category="Composition",
         status=CheckStatus.FAILED,
@@ -77,7 +83,7 @@ def check_composition_layers_valid(context, runtime_context):
 
     if invalid_layers == 0:
         return [CheckResult(
-            check_id="USD_COMPOSITION_LAYERS_VALID",
+            check_id=USD_COMPOSITION_LAYERS_VALID,
             label="Composition Layers Valid",
             category="Composition",
             status=CheckStatus.PASSED,
@@ -89,7 +95,7 @@ def check_composition_layers_valid(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_COMPOSITION_LAYERS_VALID",
+        check_id=USD_COMPOSITION_LAYERS_VALID,
         label="Composition Layers Valid",
         category="Composition",
         status=CheckStatus.FAILED,
@@ -112,7 +118,7 @@ def check_no_unexpected_arcs(context, runtime_context):
 
     if unexpected_arcs == 0:
         return [CheckResult(
-            check_id="USD_NO_UNEXPECTED_ARCS",
+            check_id=USD_NO_UNEXPECTED_ARCS,
             label="No Unexpected Composition Arcs",
             category="Composition",
             status=CheckStatus.PASSED,
@@ -124,7 +130,7 @@ def check_no_unexpected_arcs(context, runtime_context):
         )]
 
     return [CheckResult(
-        check_id="USD_NO_UNEXPECTED_ARCS",
+        check_id=USD_NO_UNEXPECTED_ARCS,
         label="No Unexpected Composition Arcs",
         category="Composition",
         status=CheckStatus.FAILED,
