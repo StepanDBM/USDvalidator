@@ -1,0 +1,473 @@
+{
+  "schema_version": "1.0",
+  "source": {
+    "path": "E:/Work/3D/my_3D/KANEDA/Projects/Scripting/USDs/OpenUSD_Learning/lessons/USDvalidator/tests/fixtures/valid_stage.usda",
+    "stage_opened": true,
+    "root_layer": "E:/Work/3D/my_3D/KANEDA/Projects/Scripting/USDs/OpenUSD_Learning/lessons/USDvalidator/tests/fixtures/valid_stage.usda"
+  },
+  "stage_health": {
+    "file": {
+      "filename": "valid_stage.usda",
+      "extension": ".usda",
+      "size_bytes": 3340,
+      "modification_time": 1789042434.9172273
+    },
+    "stage": {
+      "open_duration_seconds": 0.007359699986409396,
+      "root_layer": "E:/Work/3D/my_3D/KANEDA/Projects/Scripting/USDs/OpenUSD_Learning/lessons/USDvalidator/tests/fixtures/valid_stage.usda",
+      "default_prim": "/World",
+      "default_prim_valid": true,
+      "up_axis": "Y",
+      "meters_per_unit": 1.0,
+      "frames_per_second": 24.0,
+      "time_codes_per_second": 24.0,
+      "start_time_code": 1.0,
+      "end_time_code": 120.0
+    },
+    "scene": {
+      "total_prims": 15,
+      "root_prims": 1,
+      "active_prims": 15,
+      "inactive_prims": 0,
+      "defined_prims": 15,
+      "abstract_prims": 0,
+      "instance_prims": 0
+    },
+    "types": {
+      "meshes": 5,
+      "xforms": 6,
+      "cameras": 1,
+      "lights": 1,
+      "materials": 1,
+      "curves": 0,
+      "point_instancers": 0
+    },
+    "composition": {
+      "used_layers": 3,
+      "sublayers": 0,
+      "references": 1,
+      "payloads": 1,
+      "variant_sets": 0,
+      "unresolved_references": 0,
+      "unresolved_payloads": 0,
+      "invalid_layers": 0,
+      "unexpected_arcs": 0
+    },
+    "geometry": {
+      "mesh_count": 5,
+      "total_points": 36,
+      "total_faces": 25,
+      "total_polygons": 25,
+      "polygon_count_limit": 100000,
+      "meshes": [
+        {
+          "path": "/World/Environment/Ground",
+          "points_count": 4,
+          "face_count": 1,
+          "polygon_count": 1,
+          "points_valid": true,
+          "face_vertex_counts_valid": true,
+          "topology_valid": true
+        },
+        {
+          "path": "/World/Character/Body",
+          "points_count": 8,
+          "face_count": 6,
+          "polygon_count": 6,
+          "points_valid": true,
+          "face_vertex_counts_valid": true,
+          "topology_valid": true
+        },
+        {
+          "path": "/World/Character/Head/HeadMesh",
+          "points_count": 8,
+          "face_count": 6,
+          "polygon_count": 6,
+          "points_valid": true,
+          "face_vertex_counts_valid": true,
+          "topology_valid": true
+        },
+        {
+          "path": "/World/ReferencedAsset/Mesh",
+          "points_count": 8,
+          "face_count": 6,
+          "polygon_count": 6,
+          "points_valid": true,
+          "face_vertex_counts_valid": true,
+          "topology_valid": true
+        },
+        {
+          "path": "/World/PayloadAsset/Mesh",
+          "points_count": 8,
+          "face_count": 6,
+          "polygon_count": 6,
+          "points_valid": true,
+          "face_vertex_counts_valid": true,
+          "topology_valid": true
+        }
+      ]
+    },
+    "animation": {
+      "invalid_time_samples": []
+    }
+  },
+  "summary": {
+    "total": 23,
+    "passed": 23,
+    "failed": 0,
+    "skipped": 0,
+    "internal_errors": 0,
+    "errors": 0,
+    "warnings": 0,
+    "info": 0
+  },
+  "results": [
+    {
+      "check_id": "USD_STAGE_CAN_OPEN",
+      "label": "Stage Can Open",
+      "category": "Stage",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "The USD Stage opened successfully.",
+      "location": "E:/Work/3D/my_3D/KANEDA/Projects/Scripting/USDs/OpenUSD_Learning/lessons/USDvalidator/tests/fixtures/valid_stage.usda",
+      "layer": "E:/Work/3D/my_3D/KANEDA/Projects/Scripting/USDs/OpenUSD_Learning/lessons/USDvalidator/tests/fixtures/valid_stage.usda",
+      "suggestion": "",
+      "details": {},
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_STAGE_HAS_PRIMS",
+      "label": "Stage Has Prims",
+      "category": "Stage",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "The stage contains 15 prim(s).",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "total_prims": 15
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_STAGE_HAS_ROOT_PRIM",
+      "label": "Stage Has Root Prim",
+      "category": "Stage",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "The stage contains 1 root prim(s).",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "root_prims": 1
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_ANIMATION_FRAME_RATE_VALID",
+      "label": "Animation Frame Rate Valid",
+      "category": "Animation",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "The animation frame rate is valid: 24.0 FPS at 24.0 time codes per second.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "frames_per_second": 24.0,
+        "time_codes_per_second": 24.0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_ANIMATION_HAS_NO_INVALID_TIME_SAMPLES",
+      "label": "Animation Has No Invalid Time Samples",
+      "category": "Animation",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "No invalid animation time samples were detected.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "invalid_sample_count": 0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_STAGE_FRAME_RANGE_VALID",
+      "label": "Stage Frame Range Valid",
+      "category": "Animation",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "The stage frame range is valid: 1.0 to 120.0.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "start_time_code": 1.0,
+        "end_time_code": 120.0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_DEFAULT_PRIM_AUTHORED",
+      "label": "Default Prim Authored",
+      "category": "Metadata",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "The stage has an authored default prim: /World.",
+      "location": "/World",
+      "layer": "",
+      "suggestion": "",
+      "details": {},
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_DEFAULT_PRIM_VALID",
+      "label": "Default Prim Valid",
+      "category": "Metadata",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "The authored defaultPrim resolves to a valid prim.",
+      "location": "/World",
+      "layer": "E:/Work/3D/my_3D/KANEDA/Projects/Scripting/USDs/OpenUSD_Learning/lessons/USDvalidator/tests/fixtures/valid_stage.usda",
+      "suggestion": "",
+      "details": {},
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_FRAME_RATE_VALID",
+      "label": "Frame Rate Valid",
+      "category": "Metadata",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "The stage has valid rates: 24.0 FPS, 24.0 timeCodesPerSecond.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "frames_per_second": 24.0,
+        "time_codes_per_second": 24.0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_METERS_PER_UNIT_AUTHORED",
+      "label": "Meters Per Unit Authored",
+      "category": "Metadata",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "The stage has a valid metersPerUnit value: 1.0.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "meters_per_unit": 1.0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_TIME_CODES_VALID",
+      "label": "Time Codes Valid",
+      "category": "Metadata",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "The stage has a valid time range: 1.0 - 120.0.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "start_time_code": 1.0,
+        "end_time_code": 120.0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_UP_AXIS_VALID",
+      "label": "Up Axis Valid",
+      "category": "Metadata",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "The stage uses a valid up axis: Y.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "up_axis": "Y"
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_COMPOSITION_LAYERS_VALID",
+      "label": "Composition Layers Valid",
+      "category": "Composition",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "All composition layers are valid.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "invalid_layers": 0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_NO_UNEXPECTED_ARCS",
+      "label": "No Unexpected Composition Arcs",
+      "category": "Composition",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "The stage contains no unexpected composition arcs.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "unexpected_arcs": 0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_NO_UNRESOLVED_PAYLOADS",
+      "label": "No Unresolved Payloads",
+      "category": "Composition",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "The stage contains no unresolved payloads.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "unresolved_payloads": 0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_NO_UNRESOLVED_REFERENCES",
+      "label": "No Unresolved References",
+      "category": "Composition",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "The stage contains no unresolved references.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "unresolved_references": 0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_DEPENDENCIES_RESOLVE",
+      "label": "USD Dependencies Resolve",
+      "category": "Dependencies",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "All USD dependencies resolve successfully.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "unresolved_count": 0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_PAYLOADS_RESOLVE",
+      "label": "USD Payloads Resolve",
+      "category": "Dependencies",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "All USD payloads resolve successfully.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "unresolved_count": 0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_REFERENCES_RESOLVE",
+      "label": "USD References Resolve",
+      "category": "Dependencies",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "All USD references resolve successfully.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "unresolved_count": 0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_MESH_FACE_VERTEX_COUNTS_VALID",
+      "label": "Mesh Face Vertex Counts Valid",
+      "category": "Geometry",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "All meshes have valid face vertex counts.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "mesh_count": 5,
+        "invalid_mesh_count": 0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_MESH_HAS_VALID_POINTS",
+      "label": "Mesh Has Valid Points",
+      "category": "Geometry",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "All meshes have valid point data.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "mesh_count": 5,
+        "invalid_mesh_count": 0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_MESH_HAS_VALID_TOPOLOGY",
+      "label": "Mesh Has Valid Topology",
+      "category": "Geometry",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "All meshes have valid topology.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "mesh_count": 5,
+        "invalid_mesh_count": 0
+      },
+      "check_version": "1"
+    },
+    {
+      "check_id": "USD_MESH_POLYGON_COUNT_LIMIT",
+      "label": "Mesh Polygon Count Limit",
+      "category": "Geometry",
+      "status": "PASSED",
+      "severity": "ERROR",
+      "message": "All meshes are within the polygon limit of 100000.",
+      "location": "",
+      "layer": "",
+      "suggestion": "",
+      "details": {
+        "polygon_count_limit": 100000,
+        "exceeding_mesh_count": 0
+      },
+      "check_version": "1"
+    }
+  ]
+}
