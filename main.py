@@ -62,7 +62,7 @@ def print_batch_report(batch):
     print()
 
     for report in batch.reports:
-        status = "PASS" if report.publish_passed else "FAIL"
+        status = "PASSED" if report.publish_passed else "FAILED"
         print(f"[{status}] {report.source_path}")
 
 

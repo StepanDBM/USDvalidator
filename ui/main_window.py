@@ -1,21 +1,25 @@
-from pathlib import Path
-
 from PySide6.QtWidgets import (
+    QComboBox,
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QTabBar,
+    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
 
-from validation import PublishChecker
-from validation.batch_validator import BatchValidator
 from validation.profile_loader import ProfileLoader
+from rules import build_registry
 
-from .widgets.profile_selector import ProfileSelector
-from .widgets.results_view import ResultsView
-from .widgets.source_selector import USD_EXTENSIONS, SourceSelector
-from .widgets.validate_button import ValidateButton
+from .stylesheet import (
+    dark_theme,
+    light_theme,
+    dark_blue_orange_theme,
+)
+
+from .widgets.validation_view import ValidationView
+from .widgets.profile_editor import ProfileEditor
 
 
 class MainWindow(QMainWindow):
@@ -23,79 +27,131 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("USDvalidator")
-        self.resize(900, 650)
+        self.resize(1100, 700)
 
         self.profile_loader = ProfileLoader(
             "validation/profiles.json"
         )
 
+        self.registry = build_registry()
+
         self._build_ui()
         self._connect_signals()
 
     def _build_ui(self):
-        central = QWidget()
-        layout = QVBoxLayout(central)
+        central_widget = QWidget()
+        main_layout = QVBoxLayout(central_widget)
 
-        self.source_selector = SourceSelector()
-        layout.addWidget(self.source_selector)
+        # --------------------------------------------------
+        # Top bar
+        # --------------------------------------------------
 
-        self.profile_selector = ProfileSelector(
-            self.profile_loader
+        top_bar = QWidget()
+        top_layout = QHBoxLayout(top_bar)
+
+        top_layout.setContentsMargins(
+            0, 0, 0, 0
         )
-        layout.addWidget(self.profile_selector)
 
-        self.validate_button = ValidateButton()
-        layout.addWidget(self.validate_button)
+        # Custom tab bar
+        self.tab_bar = QTabBar()
 
-        layout.addWidget(QLabel("Results"))
+        self.tab_bar.addTab("Validation")
+        self.tab_bar.addTab("Profiles")
 
-        self.results_view = ResultsView()
-        layout.addWidget(self.results_view, 1)
+        top_layout.addWidget(
+            self.tab_bar
+        )
 
-        self.setCentralWidget(central)
+        # Push theme controls to the right
+        top_layout.addStretch()
+
+        top_layout.addWidget(
+            QLabel("Theme")
+        )
+
+        self.theme_selector = QComboBox()
+
+        self.theme_selector.addItems(
+            [
+                "Dark",
+                "Light",
+                "Dark Blue / Orange",
+            ]
+        )
+
+        top_layout.addWidget(
+            self.theme_selector
+        )
+
+        main_layout.addWidget(
+            top_bar
+        )
+
+        # --------------------------------------------------
+        # Tab widget
+        # --------------------------------------------------
+
+        self.tabs = QTabWidget()
+
+        # Hide the QTabWidget's own tab bar
+        self.tabs.tabBar().hide()
+
+        self.validation_view = ValidationView(
+            profile_loader=self.profile_loader
+        )
+
+        self.profile_editor = ProfileEditor(
+            profile_loader=self.profile_loader,
+            registry=self.registry,
+        )
+
+        self.tabs.addTab(
+            self.validation_view,
+            "Validation",
+        )
+
+        self.tabs.addTab(
+            self.profile_editor,
+            "Profiles",
+        )
+
+        main_layout.addWidget(
+            self.tabs,
+            1,
+        )
+
+        self.setCentralWidget(
+            central_widget
+        )
 
     def _connect_signals(self):
-        self.validate_button.validate_requested.connect(
-            self._run_validation
+        self.profile_editor.profiles_changed.connect(
+            self._refresh_validation_profiles
         )
 
-    def _run_validation(self):
-        source_path = self.source_selector.get_source()
-
-        if source_path is None:
-            self.results_view.show_message(
-                "Select a USD file or directory first."
-            )
-            return
-
-        profile = self.profile_selector.get_profile()
-        checker = PublishChecker(profile=profile)
-
-        if self.source_selector.is_file_mode():
-            self._run_single(checker, source_path)
-        else:
-            self._run_batch(checker, source_path)
-
-    def _run_single(self, checker, source_path):
-        report = checker.check(source_path)
-        self.results_view.show_single_report(report)
-
-    def _run_batch(self, checker, source_path):
-        source_paths = sorted(
-            path
-            for path in Path(source_path).iterdir()
-            if path.is_file()
-            and path.suffix.lower() in USD_EXTENSIONS
+        self.tab_bar.currentChanged.connect(
+            self.tabs.setCurrentIndex
         )
 
-        if not source_paths:
-            self.results_view.show_message(
-                "No supported USD files found in the selected directory."
-            )
-            return
+        self.tabs.currentChanged.connect(
+            self.tab_bar.setCurrentIndex
+        )
 
-        batch = BatchValidator(
-            checker=checker
-        ).validate(source_paths)
+        self.theme_selector.currentIndexChanged.connect(
+            self._change_theme
+        )
 
-        self.results_view.show_batch_report(batch)
+    def _change_theme(self, index):
+        themes = [
+            dark_theme,
+            light_theme,
+            dark_blue_orange_theme,
+        ]
+
+        self.setStyleSheet(
+            themes[index]()
+        )
+
+    def _refresh_validation_profiles(self):
+        self.validation_view.refresh_profiles()

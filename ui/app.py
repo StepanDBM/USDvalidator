@@ -3,12 +3,14 @@ import sys
 from PySide6.QtWidgets import QApplication
 
 from .main_window import MainWindow
-from .stylesheet import dark_theme, light_theme
+from .stylesheet import dark_theme
 
 
 def main():
     app = QApplication(sys.argv)
+
     app.setStyleSheet(dark_theme())
+
     window = MainWindow()
     window.show()
 

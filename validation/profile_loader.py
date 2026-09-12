@@ -1,10 +1,8 @@
-# validation/profile_loader.py
-
 import json
-#from dataclasses import dataclass
 from pathlib import Path
 
 from .profiles import ValidationProfile
+
 
 class ProfileRegistry:
 
@@ -70,3 +68,99 @@ class ProfileLoader:
 
     def get_profile_names(self):
         return self.registry.names()
+
+    # ------------------------------------------------------------------
+    # Write side
+    # ------------------------------------------------------------------
+
+    def add_profile(self, profile):
+        if profile.name in self.registry.names():
+            raise ValueError(
+                f"Profile already exists: {profile.name}"
+            )
+
+        profiles = list(self.registry.all())
+        profiles.append(profile)
+
+        self.registry = ProfileRegistry(profiles)
+
+    def update_profile(self, profile):
+        if profile.name not in self.registry.names():
+            raise KeyError(
+                f"Profile does not exist: {profile.name}"
+            )
+
+        profiles = [
+            profile if existing.name == profile.name else existing
+            for existing in self.registry.all()
+        ]
+
+        self.registry = ProfileRegistry(profiles)
+
+    def delete_profile(self, name):
+        if name not in self.registry.names():
+            raise KeyError(
+                f"Profile does not exist: {name}"
+            )
+
+        profiles = [
+            profile
+            for profile in self.registry.all()
+            if profile.name != name
+        ]
+
+        if not profiles:
+            raise ValueError(
+                "Cannot delete the last validation profile."
+            )
+
+        self.registry = ProfileRegistry(profiles)
+
+    def save(self):
+        data = {
+            "profiles": [
+                {
+                    "name": profile.name,
+                    "description": profile.description,
+                    "enabled_checks": sorted(
+                        profile.enabled_check_ids
+                    ),
+                    "disabled_checks": sorted(
+                        profile.disabled_check_ids
+                    ),
+                }
+                for profile in self.registry.all()
+            ]
+        }
+
+        with self.profiles_path.open(
+            "w",
+            encoding="utf-8",
+        ) as file:
+            json.dump(
+                data,
+                file,
+                indent=4,
+            )
+            file.write("\n")
+
+    def replace_profile(self, old_name, profile):
+        if old_name not in self.registry.names():
+            raise KeyError(
+                f"Profile does not exist: {old_name}"
+            )
+
+        if (
+            profile.name != old_name
+            and profile.name in self.registry.names()
+        ):
+            raise ValueError(
+                f"Profile already exists: {profile.name}"
+            )
+
+        profiles = [
+            profile if existing.name == old_name else existing
+            for existing in self.registry.all()
+        ]
+
+        self.registry = ProfileRegistry(profiles)

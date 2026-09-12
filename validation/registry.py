@@ -1,5 +1,3 @@
-# validation/registry.py
-
 from .models import CheckDefinition
 from .phases import phase_order
 
@@ -10,12 +8,18 @@ class ValidationRegistry:
 
     def register(self, definition: CheckDefinition):
         if definition.check_id in self._definitions:
-            raise ValueError(f"Duplicate check ID: {definition.check_id}")
+            raise ValueError(
+                f"Duplicate check ID: {definition.check_id}"
+            )
+
         phase_order(definition.phase)
         self._definitions[definition.check_id] = definition
 
     def get(self, check_id):
         return self._definitions[check_id]
+
+    def all(self):
+        return tuple(self._definitions.values())
 
     def resolve_profile(self, profile):
         return self.resolve(
@@ -29,13 +33,28 @@ class ValidationRegistry:
         definitions = []
 
         for definition in self._definitions.values():
-            if not definition.enabled or definition.check_id in disabled_ids:
+            if (
+                not definition.enabled
+                or definition.check_id in disabled_ids
+            ):
                 continue
-            if enabled_ids and definition.check_id not in enabled_ids:
+
+            if (
+                enabled_ids
+                and definition.check_id not in enabled_ids
+            ):
                 continue
+
             definitions.append(definition)
 
-        return sorted(definitions, key=lambda item: (phase_order(item.phase), item.category, item.check_id))
+        return sorted(
+            definitions,
+            key=lambda item: (
+                phase_order(item.phase),
+                item.category,
+                item.check_id,
+            ),
+        )
 
     def __len__(self):
         return len(self._definitions)
