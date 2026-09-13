@@ -29,7 +29,8 @@
                 "USD_UP_AXIS_VALID"
             ],
             "disabled_checks": [],
-            "overrides": []
+            "overrides": [],
+            "include_all_checks": false
         },
         {
             "name": "default",
@@ -54,7 +55,8 @@
                 "USD_UP_AXIS_VALID"
             ],
             "disabled_checks": [],
-            "overrides": []
+            "overrides": [],
+            "include_all_checks": false
         },
         {
             "name": "model_publish",
@@ -82,10 +84,11 @@
             "overrides": [
                 {
                     "path": "geometry.polygon_count_limit",
-                    "value": 500000,
-                    "enabled": false
+                    "value": 690000,
+                    "enabled": true
                 }
-            ]
+            ],
+            "include_all_checks": false
         },
         {
             "name": "animation_publish",
@@ -111,7 +114,8 @@
                 "USD_UP_AXIS_VALID"
             ],
             "disabled_checks": [],
-            "overrides": []
+            "overrides": [],
+            "include_all_checks": false
         },
         {
             "name": "layout_publish",
@@ -132,7 +136,8 @@
                 "USD_UP_AXIS_VALID"
             ],
             "disabled_checks": [],
-            "overrides": []
+            "overrides": [],
+            "include_all_checks": false
         },
         {
             "name": "strict",
@@ -167,7 +172,8 @@
                     "value": 200000,
                     "enabled": true
                 }
-            ]
+            ],
+            "include_all_checks": false
         }
     ]
 }

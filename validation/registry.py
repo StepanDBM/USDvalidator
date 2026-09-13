@@ -25,9 +25,10 @@ class ValidationRegistry:
         return self.resolve(
             enabled_ids=profile.enabled_check_ids,
             disabled_ids=profile.disabled_check_ids,
+            include_all=profile.include_all_checks,
         )
 
-    def resolve(self, enabled_ids=None, disabled_ids=None):
+    def resolve(self, enabled_ids=None, disabled_ids=None, include_all=True):
         enabled_ids = set(enabled_ids or ())
         disabled_ids = set(disabled_ids or ())
         definitions = []
@@ -39,10 +40,7 @@ class ValidationRegistry:
             ):
                 continue
 
-            if (
-                enabled_ids
-                and definition.check_id not in enabled_ids
-            ):
+            if not include_all and definition.check_id not in enabled_ids:
                 continue
 
             definitions.append(definition)

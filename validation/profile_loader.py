@@ -53,6 +53,7 @@ class ProfileLoader:
                         AttributeOverride.from_dict(item)
                         for item in entry.get("overrides", [])
                     ),
+                    include_all_checks=entry.get("include_all_checks", False),
                 )
             )
 
@@ -126,6 +127,7 @@ class ProfileLoader:
                     "enabled_checks": sorted(profile.enabled_check_ids),
                     "disabled_checks": sorted(profile.disabled_check_ids),
                     "overrides": [override.to_dict() for override in profile.overrides],
+                    "include_all_checks": profile.include_all_checks,
                 }
                 for profile in self.registry.all()
             ]

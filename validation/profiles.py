@@ -12,6 +12,7 @@ class ValidationProfile:
     enabled_check_ids: frozenset[str] = field(default_factory=frozenset)
     disabled_check_ids: frozenset[str] = field(default_factory=frozenset)
     overrides: tuple[AttributeOverride, ...] = ()
+    include_all_checks: bool = False
 
     def __post_init__(self):
         if not self.name.strip():

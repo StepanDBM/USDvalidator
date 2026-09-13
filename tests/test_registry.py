@@ -33,3 +33,27 @@ def test_registry_sorts_by_execution_phase():
     registry.register(definition("USD_GEOMETRY", "geometry"))
     registry.register(definition("USD_OPEN", "open"))
     assert [item.check_id for item in registry.resolve()] == ["USD_OPEN", "USD_GEOMETRY"]
+
+
+
+def test_explicit_empty_profile_resolves_no_checks():
+    from validation.profiles import ValidationProfile
+
+    registry = ValidationRegistry()
+    registry.register(definition())
+
+    assert registry.resolve_profile(ValidationProfile(name="empty")) == []
+
+
+def test_explicit_profile_resolves_only_added_checks():
+    from validation.profiles import ValidationProfile
+
+    registry = ValidationRegistry()
+    registry.register(definition("USD_A"))
+    registry.register(definition("USD_B"))
+    profile = ValidationProfile(
+        name="custom",
+        enabled_check_ids=frozenset({"USD_B"}),
+    )
+
+    assert [item.check_id for item in registry.resolve_profile(profile)] == ["USD_B"]

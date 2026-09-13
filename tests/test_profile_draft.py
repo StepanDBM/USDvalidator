@@ -77,3 +77,35 @@ def test_profile_draft_removes_override():
     )
 
     assert draft.overrides == []
+
+
+def test_profile_draft_adds_registered_checks():
+    draft = ProfileDraft(name="custom", description="")
+    draft.add_checks({"USD_TEST_A", "USD_TEST_B"})
+
+    assert draft.enabled_check_ids == {"USD_TEST_A", "USD_TEST_B"}
+    assert draft.has_check("USD_TEST_A")
+
+
+def test_profile_draft_removes_checks_without_touching_overrides():
+    override = AttributeOverride(
+        path="geometry.polygon_count_limit",
+        value=200000,
+    )
+    draft = ProfileDraft(
+        name="custom",
+        description="",
+        enabled_check_ids={"USD_TEST_A", "USD_TEST_B"},
+        overrides=[override],
+    )
+    draft.remove_checks({"USD_TEST_A"})
+
+    assert draft.enabled_check_ids == {"USD_TEST_B"}
+    assert draft.overrides == [override]
+
+
+def test_empty_explicit_profile_contains_no_checks():
+    draft = ProfileDraft(name="empty", description="")
+
+    assert not draft.include_all_checks
+    assert not draft.has_check("USD_TEST")

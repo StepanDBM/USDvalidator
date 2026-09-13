@@ -11,6 +11,8 @@ class ConfigFieldDefinition:
     value_type: type
     minimum: int | float | None = None
     maximum: int | float | None = None
+    choices: tuple | None = None
+    unit: str = ""
     related_check_ids: tuple[str, ...] = ()
 
 
