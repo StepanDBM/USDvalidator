@@ -29,34 +29,45 @@ class ResultsBrowser(QWidget):
     def _build_ui(self):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+
         self.summary_header = SummaryHeader()
         self.filter_bar = ResultsFilterBar()
         layout.addWidget(self.summary_header)
         layout.addWidget(self.filter_bar)
+
         self.main_splitter = QSplitter(Qt.Orientation.Horizontal)
         self.file_panel = QWidget()
+
         file_layout = QVBoxLayout(self.file_panel)
         file_layout.setContentsMargins(0, 0, 0, 0)
         file_layout.addWidget(QLabel("Batch Files"))
+
         self.file_list = QListWidget()
         file_layout.addWidget(self.file_list)
+
         self.file_panel.setMinimumWidth(240)
         self.file_panel.hide()
+
         results_splitter = QSplitter(Qt.Orientation.Vertical)
         self.results_tree = ResultsTree()
         self.result_details = ResultDetails()
+
         results_splitter.addWidget(self.results_tree)
         results_splitter.addWidget(self.result_details)
         results_splitter.setStretchFactor(0, 2)
         results_splitter.setStretchFactor(1, 1)
+
         self.main_splitter.addWidget(self.file_panel)
         self.main_splitter.addWidget(results_splitter)
         self.main_splitter.setStretchFactor(0, 0)
         self.main_splitter.setStretchFactor(1, 1)
+
         layout.addWidget(self.main_splitter, 1)
+
         self.message_label = QLabel()
         self.message_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.message_label.setWordWrap(True)
+
         layout.addWidget(self.message_label)
         self.message_label.hide()
 

@@ -1,21 +1,21 @@
+# ui/app.py
+
 import sys
 
 from PySide6.QtWidgets import QApplication
 
 from .main_window import MainWindow
-from .stylesheet import dark_blue_orange_theme
 
 
 def main():
-    app = QApplication(sys.argv)
-
-    app.setStyleSheet(dark_blue_orange_theme())
+    application = QApplication(sys.argv)
+    application.setStyle("Fusion")
 
     window = MainWindow()
     window.show()
 
-    sys.exit(app.exec())
+    return application.exec()
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

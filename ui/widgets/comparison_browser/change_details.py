@@ -1,3 +1,5 @@
+# ui/widgets/comparison_browser/change_details.py
+
 import json
 from html import escape
 

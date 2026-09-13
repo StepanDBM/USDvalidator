@@ -6,6 +6,7 @@ from pxr import UsdGeom
 from extraction.animation import AnimationExtractor
 from extraction.geometry import GeometryExtractor
 from extraction.pipeline import PipelineExtractor
+from extraction.lookdev import LookdevExtractor
 
 
 class StageHealthExtractor:
@@ -76,6 +77,7 @@ class StageHealthExtractor:
         health.geometry = GeometryExtractor().extract(stage)
         health.animation = AnimationExtractor().extract(stage)
         health.pipeline = PipelineExtractor().extract(stage)
+        health.lookdev = LookdevExtractor().extract(stage)
         return health
 
     @staticmethod

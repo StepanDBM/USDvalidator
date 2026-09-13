@@ -1,18 +1,17 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QToolButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QSizePolicy, QToolButton, QVBoxLayout, QWidget
 
 
 class CollapsiblePanel(QWidget):
-    def __init__(
-        self,
-        title,
-        content_widget,
-        expanded=False,
-        parent=None,
-    ):
+    def __init__(self, title, content_widget, expanded=True, parent=None):
         super().__init__(parent)
 
         self.content_widget = content_widget
+
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Maximum,
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -24,6 +23,10 @@ class CollapsiblePanel(QWidget):
         self.toggle_button.setChecked(expanded)
         self.toggle_button.setToolButtonStyle(
             Qt.ToolButtonStyle.ToolButtonTextBesideIcon
+        )
+        self.toggle_button.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed,
         )
 
         layout.addWidget(self.toggle_button)
@@ -39,11 +42,10 @@ class CollapsiblePanel(QWidget):
         self.toggle_button.setChecked(expanded)
 
     def _set_expanded(self, expanded):
-        arrow = (
+        self.toggle_button.setArrowType(
             Qt.ArrowType.DownArrow
             if expanded
             else Qt.ArrowType.RightArrow
         )
-
-        self.toggle_button.setArrowType(arrow)
         self.content_widget.setVisible(expanded)
+        self.updateGeometry()

@@ -1,0 +1,26 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    def Material "BrokenMaterial"
+    {
+        def Shader "BrokenShader"
+        {
+            uniform token info:id = "UnapprovedShader"
+        }
+    }
+    def Mesh "Body"
+    {
+        point3f[] points = [(-1, -1, 0), (1, -1, 0), (1, 1, 0), (-1, 1, 0)]
+        int[] faceVertexCounts = [4]
+        int[] faceVertexIndices = [0, 1, 2, 3]
+        normal3f[] normals = [(0, 0, 1)] (interpolation = "vertex")
+        texCoord2f[] primvars:st = [(0, 0)] (interpolation = "vertex")
+        int[] primvars:st:indices = [0, 3, 0, 0]
+    }
+}

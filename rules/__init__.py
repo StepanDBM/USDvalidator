@@ -13,6 +13,11 @@ from .variants import register_variants_checks
 from .cameras import register_cameras_checks
 from .instancing import register_instancing_checks
 from .packaging import register_packaging_checks
+from .layers import register_layers_checks
+from .uvs import register_uvs_checks
+from .normals import register_normals_checks
+from .shaders import register_shaders_checks
+from .materials import register_materials_checks
 
 
 def build_registry():
@@ -30,6 +35,11 @@ def build_registry():
     register_cameras_checks(registry)
     register_instancing_checks(registry)
     register_packaging_checks(registry)
+    register_layers_checks(registry)
+    register_uvs_checks(registry)
+    register_normals_checks(registry)
+    register_shaders_checks(registry)
+    register_materials_checks(registry)
     return registry
 
 

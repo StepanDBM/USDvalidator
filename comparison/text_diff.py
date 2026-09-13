@@ -15,7 +15,12 @@ class DiffLine:
 def build_side_by_side_diff(previous_path, current_path):
     old_lines = _read_lines(previous_path)
     new_lines = _read_lines(current_path)
-    matcher = SequenceMatcher(None, old_lines, new_lines, autojunk=False)
+    matcher = SequenceMatcher(
+        None,
+        old_lines,
+        new_lines,
+        autojunk=True,
+    )
     rows = []
 
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():

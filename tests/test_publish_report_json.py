@@ -45,9 +45,7 @@ def test_publish_report_serializes_to_stable_json():
 def test_publish_report_writes_json(tmp_path):
     checker = PublishChecker()
     report = checker.check("tests/fixtures/valid_stage.usda")
-
     output_path = tmp_path / "report.json"
-
     report.write_json(output_path)
 
     assert output_path.exists()

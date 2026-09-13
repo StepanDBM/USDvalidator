@@ -29,48 +29,28 @@ class SourceSelector(QWidget):
 
         layout.addWidget(QLabel("Source:"))
 
-        self.source_label = QLabel(
-            "No file or folder selected"
-        )
+        self.source_label = QLabel("No file or folder selected")
         self.source_label.setMinimumWidth(300)
 
         self.browse_button = QPushButton("Browse")
+        self.browse_button.setProperty("menuButton", True)
+
         self.browse_menu = QMenu(self)
+        self.browse_button.setMenu(self.browse_menu)
 
-        file_action = self.browse_menu.addAction(
-            "Select USD File..."
-        )
+        file_action = self.browse_menu.addAction("Select USD File...")
+        folder_action = self.browse_menu.addAction("Select Folder...")
+        file_action.triggered.connect(self._browse_file)
 
-        folder_action = self.browse_menu.addAction(
-            "Select Folder..."
-        )
-
-        file_action.triggered.connect(
-            self._browse_file
-        )
-
-        folder_action.triggered.connect(
-            self._browse_folder
-        )
-
-        self.browse_button.setMenu(
-            self.browse_menu
-        )
-
-        layout.addWidget(
-            self.source_label,
-            1,
-        )
-
-        layout.addWidget(
-            self.browse_button
-        )
+        folder_action.triggered.connect(self._browse_folder)
+        self.browse_button.setMenu(self.browse_menu)
+        layout.addWidget(self.source_label, 1)
+        layout.addWidget(self.browse_button)
 
     def _browse_file(self):
         path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Select USD File",
-            self._initial_directory(),
+            self, "Select USD File",
+            self._initial_directory()
         )
 
         if not path:
@@ -85,9 +65,8 @@ class SourceSelector(QWidget):
 
     def _browse_folder(self):
         path = QFileDialog.getExistingDirectory(
-            self,
-            "Select USD Folder",
-            self._initial_directory(),
+            self, "Select USD Folder",
+            self._initial_directory()
         )
 
         if path:
@@ -115,10 +94,7 @@ class SourceSelector(QWidget):
                 source_path.suffix.lower()
                 not in USD_EXTENSIONS
             ):
-                raise ValueError(
-                    "The selected file is not "
-                    "a supported USD file."
-                )
+                raise ValueError("The selected file is not a supported USD file.")
 
             source_type = "USD File"
 
@@ -126,22 +102,13 @@ class SourceSelector(QWidget):
             source_type = "Folder"
 
         else:
-            raise ValueError(
-                "The source must be a file "
-                "or directory."
-            )
+            raise ValueError("The source must be a file or directory.")
 
         self.source_path = source_path
-        self.source_label.setText(
-            str(source_path)
-        )
-        self.source_label.setToolTip(
-            f"{source_type}: {source_path}"
-        )
+        self.source_label.setText(str(source_path))
+        self.source_label.setToolTip(f"{source_type}: {source_path}")
 
-        self.source_changed.emit(
-            source_path
-        )
+        self.source_changed.emit(source_path)
 
     def get_source(self):
         return self.source_path
@@ -149,9 +116,7 @@ class SourceSelector(QWidget):
     def clear_source(self):
         self.source_path = None
 
-        self.source_label.setText(
-            "No file or folder selected"
-        )
+        self.source_label.setText("No file or folder selected")
 
         self.source_label.setToolTip("")
         self.source_changed.emit(None)

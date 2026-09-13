@@ -14,6 +14,14 @@ from .geometry_context import (
 )
 
 from .animation_context import AnimationStatistics
+from .lookdev_context import (
+    LayerInfo,
+    LookdevStatistics,
+    MaterialBindingInfo,
+    MaterialInfo,
+    ShaderInfo,
+    SurfaceInfo,
+)
 from .pipeline_context import (
     CameraInfo,
     DependencyInfo,
@@ -32,6 +40,12 @@ __all__ = [
     "MeshGeometry",
     "AnimationStatistics",
     "CameraInfo",
+    "LayerInfo",
+    "LookdevStatistics",
+    "MaterialBindingInfo",
+    "MaterialInfo",
+    "ShaderInfo",
+    "SurfaceInfo",
     "DependencyInfo",
     "InstancingInfo",
     "PipelineStatistics",

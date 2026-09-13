@@ -105,6 +105,47 @@ class PackagingRuleConfig:
     allowed_extensions_csv: str = ".usd,.usda,.usdc,.usdz"
     filename_pattern: str = r"^[A-Za-z0-9_.-]+$"
 
+
+@dataclass
+class MaterialRuleConfig:
+    maximum_count: int = 1000
+    require_surface_output: bool = False
+    require_bindings_on_meshes: bool = False
+    required_scope_path: str = "/World/Materials"
+    require_materials_under_scope: bool = False
+
+
+@dataclass
+class ShaderRuleConfig:
+    maximum_count: int = 10000
+    require_id: bool = True
+    allowed_ids_csv: str = "UsdPreviewSurface,UsdUVTexture,UsdPrimvarReader_float2"
+    require_outputs: bool = True
+    require_relative_asset_paths: bool = True
+
+
+@dataclass
+class NormalRuleConfig:
+    require_authored: bool = False
+    allowed_interpolations_csv: str = "constant,uniform,vertex,varying,faceVarying"
+
+
+@dataclass
+class UVRuleConfig:
+    required: bool = False
+    required_set_name: str = "st"
+    maximum_sets_per_mesh: int = 8
+    allowed_interpolations_csv: str = "constant,uniform,vertex,varying,faceVarying"
+
+
+@dataclass
+class LayerRuleConfig:
+    maximum_used_layers: int = 1000
+    maximum_sublayers_per_layer: int = 100
+    allow_anonymous_layers: bool = False
+    allow_dirty_layers: bool = False
+    require_root_default_prim: bool = True
+
 @dataclass
 class ValidationRuleConfig:
     stage: StageRuleConfig = field(default_factory=StageRuleConfig)
@@ -119,3 +160,8 @@ class ValidationRuleConfig:
     cameras: CameraRuleConfig = field(default_factory=CameraRuleConfig)
     instancing: InstancingRuleConfig = field(default_factory=InstancingRuleConfig)
     packaging: PackagingRuleConfig = field(default_factory=PackagingRuleConfig)
+    materials: MaterialRuleConfig = field(default_factory=MaterialRuleConfig)
+    shaders: ShaderRuleConfig = field(default_factory=ShaderRuleConfig)
+    normals: NormalRuleConfig = field(default_factory=NormalRuleConfig)
+    uvs: UVRuleConfig = field(default_factory=UVRuleConfig)
+    layers: LayerRuleConfig = field(default_factory=LayerRuleConfig)

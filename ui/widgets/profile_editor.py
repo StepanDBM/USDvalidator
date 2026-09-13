@@ -1,16 +1,20 @@
+# ui/profile_editor.py
+
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QComboBox,
     QDialog,
     QFormLayout,
-    QGroupBox,
+    QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QListWidget,
     QMessageBox,
     QPushButton,
+    QScrollArea,
+    QSizePolicy,
     QSplitter,
     QTextEdit,
     QTreeWidget,
@@ -26,6 +30,10 @@ from ui.models.profile_draft import ProfileDraft
 from validation.config_fields import get_config_fields, get_fields_for_check
 from validation.profiles import ValidationProfile
 from validation.rule_config import ValidationRuleConfig
+
+from .collapsible_panel import CollapsiblePanel
+from .vertical_resize_handle import VerticalResizeHandle
+
 
 __all__ = ["ProfileDraft", "ProfileEditor"]
 
@@ -45,116 +53,267 @@ class ProfileEditor(QWidget):
         self.current_profile_name = None
         self.draft = None
         self._build_ui()
+        self._connect_signals()
         self._populate_filters()
         self._load_profile_list()
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(8, 8, 8, 8)
+
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.addWidget(self._build_profile_panel())
         splitter.addWidget(self._build_editor_panel())
         splitter.setStretchFactor(0, 0)
         splitter.setStretchFactor(1, 1)
+        splitter.setSizes([230, 900])
         layout.addWidget(splitter)
 
     def _build_profile_panel(self):
         widget = QWidget()
+        widget.setMinimumWidth(200)
+        widget.setMaximumWidth(320)
         layout = QVBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(6)
         layout.addWidget(QLabel("Profiles"))
+
         buttons = QHBoxLayout()
         self.new_button = QPushButton("New")
         self.delete_button = QPushButton("Delete")
         buttons.addWidget(self.new_button)
         buttons.addWidget(self.delete_button)
         layout.addLayout(buttons)
+
         self.profile_list = QListWidget()
         layout.addWidget(self.profile_list, 1)
         return widget
 
     def _build_editor_panel(self):
         widget = QWidget()
-        layout = QVBoxLayout(widget)
 
-        details_group = QGroupBox("Profile Details")
-        details_layout = QFormLayout(details_group)
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(8, 0, 0, 0)
+        layout.setSpacing(6)
+
+        self.editor_scroll_area = QScrollArea()
+        self.editor_scroll_area.setWidgetResizable(True)
+        self.editor_scroll_area.setFrameShape(QFrame.Shape.NoFrame)
+        self.editor_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.editor_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+
+        self.editor_scroll_content = QWidget()
+
+        content_layout = QVBoxLayout(self.editor_scroll_content)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(6)
+
+        self.profile_details_panel = CollapsiblePanel("Profile Details",
+            self._build_profile_details(), expanded=True,
+        )
+
+        self.check_filters_panel = CollapsiblePanel("Check Filters",
+            self._build_check_filters(), expanded=False,
+        )
+
+        self.profile_checks_panel = CollapsiblePanel("Profile Checks",
+            self._build_profile_checks(), expanded=True,
+        )
+
+        self.profile_overrides_panel = CollapsiblePanel("Profile Overrides",
+            self._build_profile_overrides(), expanded=False,
+        )
+
+        content_layout.addWidget(self.profile_details_panel)
+        content_layout.addWidget(self.check_filters_panel)
+        content_layout.addWidget(self.profile_checks_panel)
+        content_layout.addWidget(self.profile_overrides_panel)
+        content_layout.addStretch()
+
+        self.editor_scroll_area.setWidget(self.editor_scroll_content)
+
+        layout.addWidget(self.editor_scroll_area, 1)
+
+        actions = QHBoxLayout()
+        actions.addStretch()
+
+        self.reset_button = QPushButton("Reset")
+        self.save_button = QPushButton("Save")
+
+        actions.addWidget(self.reset_button)
+        actions.addWidget(self.save_button)
+
+        layout.addLayout(actions)
+
+        return widget
+
+    def _build_profile_details(self):
+        widget = QWidget()
+        layout = QFormLayout(widget)
+        layout.setContentsMargins(8, 4, 8, 8)
         self.name_edit = QLineEdit()
         self.description_edit = QTextEdit()
         self.description_edit.setMaximumHeight(80)
-        details_layout.addRow("Name:", self.name_edit)
-        details_layout.addRow("Description:", self.description_edit)
-        layout.addWidget(details_group)
+        layout.addRow("Name:", self.name_edit)
+        layout.addRow("Description:", self.description_edit)
+        return widget
 
-        filters_group = QGroupBox("Check Filters")
-        filters_layout = QHBoxLayout(filters_group)
+    def _build_check_filters(self):
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(8, 4, 8, 8)
         self.category_combo = QComboBox()
         self.tag_combo = QComboBox()
         self.search_edit = QLineEdit()
         self.search_edit.setPlaceholderText("Search profile checks...")
-        filters_layout.addWidget(QLabel("Category"))
-        filters_layout.addWidget(self.category_combo)
-        filters_layout.addWidget(QLabel("Tag"))
-        filters_layout.addWidget(self.tag_combo)
-        filters_layout.addWidget(self.search_edit, 1)
-        layout.addWidget(filters_group)
+        layout.addWidget(QLabel("Category"))
+        layout.addWidget(self.category_combo)
+        layout.addWidget(QLabel("Tag"))
+        layout.addWidget(self.tag_combo)
+        layout.addWidget(self.search_edit, 1)
+        return widget
 
-        checks_group = QGroupBox("Profile Checks")
-        checks_layout = QVBoxLayout(checks_group)
-        check_actions = QHBoxLayout()
+    def _build_profile_checks(self):
+        widget = QWidget()
+
+        widget.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed,
+        )
+
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(8, 4, 8, 8)
+        layout.setSpacing(4)
+
+        actions = QHBoxLayout()
+
         self.add_checks_button = QPushButton("Add Checks")
+
         self.remove_checks_button = QPushButton("Remove Selected")
-        check_actions.addWidget(self.add_checks_button)
-        check_actions.addWidget(self.remove_checks_button)
-        check_actions.addStretch()
-        checks_layout.addLayout(check_actions)
+
+        actions.addWidget(self.add_checks_button)
+        actions.addWidget(self.remove_checks_button)
+        actions.addStretch()
+
+        layout.addLayout(actions)
+
         self.check_tree = QTreeWidget()
-        self.check_tree.setHeaderLabels(["Check", "ID", "Phase", "Tags"])
+        self.check_tree.setHeaderLabels(
+            [
+                "Check",
+                "ID",
+                "Phase",
+                "Tags",
+            ]
+        )
+
         self.check_tree.setColumnWidth(0, 260)
         self.check_tree.setColumnWidth(1, 250)
         self.check_tree.setColumnWidth(2, 100)
-        self.check_tree.setSelectionMode(
-            QAbstractItemView.SelectionMode.ExtendedSelection
-        )
-        self.check_tree.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
-        checks_layout.addWidget(self.check_tree)
-        layout.addWidget(checks_group, 1)
 
-        overrides_group = QGroupBox("Profile Overrides")
-        overrides_layout = QVBoxLayout(overrides_group)
-        override_actions = QHBoxLayout()
+        self.check_tree.setMinimumHeight(180)
+
+        self.check_tree.setFixedHeight(340)
+
+        self.check_tree.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed,
+        )
+
+        self.check_tree.setSelectionMode(
+            QAbstractItemView
+            .SelectionMode
+            .ExtendedSelection
+        )
+
+        self.check_tree.setContextMenuPolicy(
+            Qt.ContextMenuPolicy
+            .CustomContextMenu
+        )
+
+        layout.addWidget(self.check_tree)
+
+        self.check_tree_resize_handle = VerticalResizeHandle()
+
+        self.check_tree_resize_handle.resize_requested.connect(
+            lambda delta: self._resize_tree(
+                self.check_tree,
+                self.profile_checks_panel,
+                delta,
+                180)
+)
+
+        layout.addWidget(self.check_tree_resize_handle)
+
+        return widget
+
+    def _build_profile_overrides(self):
+        widget = QWidget()
+
+        widget.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed,
+        )
+
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(8, 4, 8, 8)
+        layout.setSpacing(4)
+
+        actions = QHBoxLayout()
+
         self.create_override_button = QPushButton("Create Override")
         self.edit_override_button = QPushButton("Edit Override")
         self.toggle_override_button = QPushButton("Enable / Disable")
         self.remove_override_button = QPushButton("Remove Override")
-        override_actions.addWidget(self.create_override_button)
-        override_actions.addWidget(self.edit_override_button)
-        override_actions.addWidget(self.toggle_override_button)
-        override_actions.addWidget(self.remove_override_button)
-        override_actions.addStretch()
-        overrides_layout.addLayout(override_actions)
+
+        actions.addWidget(self.create_override_button)
+        actions.addWidget(self.edit_override_button)
+        actions.addWidget(self.toggle_override_button)
+        actions.addWidget(self.remove_override_button)
+        actions.addStretch()
+
+        layout.addLayout(actions)
+
         self.override_tree = QTreeWidget()
+
         self.override_tree.setHeaderLabels(
-            ["Path", "Value", "State", "Related Checks"]
+            [
+                "Path",
+                "Value",
+                "State",
+                "Related Checks",
+            ]
         )
+
         self.override_tree.setColumnWidth(0, 260)
         self.override_tree.setColumnWidth(1, 140)
         self.override_tree.setColumnWidth(2, 90)
-        self.override_tree.setMaximumHeight(190)
-        self.override_tree.setContextMenuPolicy(
-            Qt.ContextMenuPolicy.CustomContextMenu
-        )
-        overrides_layout.addWidget(self.override_tree)
-        layout.addWidget(overrides_group)
 
-        actions = QHBoxLayout()
-        actions.addStretch()
-        self.reset_button = QPushButton("Reset")
-        self.save_button = QPushButton("Save")
-        actions.addWidget(self.reset_button)
-        actions.addWidget(self.save_button)
-        layout.addLayout(actions)
-        self._connect_signals()
+        self.override_tree.setMinimumHeight(140)
+
+        self.override_tree.setFixedHeight(220)
+
+        self.override_tree.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed,
+        )
+
+        self.override_tree.setContextMenuPolicy(
+            Qt.ContextMenuPolicy
+            .CustomContextMenu
+        )
+
+        layout.addWidget(self.override_tree)
+        self.override_tree_resize_handle = VerticalResizeHandle()
+        self.override_tree_resize_handle.resize_requested.connect(
+            lambda delta: self._resize_tree(
+                self.override_tree,
+                self.profile_overrides_panel,
+                delta,
+                140)
+)
+        layout.addWidget(self.override_tree_resize_handle)
+
         return widget
 
     def _connect_signals(self):
@@ -168,17 +327,33 @@ class ProfileEditor(QWidget):
         self.toggle_override_button.clicked.connect(self._toggle_selected_override)
         self.remove_override_button.clicked.connect(self._remove_selected_override)
         self.override_tree.itemDoubleClicked.connect(self._edit_override_item)
-        self.check_tree.customContextMenuRequested.connect(
-            self._show_check_context_menu
-        )
-        self.override_tree.customContextMenuRequested.connect(
-            self._show_override_context_menu
-        )
+        self.check_tree.customContextMenuRequested.connect(self._show_check_context_menu)
+        self.override_tree.customContextMenuRequested.connect(self._show_override_context_menu)
         self.category_combo.currentTextChanged.connect(self._refresh_check_tree)
         self.tag_combo.currentTextChanged.connect(self._refresh_check_tree)
         self.search_edit.textChanged.connect(self._refresh_check_tree)
         self.save_button.clicked.connect(self._save_profile)
         self.reset_button.clicked.connect(self._reset_profile)
+
+    def _resize_tree(
+        self,
+        tree,
+        panel,
+        delta,
+        minimum_height,
+    ):
+        new_height = max(
+            minimum_height,
+            tree.height() + delta,
+        )
+
+        tree.setFixedHeight(
+            new_height
+        )
+
+        panel.updateGeometry()
+        self.editor_scroll_content.adjustSize()
+
 
     def _load_profile_list(self, select_name=None):
         self.profile_list.blockSignals(True)
@@ -226,7 +401,8 @@ class ProfileEditor(QWidget):
             return
 
         self.draft.enabled_check_ids = {
-            definition.check_id for definition in self.definitions
+            definition.check_id
+            for definition in self.definitions
             if definition.enabled
             and definition.check_id not in self.draft.disabled_check_ids
         }
@@ -242,8 +418,10 @@ class ProfileEditor(QWidget):
         self.tag_combo.blockSignals(True)
         self.category_combo.clear()
         self.tag_combo.clear()
-        self.category_combo.addItems(["All Categories", *categories])
-        self.tag_combo.addItems(["All Tags", *tags])
+        self.category_combo.addItem("All Categories")
+        self.category_combo.addItems(categories)
+        self.tag_combo.addItem("All Tags")
+        self.tag_combo.addItems(tags)
         self.category_combo.blockSignals(False)
         self.tag_combo.blockSignals(False)
 
@@ -253,13 +431,15 @@ class ProfileEditor(QWidget):
 
         if self.draft.include_all_checks:
             return tuple(
-                definition for definition in self.definitions
+                definition
+                for definition in self.definitions
                 if definition.enabled
                 and definition.check_id not in self.draft.disabled_check_ids
             )
 
         return tuple(
-            definition for definition in self.definitions
+            definition
+            for definition in self.definitions
             if definition.check_id in self.draft.enabled_check_ids
         )
 
@@ -275,10 +455,7 @@ class ProfileEditor(QWidget):
         grouped = {}
 
         for definition in self._profile_definitions():
-            if (
-                category_filter != "All Categories"
-                and definition.category != category_filter
-            ):
+            if category_filter != "All Categories" and definition.category != category_filter:
                 continue
             if tag_filter != "All Tags" and tag_filter not in definition.tags:
                 continue
@@ -303,6 +480,7 @@ class ProfileEditor(QWidget):
 
         for category in sorted(grouped):
             category_item = QTreeWidgetItem([category, "", "", ""])
+            category_item.setFirstColumnSpanned(True)
             self.check_tree.addTopLevelItem(category_item)
 
             for definition in sorted(
@@ -334,6 +512,7 @@ class ProfileEditor(QWidget):
         if self.draft is None:
             return
 
+        self.profile_checks_panel.set_expanded(True)
         current_ids = {
             definition.check_id for definition in self._profile_definitions()
         }
@@ -434,12 +613,14 @@ class ProfileEditor(QWidget):
         return self.draft.get_override(path) if path else None
 
     def _create_override(self):
+        self.profile_overrides_panel.set_expanded(True)
         self._open_override_picker(fields=get_config_fields())
 
     def _edit_selected_override(self):
         override = self._selected_override()
 
         if override is not None:
+            self.profile_overrides_panel.set_expanded(True)
             self._open_override_picker(
                 existing_override=override,
                 fields=get_config_fields(),
@@ -468,6 +649,7 @@ class ProfileEditor(QWidget):
         self._remove_override_path(self._selected_override_path())
 
     def _create_override_for_field(self, field):
+        self.profile_overrides_panel.set_expanded(True)
         self._open_override_picker(fields=(field,))
 
     def _edit_override_for_field(self, field):
@@ -477,6 +659,7 @@ class ProfileEditor(QWidget):
         override = self.draft.get_override(field.path)
 
         if override is not None:
+            self.profile_overrides_panel.set_expanded(True)
             self._open_override_picker(
                 existing_override=override,
                 fields=(field,),
@@ -532,6 +715,7 @@ class ProfileEditor(QWidget):
             self._materialize_check_membership()
             self.draft.add_checks(related_ids)
 
+        self.profile_overrides_panel.set_expanded(True)
         self._refresh_check_tree()
         self._refresh_override_tree()
 
@@ -593,6 +777,7 @@ class ProfileEditor(QWidget):
         )
         self.profile_loader.save()
         self._load_profile_list(select_name=name)
+        self.profile_details_panel.set_expanded(True)
         self.profiles_changed.emit()
 
     def _delete_profile(self):
