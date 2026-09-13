@@ -11,6 +11,9 @@ class DiffToolbar(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.result = None
+        self.changed_sections = 0
+        self.unchanged_sections = 0
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 4)
         layout.setSpacing(6)
@@ -35,15 +38,10 @@ class DiffToolbar(QWidget):
         self.expand_all_button.clicked.connect(self.expand_all_requested)
         self.clear()
 
-    def set_summary(self, result, change_count, changed_sections, unchanged_sections):
-        mode = result.mode.value.title()
-        generated = len(result.rows)
-        omitted = result.omitted_total
-        suffix = f" · {omitted:,} source rows omitted" if omitted else ""
-        self.summary_label.setText(
-            f"{mode} Diff · {generated:,} generated rows{suffix} · "
-            f"{changed_sections:,} large changed · {unchanged_sections:,} large unchanged"
-        )
+    def set_result(self, result, change_count, changed_sections, unchanged_sections):
+        self.result = result
+        self.changed_sections = changed_sections
+        self.unchanged_sections = unchanged_sections
         has_changes = change_count > 0
         has_sections = changed_sections + unchanged_sections > 0
         self.previous_button.setEnabled(has_changes)
@@ -53,6 +51,23 @@ class DiffToolbar(QWidget):
         self.expand_all_button.setEnabled(has_sections)
         self.set_counter(-1, change_count)
 
+    def update_statistics(self, visible_rows):
+        if self.result is None:
+            return
+        generated = len(self.result.rows)
+        hidden = max(0, generated - visible_rows)
+        omitted = self.result.omitted_total
+        mode = self.result.mode.value.title()
+        parts = [
+            f"{mode} Diff",
+            f"{generated:,} generated",
+            f"{visible_rows:,} visible",
+            f"{hidden:,} collapsed",
+        ]
+        if omitted:
+            parts.append(f"{omitted:,} omitted")
+        self.summary_label.setText(" · ".join(parts))
+
     def set_counter(self, current, total):
         if current >= 0 and total:
             self.counter_label.setText(f"Change {current + 1} of {total}")
@@ -60,6 +75,7 @@ class DiffToolbar(QWidget):
             self.counter_label.setText(f"{total} changes" if total else "No changes")
 
     def clear(self, text="No source diff"):
+        self.result = None
         self.summary_label.setText(text)
         self.counter_label.setText("No changes")
         self.changes_only_check.blockSignals(True)

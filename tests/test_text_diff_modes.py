@@ -30,9 +30,14 @@ def test_summary_diff_discards_middle_of_large_changed_region(tmp_path):
     rows = build_side_by_side_diff(previous, current, DiffMode.SUMMARY)
 
     assert len(rows) == SUMMARY_CONTEXT_LINES * 2 + 1
-    assert rows[SUMMARY_CONTEXT_LINES].kind == "CHANGED"
-    assert "94 previous lines omitted" in rows[SUMMARY_CONTEXT_LINES].old_text
-    assert "94 current lines omitted" in rows[SUMMARY_CONTEXT_LINES].new_text
+
+    omitted = rows[SUMMARY_CONTEXT_LINES]
+
+    assert omitted.kind == "OMITTED"
+    assert omitted.omitted_old == 94
+    assert omitted.omitted_new == 94
+    assert "94 previous lines omitted" in omitted.old_text
+    assert "94 current lines omitted" in omitted.new_text
     assert "old 50" not in {row.old_text for row in rows}
     assert "new 50" not in {row.new_text for row in rows}
 
@@ -47,9 +52,16 @@ def test_summary_diff_discards_middle_of_large_unchanged_region(tmp_path):
     rows = build_side_by_side_diff(previous, current, DiffMode.SUMMARY)
 
     assert len(rows) == SUMMARY_CONTEXT_LINES * 2 + 1
-    assert rows[SUMMARY_CONTEXT_LINES].kind == "UNCHANGED"
-    assert "94 unchanged lines omitted" in rows[SUMMARY_CONTEXT_LINES].old_text
+
+    omitted = rows[SUMMARY_CONTEXT_LINES]
+
+    assert omitted.kind == "OMITTED"
+    assert omitted.omitted_old == 94
+    assert omitted.omitted_new == 94
+    assert "94 unchanged lines omitted" in omitted.old_text
+    assert "94 unchanged lines omitted" in omitted.new_text
     assert "same 50" not in {row.old_text for row in rows}
+    assert "same 50" not in {row.new_text for row in rows}
 
 
 def test_skip_diff_returns_no_rows(tmp_path):

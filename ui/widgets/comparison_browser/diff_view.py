@@ -468,7 +468,7 @@ class FileDiffView(QWidget):
         self.current_change_index = -1
         changed_sections, unchanged_sections = self.model.section_counts()
         if result is not None:
-            self.toolbar.set_summary(
+            self.toolbar.set_result(
                 result,
                 len(self.model.change_regions),
                 changed_sections,
@@ -527,6 +527,7 @@ class FileDiffView(QWidget):
         self.table.restore_anchor(anchor)
         self._restore_current_change()
         self.table.viewport().update()
+        self._refresh_statistics()
 
     def collapse_all(self):
         anchor = self._top_source_index()
@@ -534,6 +535,7 @@ class FileDiffView(QWidget):
         self.table.restore_anchor(anchor)
         self._restore_current_change()
         self.table.viewport().update()
+        self._refresh_statistics()
 
     def expand_all(self):
         if len(self.model.rows) > EXPAND_ALL_WARNING_THRESHOLD:
@@ -553,6 +555,10 @@ class FileDiffView(QWidget):
         self.table.restore_anchor(anchor)
         self._restore_current_change()
         self.table.viewport().update()
+        self._refresh_statistics()
+
+    def _refresh_statistics(self):
+        self.toolbar.update_statistics(self.model.rowCount())
 
     def _show_current_change(self):
         region = self.model.change_regions[self.current_change_index]

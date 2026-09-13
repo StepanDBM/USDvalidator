@@ -275,8 +275,8 @@ class ComparisonView(QWidget):
             self.worker.run
         )
 
-        self.worker.phase_changed.connect(
-            self._on_phase_changed
+        self.worker.progress_changed.connect(
+            self._on_progress_changed
         )
 
         self.worker.completed.connect(
@@ -306,8 +306,16 @@ class ComparisonView(QWidget):
 
         self.worker_thread.start()
 
-    def _on_phase_changed(self, message):
-        self.summary_label.setText(message)
+    def _on_progress_changed(self, update):
+        self.summary_label.setText(update.message)
+        if update.determinate:
+            self.progress_bar.setRange(0, update.total)
+            self.progress_bar.setValue(update.current)
+            self.progress_bar.setFormat(f"{update.percent}%")
+            self.progress_bar.setTextVisible(True)
+        else:
+            self.progress_bar.setRange(0, 0)
+            self.progress_bar.setTextVisible(False)
 
     def _on_comparison_completed(self, comparison, diff_result):
         self.comparison = comparison
@@ -387,10 +395,13 @@ class ComparisonView(QWidget):
         self.cancel_button.setEnabled(running)
 
         if running:
-            self.progress_bar.setRange(0, 0)
-            self.summary_label.setText(
-                "Preparing comparison..."
-            )
+            self.progress_bar.setRange(0, 1)
+            self.progress_bar.setValue(0)
+            self.progress_bar.setFormat("0%")
+            self.progress_bar.setTextVisible(True)
+            self.summary_label.setText("Preparing comparison...")
+        else:
+            self.progress_bar.setTextVisible(False)
 
     def _update_summary(self):
         if self.comparison is None:

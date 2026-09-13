@@ -1,15 +1,15 @@
 from pathlib import Path
-from threading import Event
 
 from PySide6.QtCore import QObject, Signal, Slot
 
 from comparison import SemanticComparisonEngine
+from comparison.progress import CancellationToken, ComparisonCancelled, ProgressUpdate
 from comparison.source_preflight import DiffMode
-from comparison.text_diff import DiffCancelled, build_source_diff
+from comparison.text_diff import build_source_diff
 
 
 class ComparisonWorker(QObject):
-    phase_changed = Signal(str)
+    progress_changed = Signal(object)
     completed = Signal(object, object)
     cancelled = Signal()
     failed = Signal(str)
@@ -21,37 +21,45 @@ class ComparisonWorker(QObject):
         self.current = Path(current)
         self.profile = profile
         self.diff_mode = diff_mode
-        self._cancelled = Event()
+        self.token = CancellationToken()
+        self._terminal_emitted = False
 
     def request_cancel(self):
-        self._cancelled.set()
+        self.token.cancel()
 
     @Slot()
     def run(self):
         try:
-            if self._cancelled.is_set():
-                raise DiffCancelled()
-            self.phase_changed.emit("Comparing semantic stage data...")
+            self.token.raise_if_cancelled()
+            self._emit_progress("semantic", "Comparing semantic stage data...", 0, 1)
             comparison = SemanticComparisonEngine(profile=self.profile).compare(
                 self.previous,
                 self.current,
             )
-            if self._cancelled.is_set():
-                raise DiffCancelled()
-            label = self.diff_mode.value.lower()
-            self.phase_changed.emit(f"Building {label} source diff...")
+            self.token.raise_if_cancelled()
+            self._emit_progress("semantic", "Semantic comparison complete.", 1, 1)
             result = build_source_diff(
                 self.previous,
                 self.current,
                 self.diff_mode,
-                self._cancelled.is_set,
+                self.token,
+                self.progress_changed.emit,
             )
-            if self._cancelled.is_set():
-                raise DiffCancelled()
-            self.completed.emit(comparison, result)
-        except DiffCancelled:
-            self.cancelled.emit()
+            self.token.raise_if_cancelled()
+            self._emit_progress("prepare", "Preparing virtual diff model...", 1, 1)
+            self._emit_terminal(self.completed, comparison, result)
+        except ComparisonCancelled:
+            self._emit_terminal(self.cancelled)
         except Exception as exc:
-            self.failed.emit(str(exc))
+            self._emit_terminal(self.failed, str(exc))
         finally:
             self.finished.emit()
+
+    def _emit_progress(self, phase, message, current=None, total=None):
+        self.progress_changed.emit(ProgressUpdate(phase, message, current, total))
+
+    def _emit_terminal(self, signal, *args):
+        if self._terminal_emitted:
+            return
+        self._terminal_emitted = True
+        signal.emit(*args)

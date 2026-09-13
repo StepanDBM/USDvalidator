@@ -2,16 +2,13 @@ from dataclasses import dataclass
 from difflib import SequenceMatcher
 from pathlib import Path
 
+from .progress import CancellationToken, ProgressUpdate
 from .source_preflight import DiffMode
 
 
 SUMMARY_CONTEXT_LINES = 3
 SUMMARY_REGION_THRESHOLD = 15
 BINARY_MESSAGE = "Binary USD source. Text diff is unavailable."
-
-
-class DiffCancelled(Exception):
-    pass
 
 
 @dataclass(frozen=True)
@@ -33,6 +30,7 @@ class SourceDiffResult:
     current_line_count: int
     omitted_old: int = 0
     omitted_new: int = 0
+    source_available: bool = True
 
     @property
     def omitted_total(self):
@@ -43,21 +41,53 @@ def build_side_by_side_diff(previous_path, current_path, mode=DiffMode.FULL):
     return build_source_diff(previous_path, current_path, mode).rows
 
 
-def build_source_diff(previous_path, current_path, mode=DiffMode.FULL, cancelled=None):
-    old_lines = _read_lines(previous_path)
-    new_lines = _read_lines(current_path)
-    if mode is DiffMode.SKIP:
-        return SourceDiffResult(mode, (), len(old_lines), len(new_lines))
+def build_source_diff(previous_path, current_path, mode=DiffMode.FULL, token=None, progress=None):
+    token = token or CancellationToken()
+    token.raise_if_cancelled()
+    _emit(progress, "read_previous", "Reading previous source...", 0, 2)
+    old_lines, old_available = _read_lines(previous_path, token)
+    _emit(progress, "read_previous", "Previous source read.", 1, 2)
+    token.raise_if_cancelled()
+    _emit(progress, "read_current", "Reading current source...", 1, 2)
+    new_lines, new_available = _read_lines(current_path, token)
+    _emit(progress, "read_current", "Current source read.", 2, 2)
 
-    _check_cancelled(cancelled)
-    matcher = SequenceMatcher(None, old_lines, new_lines, autojunk=True)
+    source_available = old_available and new_available
+    if mode is DiffMode.SKIP or not source_available:
+        return SourceDiffResult(
+            mode,
+            (),
+            len(old_lines),
+            len(new_lines),
+            source_available=source_available,
+        )
+
+    token.raise_if_cancelled()
+    _emit(progress, "align", "Aligning source lines...")
+    opcodes = SequenceMatcher(None, old_lines, new_lines, autojunk=True).get_opcodes()
+    token.raise_if_cancelled()
+
+    total = sum(max(i2 - i1, j2 - j1) for _, i1, i2, j1, j2 in opcodes)
+    processed = 0
     rows = []
+    phase = "summary_rows" if mode is DiffMode.SUMMARY else "full_rows"
+    label = "Summary" if mode is DiffMode.SUMMARY else "Full"
+    _emit(progress, phase, f"Building {label} Diff rows...", 0, max(total, 1))
 
-    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
-        _check_cancelled(cancelled)
+    for tag, i1, i2, j1, j2 in opcodes:
+        token.raise_if_cancelled()
         builder = _summary_opcode if mode is DiffMode.SUMMARY else _full_opcode
         rows.extend(builder(tag, i1, i2, j1, j2, old_lines, new_lines))
+        processed += max(i2 - i1, j2 - j1)
+        _emit(
+            progress,
+            phase,
+            f"Building {label} Diff rows: {processed:,} / {total:,}",
+            processed,
+            max(total, 1),
+        )
 
+    token.raise_if_cancelled()
     omitted_old = sum(row.omitted_old for row in rows)
     omitted_new = sum(row.omitted_new for row in rows)
     return SourceDiffResult(
@@ -67,6 +97,7 @@ def build_source_diff(previous_path, current_path, mode=DiffMode.FULL, cancelled
         len(new_lines),
         omitted_old,
         omitted_new,
+        source_available,
     )
 
 
@@ -124,16 +155,23 @@ def _omission_line(tag, old_count, new_count):
     return DiffLine(None, None, old_text, new_text, "OMITTED", old_count, new_count)
 
 
-def _read_lines(path):
+def _read_lines(path, token):
     path = Path(path)
     if path.suffix.lower() not in {".usda", ".usd"}:
-        return [BINARY_MESSAGE]
+        return (), False
+
     try:
-        return path.read_text(encoding="utf-8").splitlines()
+        lines = []
+        with path.open("r", encoding="utf-8") as stream:
+            for line_number, line in enumerate(stream):
+                if line_number % 4096 == 0:
+                    token.raise_if_cancelled()
+                lines.append(line.rstrip("\r\n"))
+        return lines, True
     except UnicodeDecodeError:
-        return [BINARY_MESSAGE]
+        return (), False
 
 
-def _check_cancelled(cancelled):
-    if cancelled and cancelled():
-        raise DiffCancelled("Source comparison cancelled.")
+def _emit(callback, phase, message, current=None, total=None):
+    if callback:
+        callback(ProgressUpdate(phase, message, current, total))

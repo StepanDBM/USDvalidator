@@ -2,6 +2,7 @@
 
 from .engine import SemanticComparisonEngine
 from .models import ChangeKind, ComparisonResult, SemanticChange
+from .progress import CancellationToken, ComparisonCancelled, ProgressUpdate
 from .source_preflight import (
     DiffMode,
     DiffScale,
@@ -13,6 +14,9 @@ from .text_diff import DiffLine, SourceDiffResult, build_side_by_side_diff, buil
 
 __all__ = [
     "ChangeKind",
+    "ProgressUpdate",
+    "ComparisonCancelled",
+    "CancellationToken",
     "ComparisonResult",
     "DiffLine",
     "DiffMode",
