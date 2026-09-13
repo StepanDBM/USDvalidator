@@ -5,6 +5,7 @@ from pxr import UsdGeom
 
 from extraction.animation import AnimationExtractor
 from extraction.geometry import GeometryExtractor
+from extraction.pipeline import PipelineExtractor
 
 
 class StageHealthExtractor:
@@ -74,6 +75,7 @@ class StageHealthExtractor:
         health.scene.root_prims = len(stage.GetPseudoRoot().GetChildren())
         health.geometry = GeometryExtractor().extract(stage)
         health.animation = AnimationExtractor().extract(stage)
+        health.pipeline = PipelineExtractor().extract(stage)
         return health
 
     @staticmethod

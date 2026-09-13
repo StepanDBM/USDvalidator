@@ -45,9 +45,77 @@ class AnimationRuleConfig:
 
 
 @dataclass
+class NamingRuleConfig:
+    prim_name_pattern: str = r"^[A-Za-z_][A-Za-z0-9_]*$"
+    forbidden_tokens_csv: str = "temp,tmp,backup,copy"
+    forbidden_names_csv: str = "pCube1,meshShape1,group1"
+    case_sensitive: bool = False
+
+
+@dataclass
+class HierarchyRuleConfig:
+    require_single_root: bool = True
+    required_paths_csv: str = "/World"
+    geometry_root_path: str = "/World/Geometry"
+    require_meshes_under_geometry_root: bool = False
+
+
+@dataclass
+class TransformRuleConfig:
+    require_identity_root: bool = True
+    allow_negative_scale: bool = False
+    allow_matrix_ops: bool = True
+    maximum_xform_ops: int = 8
+    zero_scale_tolerance: float = 0.000001
+
+
+@dataclass
+class VariantRuleConfig:
+    required_sets_csv: str = ""
+    require_authored_selections: bool = True
+    maximum_sets_per_prim: int = 8
+
+
+@dataclass
+class CameraRuleConfig:
+    required: bool = False
+    maximum_count: int = 8
+    render_camera_name: str = "RenderCamera"
+    require_render_camera: bool = False
+    minimum_focal_length: float = 1.0
+    maximum_focal_length: float = 500.0
+    minimum_near_clip: float = 0.0001
+    maximum_far_clip: float = 10000000.0
+    allow_animation: bool = True
+
+
+@dataclass
+class InstancingRuleConfig:
+    maximum_instances: int = 100000
+    maximum_point_instances: int = 1000000
+    require_valid_prototypes: bool = False
+
+
+@dataclass
+class PackagingRuleConfig:
+    allow_parent_directory_escape: bool = False
+    allow_absolute_dependency_paths: bool = False
+    allow_temporary_dependencies: bool = False
+    maximum_dependency_count: int = 10000
+    allowed_extensions_csv: str = ".usd,.usda,.usdc,.usdz"
+    filename_pattern: str = r"^[A-Za-z0-9_.-]+$"
+
+@dataclass
 class ValidationRuleConfig:
     stage: StageRuleConfig = field(default_factory=StageRuleConfig)
     geometry: GeometryRuleConfig = field(default_factory=GeometryRuleConfig)
     metadata: MetadataRuleConfig = field(default_factory=MetadataRuleConfig)
     composition: CompositionRuleConfig = field(default_factory=CompositionRuleConfig)
     animation: AnimationRuleConfig = field(default_factory=AnimationRuleConfig)
+    naming: NamingRuleConfig = field(default_factory=NamingRuleConfig)
+    hierarchy: HierarchyRuleConfig = field(default_factory=HierarchyRuleConfig)
+    transforms: TransformRuleConfig = field(default_factory=TransformRuleConfig)
+    variants: VariantRuleConfig = field(default_factory=VariantRuleConfig)
+    cameras: CameraRuleConfig = field(default_factory=CameraRuleConfig)
+    instancing: InstancingRuleConfig = field(default_factory=InstancingRuleConfig)
+    packaging: PackagingRuleConfig = field(default_factory=PackagingRuleConfig)

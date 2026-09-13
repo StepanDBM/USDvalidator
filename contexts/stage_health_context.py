@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 
 from .animation_context import AnimationStatistics
 from .geometry_context import GeometryStatistics
+from .pipeline_context import PipelineStatistics
 
 
 @dataclass
@@ -74,3 +75,4 @@ class StageHealthContext:
     composition: CompositionStatistics = field(default_factory=CompositionStatistics)
     geometry: GeometryStatistics = field(default_factory=GeometryStatistics)
     animation: AnimationStatistics = field(default_factory=AnimationStatistics)
+    pipeline: PipelineStatistics = field(default_factory=PipelineStatistics)

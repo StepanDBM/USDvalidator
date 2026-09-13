@@ -14,6 +14,15 @@ from .geometry_context import (
 )
 
 from .animation_context import AnimationStatistics
+from .pipeline_context import (
+    CameraInfo,
+    DependencyInfo,
+    InstancingInfo,
+    PipelineStatistics,
+    PrimInfo,
+    TransformInfo,
+    VariantSetInfo,
+)
 
 __all__ = [
     "CompositionStatistics",
@@ -22,6 +31,13 @@ __all__ = [
     "GeometryStatistics",
     "MeshGeometry",
     "AnimationStatistics",
+    "CameraInfo",
+    "DependencyInfo",
+    "InstancingInfo",
+    "PipelineStatistics",
+    "PrimInfo",
+    "TransformInfo",
+    "VariantSetInfo",
     "StageContext",
     "StageHealthContext",
     "StageMetadata",

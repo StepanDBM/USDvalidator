@@ -6,6 +6,13 @@ from .composition import register_composition_checks
 from .geometry import register_geometry_checks
 from .animation import register_animation_checks
 from .dependencies import register_dependency_checks
+from .naming import register_naming_checks
+from .hierarchy import register_hierarchy_checks
+from .transforms import register_transforms_checks
+from .variants import register_variants_checks
+from .cameras import register_cameras_checks
+from .instancing import register_instancing_checks
+from .packaging import register_packaging_checks
 
 
 def build_registry():
@@ -16,6 +23,13 @@ def build_registry():
     register_geometry_checks(registry)
     register_animation_checks(registry)
     register_dependency_checks(registry)
+    register_naming_checks(registry)
+    register_hierarchy_checks(registry)
+    register_transforms_checks(registry)
+    register_variants_checks(registry)
+    register_cameras_checks(registry)
+    register_instancing_checks(registry)
+    register_packaging_checks(registry)
     return registry
 
 
