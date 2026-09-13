@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from .profiles import ValidationProfile
+from .attribute_override import AttributeOverride
 
 
 class ProfileRegistry:
@@ -46,11 +47,11 @@ class ProfileLoader:
                 ValidationProfile(
                     name=entry["name"],
                     description=entry.get("description", ""),
-                    enabled_check_ids=frozenset(
-                        entry.get("enabled_checks", [])
-                    ),
-                    disabled_check_ids=frozenset(
-                        entry.get("disabled_checks", [])
+                    enabled_check_ids=frozenset(entry.get("enabled_checks", [])),
+                    disabled_check_ids=frozenset(entry.get("disabled_checks", [])),
+                    overrides=tuple(
+                        AttributeOverride.from_dict(item)
+                        for item in entry.get("overrides", [])
                     ),
                 )
             )
@@ -122,12 +123,9 @@ class ProfileLoader:
                 {
                     "name": profile.name,
                     "description": profile.description,
-                    "enabled_checks": sorted(
-                        profile.enabled_check_ids
-                    ),
-                    "disabled_checks": sorted(
-                        profile.disabled_check_ids
-                    ),
+                    "enabled_checks": sorted(profile.enabled_check_ids),
+                    "disabled_checks": sorted(profile.disabled_check_ids),
+                    "overrides": [override.to_dict() for override in profile.overrides],
                 }
                 for profile in self.registry.all()
             ]

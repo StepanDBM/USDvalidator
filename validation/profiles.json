@@ -27,7 +27,8 @@
                 "USD_ANIMATION_FRAME_RATE_VALID",
                 "USD_ANIMATION_HAS_NO_INVALID_TIME_SAMPLES",
                 "USD_DEPENDENCIES_RESOLVE"
-            ]
+            ],
+            "overrides": []
         },
         {
             "name": "default",
@@ -50,7 +51,8 @@
                 "USD_NO_UNRESOLVED_PAYLOADS",
                 "USD_COMPOSITION_LAYERS_VALID",
                 "USD_NO_UNEXPECTED_ARCS"
-            ]
+            ],
+            "overrides": []
         },
         {
             "name": "model_publish",
@@ -73,7 +75,8 @@
                 "USD_NO_UNRESOLVED_PAYLOADS",
                 "USD_COMPOSITION_LAYERS_VALID",
                 "USD_NO_UNEXPECTED_ARCS"
-            ]
+            ],
+            "overrides": []
         },
         {
             "name": "animation_publish",
@@ -97,7 +100,8 @@
                 "USD_NO_UNRESOLVED_PAYLOADS",
                 "USD_COMPOSITION_LAYERS_VALID",
                 "USD_NO_UNEXPECTED_ARCS"
-            ]
+            ],
+            "overrides": []
         },
         {
             "name": "layout_publish",
@@ -116,7 +120,8 @@
                 "USD_NO_UNRESOLVED_PAYLOADS",
                 "USD_COMPOSITION_LAYERS_VALID",
                 "USD_NO_UNEXPECTED_ARCS"
-            ]
+            ],
+            "overrides": []
         },
         {
             "name": "strict",
@@ -143,6 +148,13 @@
                 "USD_NO_UNRESOLVED_PAYLOADS",
                 "USD_COMPOSITION_LAYERS_VALID",
                 "USD_NO_UNEXPECTED_ARCS"
+            ],
+            "overrides": [
+                {
+                    "path": "geometry.polygon_count_limit",
+                    "value": 200000,
+                    "enabled": true
+                }
             ]
         }
     ]

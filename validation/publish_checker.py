@@ -7,11 +7,16 @@ from rules import build_registry
 from .publish_report import PublishReport
 from .runner import execute_checks
 
+from .rule_config import ValidationRuleConfig
+
+from .config_resolver import build_effective_config
+
 
 class PublishChecker:
-    def __init__(self, registry=None, profile=None):
-        self.registry = registry or build_registry()
+    def __init__(self, profile=None, rule_config=None):
         self.profile = profile
+        self.rule_config = (rule_config if rule_config is not None else ValidationRuleConfig())
+        self.registry = build_registry()
 
     def check(self, source_path):
         session = UsdInspectionSession(source_path)
@@ -22,7 +27,16 @@ class PublishChecker:
         else:
             definitions = self.registry.resolve_profile(self.profile)
 
-        results = execute_checks(definitions, targets)
+        effective_config = build_effective_config(
+            self.profile,
+            self.rule_config
+        )
+        
+        results = execute_checks(
+            definitions,
+            targets,
+            effective_config)
+        
         stage_context = next(
             target
             for target in targets

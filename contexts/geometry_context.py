@@ -21,5 +21,3 @@ class GeometryStatistics:
     total_polygons: int = 0
 
     meshes: list[MeshGeometry] = field(default_factory=list)
-
-    polygon_count_limit: int = 100000

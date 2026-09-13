@@ -152,7 +152,6 @@ class PublishReport:
                 "total_points": health.geometry.total_points,
                 "total_faces": health.geometry.total_faces,
                 "total_polygons": health.geometry.total_polygons,
-                "polygon_count_limit": health.geometry.polygon_count_limit,
                 "meshes": [
                     {
                         "path": mesh.path,

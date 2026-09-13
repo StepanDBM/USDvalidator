@@ -131,51 +131,46 @@ def check_mesh_has_valid_topology(context, runtime_context):
 
 
 def check_mesh_polygon_count_limit(context, runtime_context):
-    exceeding_meshes = [
-        mesh for mesh in context.geometry.meshes
-        if mesh.polygon_count > context.geometry.polygon_count_limit
+    limit = runtime_context.config.geometry.polygon_count_limit
+    invalid_meshes = [
+        mesh
+        for mesh in context.geometry.meshes
+        if mesh.polygon_count > limit
     ]
 
-    if not exceeding_meshes:
-        return [CheckResult(
-            check_id=USD_MESH_POLYGON_COUNT_LIMIT,
+    if not invalid_meshes:
+        return [
+            CheckResult(
+                check_id=runtime_context.check_id,
+                label="Mesh Polygon Count Limit",
+                category="Geometry",
+                status=CheckStatus.PASSED,
+                severity=runtime_context.default_severity,
+                message=f"All meshes are within the polygon limit of {limit}.",
+                details={"polygon_count_limit": limit},
+            )
+        ]
+
+    return [
+        CheckResult(
+            check_id=runtime_context.check_id,
             label="Mesh Polygon Count Limit",
             category="Geometry",
-            status=CheckStatus.PASSED,
+            status=CheckStatus.FAILED,
             severity=runtime_context.default_severity,
             message=(
-                f"All meshes are within the polygon limit of "
-                f"{context.geometry.polygon_count_limit}."
+                f"{len(invalid_meshes)} mesh(es) exceed "
+                f"the polygon limit of {limit}."
             ),
             details={
-                "polygon_count_limit": context.geometry.polygon_count_limit,
-                "exceeding_mesh_count": 0,
+                "polygon_count_limit": limit,
+                "meshes": [
+                    {
+                        "path": mesh.path,
+                        "polygon_count": mesh.polygon_count,
+                    }
+                    for mesh in invalid_meshes
+                ],
             },
-        )]
-
-    return [CheckResult(
-        check_id=USD_MESH_POLYGON_COUNT_LIMIT,
-        label="Mesh Polygon Count Limit",
-        category="Geometry",
-        status=CheckStatus.FAILED,
-        severity=runtime_context.default_severity,
-        message=(
-            f"{len(exceeding_meshes)} mesh(es) exceed the polygon limit of "
-            f"{context.geometry.polygon_count_limit}."
-        ),
-        suggestion=(
-            "Reduce mesh polygon counts or adjust the publish polygon limit "
-            "for the target asset."
-        ),
-        details={
-            "polygon_count_limit": context.geometry.polygon_count_limit,
-            "exceeding_mesh_count": len(exceeding_meshes),
-            "meshes": [
-                {
-                    "path": mesh.path,
-                    "polygon_count": mesh.polygon_count,
-                }
-                for mesh in exceeding_meshes
-            ],
-        },
-    )]
+        )
+    ]

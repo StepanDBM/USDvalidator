@@ -5,7 +5,7 @@ from .models import CheckResult
 from .runtime_context import CheckRuntimeContext
 
 
-def execute_checks(definitions, targets):
+def execute_checks(definitions, targets, effective_config):
     results = []
 
     for definition in definitions:
@@ -32,6 +32,7 @@ def execute_checks(definitions, targets):
         runtime_context = CheckRuntimeContext(
             check_id=definition.check_id,
             default_severity=definition.default_severity,
+            config=effective_config,
         )
 
         for target in compatible_targets:
