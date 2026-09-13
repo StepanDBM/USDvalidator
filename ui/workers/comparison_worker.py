@@ -1,14 +1,17 @@
 from pathlib import Path
+from threading import Event
 
 from PySide6.QtCore import QObject, Signal, Slot
 
-from comparison import SemanticComparisonEngine, build_side_by_side_diff
+from comparison import SemanticComparisonEngine
 from comparison.source_preflight import DiffMode
+from comparison.text_diff import DiffCancelled, build_source_diff
 
 
 class ComparisonWorker(QObject):
     phase_changed = Signal(str)
-    completed = Signal(object, object, object)
+    completed = Signal(object, object)
+    cancelled = Signal()
     failed = Signal(str)
     finished = Signal()
 
@@ -18,29 +21,36 @@ class ComparisonWorker(QObject):
         self.current = Path(current)
         self.profile = profile
         self.diff_mode = diff_mode
+        self._cancelled = Event()
+
+    def request_cancel(self):
+        self._cancelled.set()
 
     @Slot()
     def run(self):
         try:
-            self.phase_changed.emit("Building and comparing semantic stage data...")
+            if self._cancelled.is_set():
+                raise DiffCancelled()
+            self.phase_changed.emit("Comparing semantic stage data...")
             comparison = SemanticComparisonEngine(profile=self.profile).compare(
                 self.previous,
                 self.current,
             )
-
-            if self.diff_mode is DiffMode.SKIP:
-                self.phase_changed.emit("Source diff skipped. Finalizing comparison...")
-                diff_rows = ()
-            else:
-                label = "summary" if self.diff_mode is DiffMode.SUMMARY else "full"
-                self.phase_changed.emit(f"Building {label} side-by-side source diff...")
-                diff_rows = build_side_by_side_diff(
-                    self.previous,
-                    self.current,
-                    mode=self.diff_mode,
-                )
-
-            self.completed.emit(comparison, diff_rows, self.diff_mode)
+            if self._cancelled.is_set():
+                raise DiffCancelled()
+            label = self.diff_mode.value.lower()
+            self.phase_changed.emit(f"Building {label} source diff...")
+            result = build_source_diff(
+                self.previous,
+                self.current,
+                self.diff_mode,
+                self._cancelled.is_set,
+            )
+            if self._cancelled.is_set():
+                raise DiffCancelled()
+            self.completed.emit(comparison, result)
+        except DiffCancelled:
+            self.cancelled.emit()
         except Exception as exc:
             self.failed.emit(str(exc))
         finally:

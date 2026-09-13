@@ -8,7 +8,7 @@ from .source_preflight import (
     SourceDiffPreflight,
     inspect_source_diff,
 )
-from .text_diff import DiffLine, build_side_by_side_diff
+from .text_diff import DiffLine, SourceDiffResult, build_side_by_side_diff, build_source_diff
 
 
 __all__ = [
@@ -19,6 +19,8 @@ __all__ = [
     "DiffScale",
     "SemanticChange",
     "SemanticComparisonEngine",
+    "SourceDiffResult",
+    "build_source_diff",
     "SourceDiffPreflight",
     "build_side_by_side_diff",
     "inspect_source_diff",

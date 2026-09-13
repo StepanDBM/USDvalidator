@@ -93,8 +93,12 @@ class ComparisonView(QWidget):
         self.progress_bar.setTextVisible(False)
         self.progress_bar.setMaximumHeight(18)
         self.progress_bar.hide()
-
-        layout.addWidget(self.progress_bar)
+        self.cancel_button = QPushButton("Cancel")
+        self.cancel_button.hide()
+        progress_row = QHBoxLayout()
+        progress_row.addWidget(self.progress_bar, 1)
+        progress_row.addWidget(self.cancel_button)
+        layout.addLayout(progress_row)
 
         self.main_splitter = QSplitter(
             Qt.Orientation.Vertical
@@ -158,6 +162,7 @@ class ComparisonView(QWidget):
         self.semantic_tree.change_selected.connect(
             self.change_details.show_change
         )
+        self.cancel_button.clicked.connect(self._cancel_comparison)
 
     @staticmethod
     def _file_row(label, callback):
@@ -281,6 +286,7 @@ class ComparisonView(QWidget):
         self.worker.failed.connect(
             self._on_comparison_failed
         )
+        self.worker.cancelled.connect(self._on_comparison_cancelled)
 
         self.worker.finished.connect(
             self.worker_thread.quit
@@ -303,31 +309,33 @@ class ComparisonView(QWidget):
     def _on_phase_changed(self, message):
         self.summary_label.setText(message)
 
-    def _on_comparison_completed(
-        self,
-        comparison,
-        diff_rows,
-        diff_mode,
-    ):
+    def _on_comparison_completed(self, comparison, diff_result):
         self.comparison = comparison
 
         self._refresh_semantic_tree()
 
-        if diff_mode is DiffMode.SKIP:
+        if diff_result.mode is DiffMode.SKIP:
             self.diff_view.clear()
+            self.diff_view.toolbar.clear("Source Diff Skipped · semantic comparison only")
         else:
-            self.diff_view.set_diff(diff_rows)
+            self.diff_view.set_diff_result(diff_result)
 
         self._update_summary()
+        suffix = {
+            DiffMode.SKIP: "source diff skipped",
+            DiffMode.SUMMARY: f"summary source diff · {diff_result.omitted_total:,} rows omitted",
+            DiffMode.FULL: "full source diff",
+        }[diff_result.mode]
+        self.summary_label.setText(f"{self.summary_label.text()} · {suffix}")
 
-        if diff_mode is DiffMode.SKIP:
-            self.summary_label.setText(
-                f"{self.summary_label.text()} · source diff skipped"
-            )
-        elif diff_mode is DiffMode.SUMMARY:
-            self.summary_label.setText(
-                f"{self.summary_label.text()} · summary source diff"
-            )
+    def _cancel_comparison(self):
+        if self.worker is not None:
+            self.cancel_button.setEnabled(False)
+            self.summary_label.setText("Cancelling comparison...")
+            self.worker.request_cancel()
+
+    def _on_comparison_cancelled(self):
+        self.summary_label.setText("Comparison cancelled.")
 
     def _on_comparison_failed(self, message):
         self.summary_label.setText(
@@ -374,9 +382,9 @@ class ComparisonView(QWidget):
             not running
         )
 
-        self.progress_bar.setVisible(
-            running
-        )
+        self.progress_bar.setVisible(running)
+        self.cancel_button.setVisible(running)
+        self.cancel_button.setEnabled(running)
 
         if running:
             self.progress_bar.setRange(0, 0)

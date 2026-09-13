@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from PySide6.QtCore import QAbstractTableModel, QEvent, QModelIndex, QPoint, Qt
 from PySide6.QtGui import QColor, QFontDatabase, QKeySequence, QPainter, QPen, QShortcut
 from PySide6.QtWidgets import (
+    QApplication,
+    QMenu,
     QAbstractItemView,
     QHeaderView,
     QMessageBox,
@@ -20,6 +22,8 @@ UNCHANGED_CONTEXT_LINES = 3
 CHANGE_CONTEXT_LINES = 3
 EXPAND_ALL_WARNING_THRESHOLD = 250000
 SEPARATOR_HIT_RADIUS = 7
+MAX_DISPLAY_LINE_LENGTH = 20000
+MAX_TOOLTIP_LINE_LENGTH = 2000
 
 
 @dataclass(frozen=True)
@@ -47,6 +51,8 @@ class SideBySideDiffModel(QAbstractTableModel):
     NEW_ADDED = QColor(46, 160, 67, 75)
     REMOVED_TEXT = QColor(248, 81, 73)
     ADDED_TEXT = QColor(63, 185, 80)
+    OMITTED_BACKGROUND = QColor(139, 148, 158, 45)
+    OMITTED_TEXT = QColor(139, 148, 158)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -83,7 +89,8 @@ class SideBySideDiffModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.TextAlignmentRole:
             return self._alignment(column)
         if role == Qt.ItemDataRole.ToolTipRole:
-            return row.old_text if column == 1 else row.new_text if column == 3 else row.kind
+            text = row.old_text if column == 1 else row.new_text if column == 3 else row.kind
+            return self._truncate(text, MAX_TOOLTIP_LINE_LENGTH)
         return None
 
     def set_rows(self, rows):
@@ -165,9 +172,12 @@ class SideBySideDiffModel(QAbstractTableModel):
         index = 0
         while index < len(self.rows):
             start = index
+            if self.rows[index].kind == "OMITTED":
+                index += 1
+                continue
             unchanged = self.rows[index].kind == "UNCHANGED"
             kinds = []
-            while index < len(self.rows) and (self.rows[index].kind == "UNCHANGED") == unchanged:
+            while index < len(self.rows) and self.rows[index].kind != "OMITTED" and (self.rows[index].kind == "UNCHANGED") == unchanged:
                 kinds.append(self.rows[index].kind)
                 index += 1
 
@@ -185,11 +195,11 @@ class SideBySideDiffModel(QAbstractTableModel):
         regions = []
         index = 0
         while index < len(self.rows):
-            if self.rows[index].kind == "UNCHANGED":
+            if self.rows[index].kind in {"UNCHANGED", "OMITTED"}:
                 index += 1
                 continue
             start = index
-            while index < len(self.rows) and self.rows[index].kind != "UNCHANGED":
+            while index < len(self.rows) and self.rows[index].kind not in {"UNCHANGED", "OMITTED"}:
                 index += 1
             regions.append(ChangeRegion(start, index))
         return tuple(regions)
@@ -226,20 +236,29 @@ class SideBySideDiffModel(QAbstractTableModel):
             index = section.end
         return tuple(visible)
 
-    @staticmethod
-    def _display_value(row, column):
+    @classmethod
+    def _display_value(cls, row, column):
         if column == 0:
             prefix = "-" if row.kind in {"REMOVED", "CHANGED"} else ""
             return "" if row.old_number is None else f"{prefix}{row.old_number}"
         if column == 1:
-            return row.old_text
+            return cls._truncate(row.old_text, MAX_DISPLAY_LINE_LENGTH)
         if column == 2:
             prefix = "+" if row.kind in {"ADDED", "CHANGED"} else ""
             return "" if row.new_number is None else f"{prefix}{row.new_number}"
-        return row.new_text
+        return cls._truncate(row.new_text, MAX_DISPLAY_LINE_LENGTH)
+
+    @staticmethod
+    def _truncate(text, limit):
+        if len(text) <= limit:
+            return text
+        hidden = len(text) - limit
+        return f"{text[:limit]} ... [{hidden:,} characters hidden]"
 
     @classmethod
     def _background(cls, kind, column):
+        if kind == "OMITTED":
+            return cls.OMITTED_BACKGROUND
         if kind in {"REMOVED", "CHANGED"} and column in (0, 1):
             return cls.OLD_REMOVED
         if kind in {"ADDED", "CHANGED"} and column in (2, 3):
@@ -248,6 +267,8 @@ class SideBySideDiffModel(QAbstractTableModel):
 
     @classmethod
     def _foreground(cls, kind, column):
+        if kind == "OMITTED":
+            return cls.OMITTED_TEXT
         if kind in {"REMOVED", "CHANGED"} and column == 0:
             return cls.REMOVED_TEXT
         if kind in {"ADDED", "CHANGED"} and column == 2:
@@ -415,6 +436,8 @@ class FileDiffView(QWidget):
         self.table.setSortingEnabled(False)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.table.customContextMenuRequested.connect(self._show_context_menu)
         self.table.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.table.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self.table.verticalHeader().hide()
@@ -440,22 +463,42 @@ class FileDiffView(QWidget):
         QShortcut(QKeySequence("Shift+F7"), self, activated=self.collapse_all)
         QShortcut(QKeySequence("Shift+F8"), self, activated=self.expand_all)
 
-    def set_diff(self, rows):
+    def set_diff(self, rows, result=None):
         self.model.set_rows(rows)
         self.current_change_index = -1
         changed_sections, unchanged_sections = self.model.section_counts()
-        self.toolbar.set_summary(
-            len(self.model.rows),
-            len(self.model.change_regions),
-            changed_sections,
-            unchanged_sections,
-        )
+        if result is not None:
+            self.toolbar.set_summary(
+                result,
+                len(self.model.change_regions),
+                changed_sections,
+                unchanged_sections,
+            )
         self.toolbar.changes_only_check.blockSignals(True)
         self.toolbar.changes_only_check.setChecked(False)
         self.toolbar.changes_only_check.blockSignals(False)
         if self.model.rowCount():
             self.table.scrollToTop()
         self.table.viewport().update()
+
+    def set_diff_result(self, result):
+        self.set_diff(result.rows, result)
+
+    def _show_context_menu(self, position):
+        index = self.table.indexAt(position)
+        if not index.isValid() or index.column() not in (1, 3):
+            return
+
+        source_index = self.model.visible_indices[index.row()]
+        row = self.model.rows[source_index]
+        text = row.old_text if index.column() == 1 else row.new_text
+        if not text:
+            return
+
+        menu = QMenu(self)
+        copy_action = menu.addAction("Copy Full Line")
+        if menu.exec(self.table.viewport().mapToGlobal(position)) == copy_action:
+            QApplication.clipboard().setText(text)
 
     def clear(self):
         self.model.clear()
