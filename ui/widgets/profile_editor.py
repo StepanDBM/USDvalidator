@@ -15,6 +15,8 @@ from PySide6.QtWidgets import (
     QListWidgetItem,
     QMessageBox,
     QPushButton,
+    QDoubleSpinBox,
+    QSpinBox,
     QSplitter,
     QTextEdit,
     QTreeWidget,
@@ -23,9 +25,11 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from validation.attribute_override import AttributeOverride
+from validation.config_fields import get_fields_for_check
 from validation.models import CheckDefinition
 from validation.profiles import ValidationProfile
-from validation.attribute_override import AttributeOverride
+from validation.rule_config import ValidationRuleConfig
 
 
 @dataclass
@@ -54,6 +58,7 @@ class ProfileDraft:
             disabled_check_ids=frozenset(self.disabled_check_ids),
             overrides=tuple(self.overrides),
         )
+    
     def get_override(self, path):
         return next(
             (
@@ -115,8 +120,11 @@ class ProfileEditor(QWidget):
         )
 
         self._loading_tree = False
+        self._loading_config = False
         self.current_profile_name = None
         self.draft = None
+        self.rule_config = ValidationRuleConfig()
+        self.config_editors = {}
 
         self._build_ui()
         self._populate_filters()
@@ -305,6 +313,23 @@ class ProfileEditor(QWidget):
         )
 
         # --------------------------------------------------------------
+        # Check configuration
+        # --------------------------------------------------------------
+
+        self.config_group = QGroupBox("Check Configuration")
+        self.config_layout = QVBoxLayout(self.config_group)
+        self.config_empty_label = QLabel(
+            "Select a configurable check to edit its profile overrides."
+        )
+        self.config_empty_label.setWordWrap(True)
+        self.config_layout.addWidget(self.config_empty_label)
+        layout.addWidget(self.config_group)
+
+        self.check_tree.currentItemChanged.connect(
+            self._on_check_selection_changed
+        )
+
+        # --------------------------------------------------------------
         # Actions
         # --------------------------------------------------------------
 
@@ -424,6 +449,258 @@ class ProfileEditor(QWidget):
             self._check_status(definition),
         )
 
+    def _on_check_selection_changed(self, current, previous):
+        if current is None or self.draft is None:
+            self._show_config_empty_state()
+            return
+
+        check_id = current.data(0, Qt.ItemDataRole.UserRole)
+
+        if not check_id:
+            self._show_config_empty_state()
+            return
+
+        fields = get_fields_for_check(check_id)
+
+        if not fields:
+            self._show_config_empty_state(
+                "This check has no editable configuration values."
+            )
+            return
+
+        definition = next(
+            (item for item in self.definitions if item.check_id == check_id),
+            None,
+        )
+        self._load_config_fields(definition, fields)
+
+    def _clear_config_layout(self):
+        while self.config_layout.count():
+            item = self.config_layout.takeAt(0)
+            widget = item.widget()
+
+            if widget is not None:
+                widget.deleteLater()
+
+        self.config_editors.clear()
+
+    def _show_config_empty_state(self, message=None):
+        self._clear_config_layout()
+        label = QLabel(
+            message
+            or "Select a configurable check to edit its profile overrides."
+        )
+        label.setWordWrap(True)
+        self.config_layout.addWidget(label)
+
+    def _load_config_fields(self, definition, fields):
+        self._loading_config = True
+
+        try:
+            self._clear_config_layout()
+
+            title = QLabel(definition.label if definition else "Configuration")
+            description = QLabel(
+                definition.description
+                if definition and definition.description
+                else "Edit the values overridden by this profile."
+            )
+            description.setWordWrap(True)
+            self.config_layout.addWidget(title)
+            self.config_layout.addWidget(description)
+
+            for field in fields:
+                self._add_config_field(field)
+
+        finally:
+            self._loading_config = False
+
+    def _add_config_field(self, field):
+        field_group = QGroupBox(field.label)
+        field_layout = QVBoxLayout(field_group)
+
+        description = QLabel(field.description)
+        description.setWordWrap(True)
+        field_layout.addWidget(description)
+
+        default_value = self._get_config_value(self.rule_config, field.path)
+        override = self.draft.get_override(field.path)
+        displayed_value = override.value if override else default_value
+
+        override_checkbox = QCheckBox("Override default value")
+        override_checkbox.setChecked(bool(override and override.enabled))
+        field_layout.addWidget(override_checkbox)
+
+        form_layout = QFormLayout()
+        default_label = QLabel(str(default_value))
+        effective_label = QLabel(
+            str(override.value if override and override.enabled else default_value)
+        )
+        editor = self._create_config_editor(field, displayed_value)
+        editor.setEnabled(bool(override and override.enabled))
+        form_layout.addRow("Default:", default_label)
+        form_layout.addRow("Value:", editor)
+        form_layout.addRow("Effective:", effective_label)
+        field_layout.addLayout(form_layout)
+
+        remove_button = QPushButton("Remove Override")
+        remove_button.setEnabled(override is not None)
+        field_layout.addWidget(remove_button)
+        self.config_layout.addWidget(field_group)
+
+        self.config_editors[field.path] = {
+            "checkbox": override_checkbox,
+            "editor": editor,
+            "effective_label": effective_label,
+            "remove_button": remove_button,
+            "default_value": default_value,
+        }
+
+        override_checkbox.toggled.connect(
+            lambda checked, current_field=field: self._on_override_toggled(
+                current_field, checked
+            )
+        )
+        self._connect_config_editor(
+            editor,
+            lambda value, current_field=field: self._on_override_value_changed(
+                current_field, value
+            ),
+        )
+        remove_button.clicked.connect(
+            lambda checked=False, current_field=field: self._remove_override(
+                current_field
+            )
+        )
+
+    def _create_config_editor(self, field, value):
+        if field.value_type is bool:
+            editor = QCheckBox()
+            editor.setChecked(bool(value))
+            return editor
+
+        if field.value_type is int:
+            editor = QSpinBox()
+            editor.setRange(
+                int(field.minimum if field.minimum is not None else -2147483648),
+                int(field.maximum if field.maximum is not None else 2147483647),
+            )
+            editor.setValue(int(value))
+            return editor
+
+        if field.value_type is float:
+            editor = QDoubleSpinBox()
+            editor.setRange(
+                float(field.minimum if field.minimum is not None else -999999999.0),
+                float(field.maximum if field.maximum is not None else 999999999.0),
+            )
+            editor.setDecimals(6)
+            editor.setValue(float(value))
+            return editor
+
+        editor = QLineEdit(str(value))
+        return editor
+
+    @staticmethod
+    def _connect_config_editor(editor, callback):
+        if isinstance(editor, QCheckBox):
+            editor.toggled.connect(callback)
+        elif isinstance(editor, (QSpinBox, QDoubleSpinBox)):
+            editor.valueChanged.connect(callback)
+        else:
+            editor.textChanged.connect(callback)
+
+    @staticmethod
+    def _get_config_value(config, path):
+        value = config
+
+        for part in path.split("."):
+            value = getattr(value, part)
+
+        return value
+
+    @staticmethod
+    def _editor_value(editor):
+        if isinstance(editor, QCheckBox):
+            return editor.isChecked()
+
+        if isinstance(editor, (QSpinBox, QDoubleSpinBox)):
+            return editor.value()
+
+        return editor.text()
+
+    def _on_override_toggled(self, field, checked):
+        if self._loading_config or self.draft is None:
+            return
+
+        widgets = self.config_editors[field.path]
+        editor = widgets["editor"]
+        override = self.draft.get_override(field.path)
+
+        if override is None:
+            self.draft.set_override(
+                field.path,
+                self._editor_value(editor),
+                enabled=checked,
+            )
+        else:
+            self.draft.set_override_enabled(field.path, checked)
+
+        editor.setEnabled(checked)
+        widgets["remove_button"].setEnabled(True)
+        self._update_effective_label(field)
+
+    def _on_override_value_changed(self, field, value):
+        if self._loading_config or self.draft is None:
+            return
+
+        override = self.draft.get_override(field.path)
+
+        if override is None:
+            return
+
+        self.draft.set_override(field.path, value, enabled=override.enabled)
+        self._update_effective_label(field)
+
+    def _remove_override(self, field):
+        if self._loading_config or self.draft is None:
+            return
+
+        self.draft.remove_override(field.path)
+        widgets = self.config_editors[field.path]
+        self._loading_config = True
+
+        try:
+            widgets["checkbox"].setChecked(False)
+            widgets["editor"].setEnabled(False)
+            self._set_editor_value(
+                widgets["editor"],
+                widgets["default_value"],
+            )
+            widgets["effective_label"].setText(str(widgets["default_value"]))
+            widgets["remove_button"].setEnabled(False)
+        finally:
+            self._loading_config = False
+
+    def _update_effective_label(self, field):
+        widgets = self.config_editors[field.path]
+        override = self.draft.get_override(field.path)
+        value = (
+            override.value
+            if override is not None and override.enabled
+            else widgets["default_value"]
+        )
+        widgets["effective_label"].setText(str(value))
+
+    @staticmethod
+    def _set_editor_value(editor, value):
+        if isinstance(editor, QCheckBox):
+            editor.setChecked(bool(value))
+        elif isinstance(editor, (QSpinBox, QDoubleSpinBox)):
+            editor.setValue(value)
+        else:
+            editor.setText(str(value))
+
     # ------------------------------------------------------------------
     # Profile list
     # ------------------------------------------------------------------
@@ -488,6 +765,7 @@ class ProfileEditor(QWidget):
         )
 
         self._refresh_check_tree()
+        self._show_config_empty_state()
 
     def _clear_editor(self):
         self.current_profile_name = None
@@ -496,6 +774,7 @@ class ProfileEditor(QWidget):
         self.name_edit.clear()
         self.description_edit.clear()
         self.check_tree.clear()
+        self._show_config_empty_state()
 
     # ------------------------------------------------------------------
     # Check filters
