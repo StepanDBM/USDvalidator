@@ -4,6 +4,14 @@ import json
 from pathlib import Path
 
 
+class ChangeImpact(str, Enum):
+    INFORMATIONAL = "INFORMATIONAL"
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
+
 class ChangeKind(str, Enum):
     ADDED = "ADDED"
     REMOVED = "REMOVED"
@@ -24,6 +32,17 @@ class SemanticChange:
     previous: object = None
     current: object = None
     details: dict = field(default_factory=dict)
+    domain: str = ""
+    property_path: str = ""
+    impact: ChangeImpact = ChangeImpact.LOW
+    why_it_matters: str = ""
+    related_check_ids: tuple[str, ...] = ()
+    source_hint: str = ""
+    validation_consequence: str = ""
+
+    @property
+    def subject_path(self):
+        return self.path
 
 
 @dataclass(frozen=True)
@@ -69,6 +88,18 @@ class AnimationSnapshot:
 
 
 @dataclass(frozen=True)
+class TransformSnapshot:
+    path: str
+    op_names: tuple[str, ...]
+    resets_stack: bool
+    time_varying: bool
+    matrix_op_count: int
+    scale_values: tuple[tuple[float, float, float], ...]
+    values_finite: bool
+    local_transform_identity: bool
+
+
+@dataclass(frozen=True)
 class StageSnapshot:
     source_path: str
     metadata: dict
@@ -76,6 +107,7 @@ class StageSnapshot:
     meshes: dict[str, MeshSnapshot]
     dependencies: tuple[DependencySnapshot, ...]
     animation: dict[str, AnimationSnapshot]
+    transforms: dict[str, TransformSnapshot] = field(default_factory=dict)
 
 
 @dataclass

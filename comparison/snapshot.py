@@ -10,6 +10,7 @@ from .models import (
     MeshSnapshot,
     PrimSnapshot,
     StageSnapshot,
+    TransformSnapshot,
 )
 
 
@@ -30,6 +31,7 @@ class StageSnapshotBuilder:
         meshes = {}
         dependencies = []
         animation = {}
+        transforms = {}
 
         for prim in stage.TraverseAll():
             path = prim.GetPath().pathString
@@ -44,6 +46,9 @@ class StageSnapshotBuilder:
             )
             dependencies.extend(self._dependencies(prim))
             animation.update(self._animation(prim))
+            transform = self._transform(prim)
+            if transform is not None:
+                transforms[path] = transform
 
             if prim.GetTypeName() == "Mesh":
                 meshes[path] = self._mesh(prim)
@@ -58,6 +63,7 @@ class StageSnapshotBuilder:
                 key=lambda item: (item.arc_type, item.prim_path, item.asset_path),
             )),
             animation=animation,
+            transforms=transforms,
         )
 
     @staticmethod
@@ -91,6 +97,40 @@ class StageSnapshotBuilder:
             extent=tuple(tuple(value) for value in extent),
             subdivision_scheme=mesh.GetSubdivisionSchemeAttr().Get() or "none",
             orientation=mesh.GetOrientationAttr().Get() or "rightHanded",
+        )
+
+
+    @staticmethod
+    def _transform(prim):
+        xformable = UsdGeom.Xformable(prim)
+        if not xformable:
+            return None
+        ops = xformable.GetOrderedXformOps()
+        if not ops:
+            return None
+        matrix, resets_stack = xformable.GetLocalTransformation(), xformable.GetResetXformStack()
+        scale_values = []
+        values_finite = True
+        time_varying = False
+        for op in ops:
+            value = op.Get()
+            time_varying = time_varying or op.MightBeTimeVarying()
+            values_finite = values_finite and _finite(value)
+            if "scale" in op.GetOpName().lower() and value is not None:
+                try:
+                    scale_values.append(tuple(float(component) for component in value))
+                except TypeError:
+                    pass
+        identity = matrix == matrix.__class__(1.0)
+        return TransformSnapshot(
+            path=prim.GetPath().pathString,
+            op_names=tuple(op.GetOpName() for op in ops),
+            resets_stack=bool(resets_stack),
+            time_varying=time_varying,
+            matrix_op_count=sum(op.GetOpType() == UsdGeom.XformOp.TypeTransform for op in ops),
+            scale_values=tuple(scale_values),
+            values_finite=values_finite,
+            local_transform_identity=identity,
         )
 
     @staticmethod
@@ -142,3 +182,15 @@ class StageSnapshotBuilder:
             )
 
         return animation
+
+
+def _finite(value):
+    if value is None:
+        return True
+    try:
+        import math
+        if isinstance(value, (int, float)):
+            return math.isfinite(float(value))
+        return all(_finite(item) for item in value)
+    except TypeError:
+        return True

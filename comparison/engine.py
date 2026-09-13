@@ -2,12 +2,14 @@ from validation import PublishChecker
 
 from .models import ChangeKind, ComparisonResult, SemanticChange
 from .snapshot import StageSnapshotBuilder
+from .transform_comparator import TransformComparator
 
 
 class SemanticComparisonEngine:
     def __init__(self, profile=None):
         self.profile = profile
         self.snapshot_builder = StageSnapshotBuilder()
+        self.domain_comparators = (TransformComparator(),)
 
     def compare(self, previous_path, current_path):
         previous = self.snapshot_builder.build(previous_path)
@@ -20,6 +22,8 @@ class SemanticComparisonEngine:
         self._compare_meshes(result, previous.meshes, current.meshes)
         self._compare_dependencies(result, previous.dependencies, current.dependencies)
         self._compare_animation(result, previous.animation, current.animation)
+        for comparator in self.domain_comparators:
+            result.changes.extend(comparator.compare(previous.transforms, current.transforms))
         self._compare_validation(result, previous_report, current_report)
         self._compatibility_warnings(result, previous_report, current_report)
         result.changes.sort(key=lambda item: (item.category, item.path, item.label))

@@ -1,8 +1,6 @@
-# ui/widgets/comparison_browser/semantic_tree.py
-
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
-from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem
+from PySide6.QtWidgets import QAbstractItemView, QTreeWidget, QTreeWidgetItem
 
 
 KIND_COLORS = {
@@ -16,43 +14,103 @@ KIND_COLORS = {
     "UNCHANGED": "#8b949e",
 }
 
+IMPACT_ORDER = {
+    "CRITICAL": 0,
+    "HIGH": 1,
+    "MEDIUM": 2,
+    "LOW": 3,
+    "INFORMATIONAL": 4,
+}
+
 
 class SemanticChangesTree(QTreeWidget):
     change_selected = Signal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setHeaderLabels(["Change", "Kind", "Previous", "Current", "Path"])
-        self.setColumnWidth(0, 240)
-        self.setColumnWidth(1, 100)
-        self.setColumnWidth(2, 150)
-        self.setColumnWidth(3, 150)
+        self.comparison = None
+        self.show_unchanged = False
+        self.filters = {}
+        self.setHeaderLabels([
+            "Domain",
+            "Path",
+            "Change",
+            "Kind",
+            "Impact",
+            "Previous",
+            "Current",
+        ])
+        self.setRootIsDecorated(False)
+        self.setItemsExpandable(False)
+        self.setIndentation(0)
+        self.setUniformRowHeights(True)
+        self.setAlternatingRowColors(True)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.setTextElideMode(Qt.TextElideMode.ElideMiddle)
+        self.setColumnWidth(0, 110)
+        self.setColumnWidth(1, 230)
+        self.setColumnWidth(2, 240)
+        self.setColumnWidth(3, 95)
+        self.setColumnWidth(4, 95)
+        self.setColumnWidth(5, 150)
+        self.setColumnWidth(6, 150)
         self.currentItemChanged.connect(self._on_current_changed)
 
-    def set_comparison(self, comparison, show_unchanged=False):
-        self.clear()
-        grouped = {}
-        for change in comparison.changes:
-            if not show_unchanged and change.kind.value == "UNCHANGED":
-                continue
-            grouped.setdefault(change.category, []).append(change)
+    def set_comparison(self, comparison, show_unchanged=False, filters=None):
+        self.comparison = comparison
+        self.show_unchanged = show_unchanged
+        self.filters = filters or {}
+        self._rebuild()
 
-        for category in sorted(grouped):
-            category_item = QTreeWidgetItem([category])
-            category_item.setFirstColumnSpanned(True)
-            self.addTopLevelItem(category_item)
-            for change in grouped[category]:
-                item = QTreeWidgetItem([
-                    change.label,
-                    change.kind.value,
-                    self._value(change.previous),
-                    self._value(change.current),
-                    change.path,
-                ])
-                item.setData(0, Qt.ItemDataRole.UserRole, change)
-                item.setForeground(1, QColor(KIND_COLORS[change.kind.value]))
-                category_item.addChild(item)
-            category_item.setExpanded(True)
+    def set_filters(self, filters):
+        self.filters = filters or {}
+        self._rebuild()
+
+    def _rebuild(self):
+        self.clear()
+        if self.comparison is None:
+            return
+
+        changes = sorted(
+            (change for change in self.comparison.changes if self._visible(change)),
+            key=self._sort_key,
+        )
+        for change in changes:
+            domain = change.domain or change.category
+            item = QTreeWidgetItem([
+                domain,
+                change.path,
+                change.label,
+                change.kind.value,
+                change.impact.value,
+                self._value(change.previous),
+                self._value(change.current),
+            ])
+            item.setData(0, Qt.ItemDataRole.UserRole, change)
+            item.setForeground(3, QColor(KIND_COLORS[change.kind.value]))
+            self.addTopLevelItem(item)
+
+    def _visible(self, change):
+        if not self.show_unchanged and change.kind.value == "UNCHANGED":
+            return False
+        if self.filters.get("impact") and change.impact.value != self.filters["impact"]:
+            return False
+
+        domain = change.domain or change.category
+        if self.filters.get("domain") and domain != self.filters["domain"]:
+            return False
+        if self.filters.get("kind") and change.kind.value != self.filters["kind"]:
+            return False
+        return not self.filters.get("regressions_only") or change.kind.value == "REGRESSION"
+
+    @staticmethod
+    def _sort_key(change):
+        return (
+            IMPACT_ORDER.get(change.impact.value, 99),
+            change.domain or change.category,
+            change.path,
+            change.label,
+        )
 
     @staticmethod
     def _value(value):

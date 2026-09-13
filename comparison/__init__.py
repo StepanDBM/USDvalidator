@@ -1,7 +1,7 @@
 # comparison/__init__.py
 
 from .engine import SemanticComparisonEngine
-from .models import ChangeKind, ComparisonResult, SemanticChange
+from .models import ChangeImpact, ChangeKind, ComparisonResult, SemanticChange
 from .progress import CancellationToken, ComparisonCancelled, ProgressUpdate
 from .source_preflight import (
     DiffMode,
@@ -13,6 +13,7 @@ from .text_diff import DiffLine, SourceDiffResult, build_side_by_side_diff, buil
 
 
 __all__ = [
+    "ChangeImpact",
     "ChangeKind",
     "ProgressUpdate",
     "ComparisonCancelled",

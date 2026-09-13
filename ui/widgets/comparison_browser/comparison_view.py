@@ -22,6 +22,7 @@ from ui.workers import ComparisonWorker
 
 from .change_details import ChangeDetails
 from .diff_view import FileDiffView
+from .semantic_toolbar import SemanticComparisonToolbar
 from .semantic_tree import SemanticChangesTree
 
 
@@ -108,6 +109,7 @@ class ComparisonView(QWidget):
             Qt.Orientation.Horizontal
         )
 
+        self.semantic_toolbar = SemanticComparisonToolbar()
         self.semantic_tree = SemanticChangesTree()
         self.change_details = ChangeDetails()
 
@@ -129,8 +131,15 @@ class ComparisonView(QWidget):
 
         self.diff_view = FileDiffView()
 
+        semantic_widget = QWidget()
+        semantic_layout = QVBoxLayout(semantic_widget)
+        semantic_layout.setContentsMargins(0, 0, 0, 0)
+        semantic_layout.setSpacing(0)
+        semantic_layout.addWidget(self.semantic_toolbar)
+        semantic_layout.addWidget(self.semantic_splitter, 1)
+
         self.main_splitter.addWidget(
-            self.semantic_splitter
+            semantic_widget
         )
         self.main_splitter.addWidget(
             self.diff_view
@@ -161,6 +170,9 @@ class ComparisonView(QWidget):
 
         self.semantic_tree.change_selected.connect(
             self.change_details.show_change
+        )
+        self.semantic_toolbar.filters_changed.connect(
+            self._refresh_semantic_tree
         )
         self.cancel_button.clicked.connect(self._cancel_comparison)
 
@@ -320,6 +332,7 @@ class ComparisonView(QWidget):
     def _on_comparison_completed(self, comparison, diff_result):
         self.comparison = comparison
 
+        self.semantic_toolbar.set_comparison(self.comparison)
         self._refresh_semantic_tree()
 
         if diff_result.mode is DiffMode.SKIP:
@@ -454,7 +467,6 @@ class ComparisonView(QWidget):
 
         self.semantic_tree.set_comparison(
             self.comparison,
-            show_unchanged=(
-                self.show_unchanged.isChecked()
-            ),
+            show_unchanged=self.show_unchanged.isChecked(),
+            filters=self.semantic_toolbar.filters(),
         )
