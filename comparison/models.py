@@ -208,6 +208,15 @@ class StageComparisonSnapshot:
     collections: dict[tuple[str, str], CollectionSnapshot] = field(default_factory=dict)
     geom_subsets: dict[str, GeomSubsetSnapshot] = field(default_factory=dict)
     primvars: dict[str, PrimvarSnapshot] = field(default_factory=dict)
+    lights: dict[str, LightSnapshot] = field(default_factory=dict)
+    render_settings: dict[str, RenderSettingsSnapshot] = field(default_factory=dict)
+    render_products: dict[str, RenderProductSnapshot] = field(default_factory=dict)
+    render_vars: dict[str, RenderVarSnapshot] = field(default_factory=dict)
+    skeletons: dict[str, SkeletonSnapshot] = field(default_factory=dict)
+    skinning: dict[str, SkinningSnapshot] = field(default_factory=dict)
+    blend_shapes: dict[str, BlendShapeSnapshot] = field(default_factory=dict)
+    value_clips: dict[tuple[str, str], ValueClipSnapshot] = field(default_factory=dict)
+    time_configuration: TimeConfigurationSnapshot | None = None
 
 
 StageSnapshot = StageComparisonSnapshot
@@ -219,6 +228,7 @@ class ComparisonResult:
     current_source: str
     changes: list[SemanticChange] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    validation_summary_by_domain: dict[str, dict[str, int]] = field(default_factory=dict)
 
     @property
     def changed(self):
@@ -233,6 +243,7 @@ class ComparisonResult:
             "previous_source": self.previous_source,
             "current_source": self.current_source,
             "warnings": self.warnings,
+            "validation_summary_by_domain": self.validation_summary_by_domain,
             "changes": [
                 {
                     **asdict(change),
@@ -316,3 +327,125 @@ class PrimvarSnapshot:
     values_hash: str
     indices_hash: str
     uv_like: bool
+
+
+class CorrelationConfidence(str, Enum):
+    NONE = "NONE"
+    CHECK_ONLY = "CHECK_ONLY"
+    RELATED_PATH = "RELATED_PATH"
+    EXACT = "EXACT"
+
+
+@dataclass(frozen=True)
+class LightSnapshot:
+    path: str
+    type_name: str
+    intensity: str
+    exposure: str
+    color: str
+    temperature: str
+    enable_color_temperature: str
+    normalize: str
+    shaping: tuple[tuple[str, str], ...]
+    texture_assets: tuple[str, ...]
+    time_varying: bool
+    linked_paths: tuple[str, ...]
+    shadow_linked_paths: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class RenderSettingsSnapshot:
+    path: str
+    active: bool
+    camera_path: str
+    products: tuple[str, ...]
+    included_purposes: tuple[str, ...]
+    material_binding_purposes: tuple[str, ...]
+    renderer_settings: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class RenderProductSnapshot:
+    path: str
+    product_type: str
+    product_name: str
+    camera_path: str
+    ordered_vars: tuple[str, ...]
+    resolution: str
+    pixel_aspect_ratio: str
+    data_window_ndc: str
+    renderer_settings: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class RenderVarSnapshot:
+    path: str
+    source_name: str
+    source_type: str
+    data_type: str
+    namespaced_settings: tuple[tuple[str, str], ...]
+
+
+@dataclass(frozen=True)
+class SkeletonSnapshot:
+    path: str
+    joints: tuple[str, ...]
+    parent_indices: tuple[int, ...]
+    bind_transforms_hash: str
+    rest_transforms_hash: str
+    animation_source: str
+
+
+@dataclass(frozen=True)
+class SkinningSnapshot:
+    prim_path: str
+    skeleton_path: str
+    geom_bind_transform_hash: str
+    joint_indices_hash: str
+    joint_weights_hash: str
+    joint_count: int
+    influences_per_point: int
+
+
+@dataclass(frozen=True)
+class BlendShapeSnapshot:
+    path: str
+    offsets_hash: str
+    normal_offsets_hash: str
+    point_indices_hash: str
+    inbetween_names: tuple[str, ...]
+    bound_prims: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class ValueClipSnapshot:
+    prim_path: str
+    clip_set: str
+    asset_paths: tuple[str, ...]
+    clip_prim_path: str
+    manifest_asset_path: str
+    active_hash: str
+    times_hash: str
+    template_asset_path: str
+    template_start_time: str
+    template_end_time: str
+    template_stride: str
+
+
+@dataclass(frozen=True)
+class TimeConfigurationSnapshot:
+    start_time_code: float
+    end_time_code: float
+    frames_per_second: float
+    time_codes_per_second: float
+
+
+@dataclass(frozen=True)
+class ValidationCorrelation:
+    check_id: str
+    previous_status: str
+    current_status: str
+    previous_location: str
+    current_location: str
+    confidence: CorrelationConfidence
+    consequence: str

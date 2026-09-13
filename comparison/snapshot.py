@@ -7,6 +7,7 @@ from pxr import Sdf, Usd, UsdGeom, UsdShade
 from extraction.lookdev import LookdevExtractor
 from extraction.pipeline import PipelineExtractor
 
+from .advanced_snapshot import extract_advanced_domains
 from .composition_snapshot import extract_extended_domains
 from .models import (
     AnimationSnapshot,
@@ -101,6 +102,7 @@ class StageComparisonSnapshotBuilder:
         instancing = {item.path: InstancingSnapshot(**item.__dict__) for item in pipeline.instances}
 
         extended = extract_extended_domains(stage)
+        advanced = extract_advanced_domains(stage)
 
         return StageComparisonSnapshot(
             source_path=source_path.as_posix(),
@@ -126,6 +128,7 @@ class StageComparisonSnapshotBuilder:
                 for item in dependencies
             },
             **extended,
+            **advanced,
         )
 
 

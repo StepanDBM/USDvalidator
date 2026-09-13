@@ -2,7 +2,18 @@ from dataclasses import replace
 
 from validation import PublishChecker
 
-from .models import ChangeKind, ComparisonResult, SemanticChange
+from .advanced_comparators import (
+    BlendShapeComparator,
+    LightComparator,
+    RenderProductComparator,
+    RenderSettingsComparator,
+    RenderVarComparator,
+    SkeletonComparator,
+    SkinningComparator,
+    TimeConfigurationComparator,
+    ValueClipComparator,
+)
+from .models import CorrelationConfidence, ChangeKind, ComparisonResult, SemanticChange
 from .composition_comparators import (
     CollectionComparator,
     CompositionArcComparator,
@@ -45,6 +56,15 @@ class SemanticComparisonEngine:
             CollectionComparator(),
             GeomSubsetComparator(),
             PrimvarComparator(),
+            LightComparator(),
+            RenderSettingsComparator(),
+            RenderProductComparator(),
+            RenderVarComparator(),
+            SkeletonComparator(),
+            SkinningComparator(),
+            BlendShapeComparator(),
+            ValueClipComparator(),
+            TimeConfigurationComparator(),
         )
 
     def compare(self, previous_path, current_path):
@@ -62,6 +82,7 @@ class SemanticComparisonEngine:
             result.changes.extend(comparator.compare(previous, current))
         self._compare_validation(result, previous_report, current_report)
         self._correlate_validation(result, previous_report, current_report)
+        self._summarize_validation_by_domain(result)
         self._compatibility_warnings(result, previous_report, current_report)
         result.changes.sort(key=lambda item: (item.category, item.path, item.label))
         return result
@@ -242,36 +263,67 @@ class SemanticComparisonEngine:
 
     @staticmethod
     def _correlate_validation(result, previous, current):
-        previous_results = {item.check_id: item for item in previous.results}
-        current_results = {item.check_id: item for item in current.results}
+        previous_results = _results_by_check_id(previous.results)
+        current_results = _results_by_check_id(current.results)
         correlated = []
         for change in result.changes:
-            consequences = []
-            details = []
+            correlations = []
             for check_id in change.related_check_ids:
-                old = previous_results.get(check_id)
-                new = current_results.get(check_id)
-                old_status = old.status.value if old else "NOT_RUN"
-                new_status = new.status.value if new else "NOT_RUN"
-                details.append({
-                    "check_id": check_id,
-                    "previous_status": old_status,
-                    "current_status": new_status,
-                })
-                if old_status != "FAILED" and new_status == "FAILED":
-                    consequences.append(f"{check_id} regressed")
-                elif old_status == "FAILED" and new_status != "FAILED":
-                    consequences.append(f"{check_id} resolved")
-            if consequences:
-                correlation = "; ".join(consequences)
+                old_items = previous_results.get(check_id, ())
+                new_items = current_results.get(check_id, ())
+                count = max(len(old_items), len(new_items), 1)
+                for index in range(count):
+                    old = old_items[index] if index < len(old_items) else None
+                    new = new_items[index] if index < len(new_items) else None
+                    old_status = old.status.value if old else "NOT_RUN"
+                    new_status = new.status.value if new else "NOT_RUN"
+                    consequence = _consequence(old_status, new_status)
+                    confidence = _correlation_confidence(change, old, new)
+                    old_location = getattr(old, "location", "") if old else ""
+                    new_location = getattr(new, "location", "") if new else ""
+
+                    correlations.append({
+                        "check_id": check_id,
+                        "previous_status": old_status,
+                        "current_status": new_status,
+                        "previous_location": old_location,
+                        "current_location": new_location,
+                        "confidence": confidence.value,
+                        "consequence": consequence,
+                    })
+            meaningful = [item for item in correlations if item["consequence"]]
+            meaningful.sort(key=lambda item: _confidence_rank(item["confidence"]), reverse=True)
+            consequence = "; ".join(
+                f'{item["check_id"]} {item["consequence"]} ({item["confidence"]})'
+                for item in meaningful
+            )
+            if correlations:
                 correlated.append(replace(
                     change,
-                    validation_consequence=correlation,
-                    details={**change.details, "validation_correlation": details},
+                    validation_consequence=consequence,
+                    details={**change.details, "validation_correlation": correlations},
                 ))
             else:
                 correlated.append(change)
         result.changes[:] = correlated
+
+    @staticmethod
+    def _summarize_validation_by_domain(result):
+        summary = {}
+        for change in result.changes:
+            if change.category == "Validation":
+                continue
+            domain = change.domain or change.category
+            bucket = summary.setdefault(domain, {"regressions": 0, "resolutions": 0})
+            for item in change.details.get("validation_correlation", ()):
+                if item["consequence"] == "regressed":
+                    bucket["regressions"] += 1
+                elif item["consequence"] == "resolved":
+                    bucket["resolutions"] += 1
+        result.validation_summary_by_domain = {
+            domain: counts for domain, counts in sorted(summary.items())
+            if counts["regressions"] or counts["resolutions"]
+        }
 
     @staticmethod
     def _compatibility_warnings(result, previous, current):
@@ -279,3 +331,49 @@ class SemanticComparisonEngine:
             result.warnings.append("The effective validation configurations differ.")
         if previous.check_catalog_fingerprint != current.check_catalog_fingerprint:
             result.warnings.append("The validation check catalogs differ.")
+
+
+def _results_by_check_id(results):
+    grouped = {}
+    for item in results:
+        grouped.setdefault(item.check_id, []).append(item)
+    return grouped
+
+
+def _consequence(previous, current):
+    bad = {"FAILED", "ERROR"}
+    if previous not in bad and current in bad:
+        return "regressed"
+    if previous in bad and current not in bad:
+        return "resolved"
+    return ""
+
+
+def _correlation_confidence(change, previous, current):
+    locations = [
+        getattr(item, "location", "")
+        for item in (previous, current)
+        if item and getattr(item, "location", "")
+    ]
+    if not locations:
+        return CorrelationConfidence.CHECK_ONLY
+    subjects = [change.path, change.property_path, change.source_hint.split(" :: ")[0]]
+    subjects = [_normalize_path(item) for item in subjects if item]
+    locations = [_normalize_path(item) for item in locations]
+    if any(location == subject for location in locations for subject in subjects):
+        return CorrelationConfidence.EXACT
+    if any(_paths_related(location, subject) for location in locations for subject in subjects):
+        return CorrelationConfidence.RELATED_PATH
+    return CorrelationConfidence.CHECK_ONLY
+
+
+def _normalize_path(value):
+    return str(value).strip().replace("\\", "/").rstrip("/")
+
+
+def _paths_related(left, right):
+    return left.startswith(right + "/") or right.startswith(left + "/") or left.startswith(right + ".") or right.startswith(left + ".")
+
+
+def _confidence_rank(value):
+    return {"NONE": 0, "CHECK_ONLY": 1, "RELATED_PATH": 2, "EXACT": 3}[value]
