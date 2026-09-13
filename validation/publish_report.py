@@ -111,6 +111,8 @@ class PublishReport:
                 "root_layer": health.stage.root_layer,
                 "default_prim": health.stage.default_prim,
                 "default_prim_valid": health.stage.default_prim_valid,
+                "root_prim_name": health.stage.root_prim_name,
+                "root_prim_type": health.stage.root_prim_type,
                 "up_axis": health.stage.up_axis,
                 "meters_per_unit": health.stage.meters_per_unit,
                 "frames_per_second": health.stage.frames_per_second,
@@ -126,6 +128,7 @@ class PublishReport:
                 "defined_prims": health.scene.defined_prims,
                 "abstract_prims": health.scene.abstract_prims,
                 "instance_prims": health.scene.instance_prims,
+                "maximum_prim_depth": health.scene.maximum_prim_depth,
             },
             "types": {
                 "meshes": health.types.meshes,
@@ -146,6 +149,7 @@ class PublishReport:
                 "unresolved_payloads": health.composition.unresolved_payloads,
                 "invalid_layers": health.composition.invalid_layers,
                 "unexpected_arcs": health.composition.unexpected_arcs,
+                "absolute_asset_paths": health.composition.absolute_asset_paths,
             },
             "geometry": {
                 "mesh_count": health.geometry.mesh_count,
@@ -161,13 +165,15 @@ class PublishReport:
                         "points_valid": mesh.points_valid,
                         "face_vertex_counts_valid": mesh.face_vertex_counts_valid,
                         "topology_valid": mesh.topology_valid,
+                        "extent_authored": mesh.extent_authored,
+                        "subdivision_scheme": mesh.subdivision_scheme,
+                        "orientation": mesh.orientation,
                     }
                     for mesh in health.geometry.meshes
                 ],
             },
             "animation": {
-                "invalid_time_samples": (
-                    health.animation.invalid_time_samples
-                ),
+                "invalid_time_samples": health.animation.invalid_time_samples,
+                "time_sample_count": health.animation.time_sample_count,
             },
         }

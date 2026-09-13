@@ -10,7 +10,7 @@ from validation import PublishChecker
 from validation.batch_validator import BatchValidator
 
 from .profile_selector import ProfileSelector
-from .results_view import ResultsView
+from .results_browser import ResultsBrowser
 from .source_selector import USD_EXTENSIONS, SourceSelector
 from .validate_button import ValidateButton
 
@@ -40,7 +40,7 @@ class ValidationView(QWidget):
 
         layout.addWidget(QLabel("Results"))
 
-        self.results_view = ResultsView()
+        self.results_view = ResultsBrowser()
         layout.addWidget(self.results_view, 1)
 
     def _connect_signals(self):

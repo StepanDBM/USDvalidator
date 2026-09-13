@@ -7,10 +7,12 @@ class MeshGeometry:
     points_count: int = 0
     face_count: int = 0
     polygon_count: int = 0
-
     points_valid: bool = False
     face_vertex_counts_valid: bool = False
     topology_valid: bool = False
+    extent_authored: bool = False
+    subdivision_scheme: str = ""
+    orientation: str = ""
 
 
 @dataclass
@@ -19,5 +21,4 @@ class GeometryStatistics:
     total_points: int = 0
     total_faces: int = 0
     total_polygons: int = 0
-
     meshes: list[MeshGeometry] = field(default_factory=list)

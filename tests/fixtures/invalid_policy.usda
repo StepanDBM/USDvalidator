@@ -1,0 +1,23 @@
+#usda 1.0
+(
+    defaultPrim = "AssetRoot"
+    startTimeCode = 1
+    endTimeCode = 20001
+    framesPerSecond = 24
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+    metersPerUnit = 2000
+)
+
+def Mesh "AssetRoot"
+(
+    references = @/production/shared/absolute_asset.usda@
+    payload = @/production/shared/absolute_payload.usda@
+)
+{
+    uniform token orientation = "leftHanded"
+    uniform token subdivisionScheme = "loop"
+    point3f[] points = [(-1, -1, 0), (1, -1, 0), (1, 1, 0), (-1, 1, 0)]
+    int[] faceVertexCounts = [4]
+    int[] faceVertexIndices = [0, 1, 2, 3]
+}

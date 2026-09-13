@@ -14,13 +14,9 @@ class AnimationExtractor:
                 if not time_samples:
                     continue
 
-                invalid_samples = self._find_invalid_time_samples(
-                    attribute,
-                    time_samples,
-                )
-
+                animation.time_sample_count += len(time_samples)
                 animation.invalid_time_samples.extend(
-                    invalid_samples
+                    self._find_invalid_time_samples(attribute, time_samples)
                 )
 
         return animation
@@ -28,7 +24,6 @@ class AnimationExtractor:
     @staticmethod
     def _find_invalid_time_samples(attribute, time_samples):
         invalid_samples = []
-
         previous_time = None
 
         for time in time_samples:

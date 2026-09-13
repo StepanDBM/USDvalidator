@@ -1,9 +1,7 @@
-# contexts/stage_health_context.py
-
 from dataclasses import dataclass, field
-from .geometry_context import GeometryStatistics
 
 from .animation_context import AnimationStatistics
+from .geometry_context import GeometryStatistics
 
 
 @dataclass
@@ -20,6 +18,8 @@ class StageMetadata:
     root_layer: str = ""
     default_prim: str = ""
     default_prim_valid: bool | None = None
+    root_prim_name: str = ""
+    root_prim_type: str = ""
     up_axis: str = ""
     meters_per_unit: float | None = None
     frames_per_second: float | None = None
@@ -37,6 +37,7 @@ class SceneStatistics:
     defined_prims: int = 0
     abstract_prims: int = 0
     instance_prims: int = 0
+    maximum_prim_depth: int = 0
 
 
 @dataclass
@@ -61,6 +62,8 @@ class CompositionStatistics:
     unresolved_payloads: int = 0
     invalid_layers: int = 0
     unexpected_arcs: int = 0
+    absolute_asset_paths: list[str] = field(default_factory=list)
+
 
 @dataclass
 class StageHealthContext:

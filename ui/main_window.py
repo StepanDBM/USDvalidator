@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("USDvalidator")
-        self.resize(1100, 700)
+        self.resize(1280, 800)
 
         self.profile_loader = ProfileLoader(
             "validation/profiles.json"

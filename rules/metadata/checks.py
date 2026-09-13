@@ -1,237 +1,372 @@
-# rules/metadata/checks.py
-from validation.enums import CheckStatus
-from validation.models import CheckResult
-
 from validation.check_ids import (
     USD_DEFAULT_PRIM_AUTHORED,
     USD_DEFAULT_PRIM_VALID,
-    USD_UP_AXIS_VALID,
+    USD_FRAME_RATE_VALID,
     USD_METERS_PER_UNIT_AUTHORED,
+    USD_METERS_PER_UNIT_VALID,
+    USD_ROOT_PRIM_NAME_VALID,
+    USD_ROOT_PRIM_TYPE_VALID,
     USD_TIME_CODES_VALID,
-    USD_FRAME_RATE_VALID
+    USD_UP_AXIS_VALID,
 )
+from validation.enums import CheckStatus
+from validation.models import CheckResult
+
+
+def _result(
+    *,
+    check_id,
+    label,
+    category,
+    runtime_context,
+    passed,
+    message,
+    details=None,
+    suggestion="",
+    location="",
+):
+    return [
+        CheckResult(
+            check_id=check_id,
+            label=label,
+            category=category,
+            status=(
+                CheckStatus.PASSED
+                if passed
+                else CheckStatus.FAILED
+            ),
+            severity=runtime_context.default_severity,
+            message=message,
+            location=location,
+            suggestion=suggestion,
+            details=details or {},
+        )
+    ]
+
 
 def check_default_prim_authored(context, runtime_context):
     default_prim = context.stage.default_prim
+    passed = bool(default_prim)
 
-    if default_prim:
-        return [CheckResult(
+    return [
+        CheckResult(
             check_id=USD_DEFAULT_PRIM_AUTHORED,
             label="Default Prim Authored",
             category="Metadata",
-            status=CheckStatus.PASSED,
+            status=(
+                CheckStatus.PASSED
+                if passed
+                else CheckStatus.FAILED
+            ),
             severity=runtime_context.default_severity,
-            message=f"The stage has an authored default prim: {default_prim}.",
+            message=(
+                f"The stage has an authored default prim: {default_prim}."
+                if passed
+                else "The stage does not have an authored default prim."
+            ),
             location=default_prim,
-        )]
+            suggestion=(
+                ""
+                if passed
+                else "Author defaultPrim metadata on the stage."
+            ),
+            details={
+                "default_prim": default_prim,
+            },
+        )
+    ]
 
-    return [CheckResult(
-        check_id=USD_DEFAULT_PRIM_AUTHORED,
-        label="Default Prim Authored",
-        category="Metadata",
-        status=CheckStatus.FAILED,
-        severity=runtime_context.default_severity,
-        message="The stage does not have an authored default prim.",
-        suggestion="Author a valid default prim before publishing.",
-    )]
 
 def check_default_prim_valid(context, runtime_context):
-    default_prim_path = context.stage.default_prim
+    default_prim = context.stage.default_prim
+    valid = context.stage.default_prim_valid
 
-    if not default_prim_path:
-        return [CheckResult(
+    if not default_prim:
+        return [
+            CheckResult(
+                check_id=USD_DEFAULT_PRIM_VALID,
+                label="Default Prim Valid",
+                category="Metadata",
+                status=CheckStatus.SKIPPED,
+                severity=runtime_context.default_severity,
+                message="No defaultPrim is authored.",
+                details={
+                    "default_prim": "",
+                    "valid": None,
+                },
+            )
+        ]
+
+    passed = valid is True
+
+    return [
+        CheckResult(
             check_id=USD_DEFAULT_PRIM_VALID,
             label="Default Prim Valid",
             category="Metadata",
-            status=CheckStatus.SKIPPED,
+            status=(
+                CheckStatus.PASSED
+                if passed
+                else CheckStatus.FAILED
+            ),
             severity=runtime_context.default_severity,
-            message="No defaultPrim is authored; validity cannot be evaluated."
-        )]
+            message=(
+                f"The authored default prim resolves: {default_prim}."
+                if passed
+                else (
+                    "The authored default prim does not resolve: "
+                    f"{default_prim}."
+                )
+            ),
+            location=default_prim,
+            suggestion=(
+                ""
+                if passed
+                else "Point defaultPrim at an existing root prim."
+            ),
+            details={
+                "default_prim": default_prim,
+                "valid": valid,
+            },
+        )
+    ]
 
-    if context.stage.default_prim_valid:
-        return [CheckResult(
-            check_id=USD_DEFAULT_PRIM_VALID,
-            label="Default Prim Valid",
-            category="Metadata",
-            status=CheckStatus.PASSED,
-            severity=runtime_context.default_severity,
-            message="The authored defaultPrim resolves to a valid prim.",
-            location=default_prim_path,
-            layer=context.stage.root_layer,
-        )]
-
-    return [CheckResult(
-        check_id=USD_DEFAULT_PRIM_VALID,
-        label="Default Prim Valid",
-        category="Metadata",
-        status=CheckStatus.FAILED,
-        severity=runtime_context.default_severity,
-        message=(
-            f"The authored defaultPrim '{default_prim_path}' "
-            "does not resolve to a valid prim."
-        ),
-        location=default_prim_path,
-        layer=context.stage.root_layer,
-        suggestion="Set defaultPrim to the path of an existing valid prim."
-    )]
 
 def check_up_axis_valid(context, runtime_context):
-    up_axis = context.stage.up_axis
+    value = context.stage.up_axis
+    allowed = runtime_context.config.metadata.allowed_up_axes
+    passed = value in allowed
 
-    if up_axis in {"Y", "Z"}:
-        return [CheckResult(
-            check_id=USD_UP_AXIS_VALID,
-            label="Up Axis Valid",
-            category="Metadata",
-            status=CheckStatus.PASSED,
-            severity=runtime_context.default_severity,
-            message=f"The stage uses a valid up axis: {up_axis}.",
-            details={
-                "up_axis": up_axis,
-            },
-        )]
-
-    return [CheckResult(
+    return _result(
         check_id=USD_UP_AXIS_VALID,
         label="Up Axis Valid",
         category="Metadata",
-        status=CheckStatus.FAILED,
-        severity=runtime_context.default_severity,
-        message=f"The stage has an invalid or undefined up axis: '{up_axis}'.",
-        suggestion="Set the stage up axis to Y or Z.",
+        runtime_context=runtime_context,
+        passed=passed,
+        message=(
+            f"Up axis {value}; allowed values: {allowed}."
+        ),
         details={
-            "up_axis": up_axis,
+            "up_axis": value,
+            "allowed": list(allowed),
         },
-    )]
+        suggestion=(
+            ""
+            if passed
+            else "Set an allowed stage up axis."
+        ),
+    )
+
 
 def check_meters_per_unit_authored(context, runtime_context):
-    meters_per_unit = context.stage.meters_per_unit
+    value = context.stage.meters_per_unit
+    passed = value is not None and value > 0
 
-    if meters_per_unit is not None and meters_per_unit > 0:
-        return [CheckResult(
-            check_id=USD_METERS_PER_UNIT_AUTHORED,
-            label="Meters Per Unit Authored",
-            category="Metadata",
-            status=CheckStatus.PASSED,
-            severity=runtime_context.default_severity,
-            message=(
-                f"The stage has a valid metersPerUnit value: "
-                f"{meters_per_unit}."
-            ),
-            details={
-                "meters_per_unit": meters_per_unit,
-            },
-        )]
-
-    return [CheckResult(
+    return _result(
         check_id=USD_METERS_PER_UNIT_AUTHORED,
         label="Meters Per Unit Authored",
         category="Metadata",
-        status=CheckStatus.FAILED,
-        severity=runtime_context.default_severity,
-        message="The stage does not have a valid metersPerUnit value.",
-        suggestion="Author a positive metersPerUnit value on the stage.",
+        runtime_context=runtime_context,
+        passed=passed,
+        message=f"metersPerUnit: {value}.",
         details={
-            "meters_per_unit": meters_per_unit,
+            "meters_per_unit": value,
         },
-    )]
+        suggestion=(
+            ""
+            if passed
+            else "Author a positive metersPerUnit value."
+        ),
+    )
+
+
+def check_meters_per_unit_valid(context, runtime_context):
+    value = context.stage.meters_per_unit
+    minimum = (
+        runtime_context
+        .config
+        .metadata
+        .minimum_meters_per_unit
+    )
+    maximum = (
+        runtime_context
+        .config
+        .metadata
+        .maximum_meters_per_unit
+    )
+
+    passed = (
+        value is not None
+        and minimum <= value <= maximum
+    )
+
+    return _result(
+        check_id=USD_METERS_PER_UNIT_VALID,
+        label="Meters Per Unit Valid",
+        category="Metadata",
+        runtime_context=runtime_context,
+        passed=passed,
+        message=(
+            f"metersPerUnit {value}; allowed range "
+            f"{minimum} to {maximum}."
+        ),
+        details={
+            "value": value,
+            "minimum": minimum,
+            "maximum": maximum,
+        },
+        suggestion=(
+            ""
+            if passed
+            else "Use a profile-approved world scale."
+        ),
+    )
+
+
+def check_root_prim_name_valid(context, runtime_context):
+    value = context.stage.root_prim_name
+    required = (
+        runtime_context
+        .config
+        .metadata
+        .required_root_prim_name
+    )
+    passed = value == required
+
+    return _result(
+        check_id=USD_ROOT_PRIM_NAME_VALID,
+        label="Root Prim Name Valid",
+        category="Metadata",
+        runtime_context=runtime_context,
+        passed=passed,
+        message=(
+            f"Root prim name {value!r}; "
+            f"required name {required!r}."
+        ),
+        location=context.stage.default_prim,
+        details={
+            "value": value,
+            "required": required,
+        },
+        suggestion=(
+            ""
+            if passed
+            else (
+                "Rename the default root prim or override "
+                "the required name."
+            )
+        ),
+    )
+
+
+def check_root_prim_type_valid(context, runtime_context):
+    value = context.stage.root_prim_type
+    allowed = (
+        runtime_context
+        .config
+        .metadata
+        .allowed_root_prim_types
+    )
+    passed = value in allowed
+
+    return _result(
+        check_id=USD_ROOT_PRIM_TYPE_VALID,
+        label="Root Prim Type Valid",
+        category="Metadata",
+        runtime_context=runtime_context,
+        passed=passed,
+        message=(
+            f"Root prim type {value!r}; "
+            f"allowed types: {allowed}."
+        ),
+        location=context.stage.default_prim,
+        details={
+            "value": value,
+            "allowed": list(allowed),
+        },
+        suggestion=(
+            ""
+            if passed
+            else "Use an allowed root prim type."
+        ),
+    )
+
 
 def check_time_codes_valid(context, runtime_context):
-    start_time_code = context.stage.start_time_code
-    end_time_code = context.stage.end_time_code
+    start = context.stage.start_time_code
+    end = context.stage.end_time_code
 
-    if start_time_code is None or end_time_code is None:
-        return [CheckResult(
-            check_id=USD_TIME_CODES_VALID,
-            label="Time Codes Valid",
-            category="Metadata",
-            status=CheckStatus.FAILED,
-            severity=runtime_context.default_severity,
-            message="The stage does not have valid start and end time codes.",
-            suggestion="Set valid startTimeCode and endTimeCode metadata.",
-            details={
-                "start_time_code": start_time_code,
-                "end_time_code": end_time_code,
-            },
-        )]
+    passed = (
+        start is not None
+        and end is not None
+        and start <= end
+    )
 
-    if start_time_code <= end_time_code:
-        return [CheckResult(
-            check_id=USD_TIME_CODES_VALID,
-            label="Time Codes Valid",
-            category="Metadata",
-            status=CheckStatus.PASSED,
-            severity=runtime_context.default_severity,
-            message=(
-                f"The stage has a valid time range: "
-                f"{start_time_code} - {end_time_code}."
-            ),
-            details={
-                "start_time_code": start_time_code,
-                "end_time_code": end_time_code,
-            },
-        )]
-
-    return [CheckResult(
+    return _result(
         check_id=USD_TIME_CODES_VALID,
         label="Time Codes Valid",
         category="Metadata",
-        status=CheckStatus.FAILED,
-        severity=runtime_context.default_severity,
+        runtime_context=runtime_context,
+        passed=passed,
         message=(
-            f"The stage has an invalid time range: "
-            f"{start_time_code} - {end_time_code}."
+            f"Time codes range from {start} to {end}."
         ),
-        suggestion="Ensure startTimeCode is less than or equal to endTimeCode.",
         details={
-            "start_time_code": start_time_code,
-            "end_time_code": end_time_code,
+            "start_time_code": start,
+            "end_time_code": end,
         },
-    )]
+        suggestion=(
+            ""
+            if passed
+            else "Author an ordered time-code range."
+        ),
+    )
+
 
 def check_frame_rate_valid(context, runtime_context):
-    frames_per_second = context.stage.frames_per_second
-    time_codes_per_second = context.stage.time_codes_per_second
+    fps = context.stage.frames_per_second
+    time_codes_per_second = (
+        context.stage.time_codes_per_second
+    )
+    allowed = (
+        runtime_context
+        .config
+        .animation
+        .allowed_frame_rates
+    )
 
-    if (
-        frames_per_second is not None
-        and frames_per_second > 0
+    rates_match = (
+        fps is not None
         and time_codes_per_second is not None
-        and time_codes_per_second > 0
-    ):
-        return [CheckResult(
-            check_id=USD_FRAME_RATE_VALID,
-            label="Frame Rate Valid",
-            category="Metadata",
-            status=CheckStatus.PASSED,
-            severity=runtime_context.default_severity,
-            message=(
-                f"The stage has valid rates: "
-                f"{frames_per_second} FPS, "
-                f"{time_codes_per_second} timeCodesPerSecond."
-            ),
-            details={
-                "frames_per_second": frames_per_second,
-                "time_codes_per_second": time_codes_per_second,
-            },
-        )]
+        and abs(fps - time_codes_per_second) < 0.0001
+    )
 
-    return [CheckResult(
+    passed = (
+        fps in allowed
+        and time_codes_per_second in allowed
+        and rates_match
+    )
+
+    return _result(
         check_id=USD_FRAME_RATE_VALID,
         label="Frame Rate Valid",
         category="Metadata",
-        status=CheckStatus.FAILED,
-        severity=runtime_context.default_severity,
+        runtime_context=runtime_context,
+        passed=passed,
         message=(
-            "The stage does not have valid framesPerSecond and "
-            "timeCodesPerSecond values."
-        ),
-        suggestion=(
-            "Set positive framesPerSecond and timeCodesPerSecond "
-            "values on the stage."
+            f"Frames per second: {fps}; "
+            f"time codes per second: {time_codes_per_second}; "
+            f"allowed rates: {allowed}."
         ),
         details={
-            "frames_per_second": frames_per_second,
+            "frames_per_second": fps,
             "time_codes_per_second": time_codes_per_second,
+            "rates_match": rates_match,
+            "allowed": list(allowed),
         },
-    )]
+        suggestion=(
+            ""
+            if passed
+            else "Use an allowed, matching frame rate."
+        ),
+    )
