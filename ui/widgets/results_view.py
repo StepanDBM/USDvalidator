@@ -1,56 +1,83 @@
+from html import escape
+
 from PySide6.QtWidgets import QTextEdit
+
+
+PASSED_COLOR = "#4CAF50"
+FAILED_COLOR = "#F44336"
+TEXT_COLOR = "#D8D8D8"
+MUTED_COLOR = "#A0A0A0"
 
 
 class ResultsView(QTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
-
         self.setReadOnly(True)
 
     def show_single_report(self, report):
         status = "PASSED" if report.publish_passed else "FAILED"
+        status_html = self._status_html(status)
 
         lines = [
-            f"Status: {status}",
-            f"Source: {report.source_path}",
-            f"Checks: {report.summary.total}",
-            f"Passed: {report.summary.passed}",
-            f"Failed: {report.summary.failed}",
-            f"Skipped: {report.summary.skipped}",
+            f"<b>Status:</b> {status_html}",
+            f"<b>Source:</b> {escape(str(report.source_path))}",
+            f"<b>Checks:</b> {report.summary.total}",
+            f"<b>Passed:</b> {report.summary.passed}",
+            f"<b>Failed:</b> {report.summary.failed}",
+            f"<b>Skipped:</b> {report.summary.skipped}",
             "",
         ]
 
         lines.extend(
             (
-                f"[{result.status.value}] "
-                f"{result.check_id}: "
-                f"{result.message}"
+                f"{self._status_html(result.status.value)} "
+                f"<b>{escape(result.check_id)}</b>: "
+                f"{escape(result.message)}"
             )
             for result in report.results
         )
 
-        self.setPlainText("\n".join(lines))
+        self.setHtml("<br>".join(lines))
 
     def show_batch_report(self, batch):
         lines = [
-            "Batch Validation",
+            "<b>Batch Validation</b>",
             "",
-            f"Files: {batch.total_files}",
-            f"Passed: {batch.passed_files}",
-            f"Failed: {batch.failed_files}",
+            f"<b>Files:</b> {batch.total_files}",
+            f"<b>Passed:</b> {batch.passed_files}",
+            f"<b>Failed:</b> {batch.failed_files}",
             "",
         ]
 
         lines.extend(
-            f"[{'PASS' if report.publish_passed else 'FAIL'}] "
-            f"{report.source_path}"
+            (
+                f"{self._status_html('PASSED' if report.publish_passed else 'FAILED')} "
+                f"{escape(str(report.source_path))}"
+            )
             for report in batch.reports
         )
 
-        self.setPlainText("\n".join(lines))
+        self.setHtml("<br>".join(lines))
 
     def show_message(self, message):
-        self.setPlainText(message)
+        self.setHtml(escape(str(message)).replace("\n", "<br>"))
 
     def clear_results(self):
         self.clear()
+
+    @staticmethod
+    def _status_html(status):
+        status = str(status).upper()
+
+        if status == "PASSED":
+            color = PASSED_COLOR
+        elif status in {"FAILED", "ERROR"}:
+            color = FAILED_COLOR
+        else:
+            color = MUTED_COLOR
+
+        return (
+            f'<span style="color: {color}; font-weight: 600;">'
+            f'[{escape(status)}]'
+            "</span>"
+        )
