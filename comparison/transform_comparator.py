@@ -16,6 +16,8 @@ class TransformComparator:
     domain = "Transforms"
 
     def compare(self, previous, current):
+        previous = getattr(previous, "transforms", previous)
+        current = getattr(current, "transforms", current)
         changes = []
         for path in sorted(set(previous) | set(current)):
             old = previous.get(path)

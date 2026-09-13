@@ -1,8 +1,19 @@
 # comparison/__init__.py
 
 from .engine import SemanticComparisonEngine
-from .models import ChangeImpact, ChangeKind, ComparisonResult, SemanticChange
+from .models import (
+    CameraSnapshot,
+    ChangeImpact,
+    ChangeKind,
+    ComparisonResult,
+    InstancingSnapshot,
+    LayerSnapshot,
+    SemanticChange,
+    StageComparisonSnapshot,
+    SurfaceSnapshot,
+)
 from .progress import CancellationToken, ComparisonCancelled, ProgressUpdate
+from .snapshot import StageComparisonSnapshotBuilder
 from .source_preflight import (
     DiffMode,
     DiffScale,
@@ -13,6 +24,10 @@ from .text_diff import DiffLine, SourceDiffResult, build_side_by_side_diff, buil
 
 
 __all__ = [
+    "CameraSnapshot",
+    "InstancingSnapshot",
+    "LayerSnapshot",
+    "SurfaceSnapshot",
     "ChangeImpact",
     "ChangeKind",
     "ProgressUpdate",
@@ -24,6 +39,8 @@ __all__ = [
     "DiffScale",
     "SemanticChange",
     "SemanticComparisonEngine",
+    "StageComparisonSnapshotBuilder",
+    "StageComparisonSnapshot",
     "SourceDiffResult",
     "build_source_diff",
     "SourceDiffPreflight",

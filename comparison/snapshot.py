@@ -2,15 +2,27 @@ import hashlib
 import json
 from pathlib import Path
 
-from pxr import Sdf, Usd, UsdGeom
+from pxr import Sdf, Usd, UsdGeom, UsdShade
 
+from extraction.lookdev import LookdevExtractor
+from extraction.pipeline import PipelineExtractor
+
+from .composition_snapshot import extract_extended_domains
 from .models import (
     AnimationSnapshot,
     DependencySnapshot,
+    CameraSnapshot,
+    InstancingSnapshot,
+    LayerSnapshot,
+    MaterialBindingSnapshot,
+    MaterialSnapshot,
     MeshSnapshot,
     PrimSnapshot,
-    StageSnapshot,
+    ShaderSnapshot,
+    StageComparisonSnapshot,
+    SurfaceSnapshot,
     TransformSnapshot,
+    VariantSnapshot,
 )
 
 
@@ -19,7 +31,7 @@ def _hash(value):
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
-class StageSnapshotBuilder:
+class StageComparisonSnapshotBuilder:
     def build(self, source_path):
         source_path = Path(source_path).expanduser().resolve()
         stage = Usd.Stage.Open(str(source_path), load=Usd.Stage.LoadAll)
@@ -53,7 +65,44 @@ class StageSnapshotBuilder:
             if prim.GetTypeName() == "Mesh":
                 meshes[path] = self._mesh(prim)
 
-        return StageSnapshot(
+        pipeline = PipelineExtractor().extract(stage)
+        lookdev = LookdevExtractor().extract(stage)
+        variants = {
+            (item.prim_path, item.name): VariantSnapshot(
+                item.prim_path, item.name, item.variants, item.selection
+            )
+            for item in pipeline.variants
+        }
+        materials = {item.path: MaterialSnapshot(**item.__dict__) for item in lookdev.materials}
+        shaders = {
+            item.path: self._shader_snapshot(stage.GetPrimAtPath(item.path), item)
+            for item in lookdev.shaders
+        }
+        bindings = {
+            item.prim_path: MaterialBindingSnapshot(**item.__dict__)
+            for item in lookdev.bindings
+        }
+        surfaces = {
+            item.mesh_path: SurfaceSnapshot(
+                item.mesh_path,
+                item.normals_authored,
+                item.normals_count,
+                item.normals_interpolation,
+                item.normals_finite,
+                item.uv_sets,
+                item.uv_counts,
+                item.uv_interpolations,
+                item.uv_indices_valid,
+            )
+            for item in lookdev.surfaces
+        }
+        layers = {item.identifier: LayerSnapshot(**item.__dict__) for item in lookdev.layers}
+        cameras = {item.path: CameraSnapshot(**item.__dict__) for item in pipeline.cameras}
+        instancing = {item.path: InstancingSnapshot(**item.__dict__) for item in pipeline.instances}
+
+        extended = extract_extended_domains(stage)
+
+        return StageComparisonSnapshot(
             source_path=source_path.as_posix(),
             metadata=self._metadata(stage),
             prims=prims,
@@ -64,6 +113,45 @@ class StageSnapshotBuilder:
             )),
             animation=animation,
             transforms=transforms,
+            variants=variants,
+            materials=materials,
+            shaders=shaders,
+            material_bindings=bindings,
+            surfaces=surfaces,
+            layers=layers,
+            cameras=cameras,
+            instancing=instancing,
+            dependency_map={
+                (item.prim_path, item.arc_type, item.asset_path, item.prim_path_in_asset): item
+                for item in dependencies
+            },
+            **extended,
+        )
+
+
+    @staticmethod
+    def _shader_snapshot(prim, item):
+        shader = UsdShade.Shader(prim)
+        values = []
+        connections = []
+        for shader_input in shader.GetInputs():
+            name = shader_input.GetBaseName()
+            value = shader_input.Get()
+            values.append((name, json.dumps(value, default=str, sort_keys=True)))
+            sources = shader_input.GetConnectedSources()[0]
+            for source in sources:
+                source_path = source.source.GetPrim().GetPath().pathString
+                connections.append((name, f"{source_path}.{source.sourceName}"))
+        return ShaderSnapshot(
+            item.path,
+            item.shader_id,
+            item.implementation_source,
+            item.input_count,
+            item.output_count,
+            item.connected_input_count,
+            item.asset_inputs,
+            tuple(sorted(values)),
+            tuple(sorted(connections)),
         )
 
     @staticmethod
@@ -194,3 +282,6 @@ def _finite(value):
         return all(_finite(item) for item in value)
     except TypeError:
         return True
+
+
+StageSnapshotBuilder = StageComparisonSnapshotBuilder

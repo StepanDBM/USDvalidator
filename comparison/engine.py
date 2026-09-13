@@ -1,15 +1,51 @@
+from dataclasses import replace
+
 from validation import PublishChecker
 
 from .models import ChangeKind, ComparisonResult, SemanticChange
-from .snapshot import StageSnapshotBuilder
+from .composition_comparators import (
+    CollectionComparator,
+    CompositionArcComparator,
+    GeomSubsetComparator,
+    PrimvarComparator,
+    RelationshipComparator,
+    SublayerComparator,
+)
+from .lookdev_comparators import MaterialBindingComparator, MaterialComparator, ShaderComparator
+from .publish_domain_comparators import (
+    CameraComparator,
+    DependencyComparator,
+    InstancingComparator,
+    LayerComparator,
+    SurfaceComparator,
+)
+from .snapshot import StageComparisonSnapshotBuilder
+from .variant_comparator import VariantComparator
 from .transform_comparator import TransformComparator
 
 
 class SemanticComparisonEngine:
     def __init__(self, profile=None):
         self.profile = profile
-        self.snapshot_builder = StageSnapshotBuilder()
-        self.domain_comparators = (TransformComparator(),)
+        self.snapshot_builder = StageComparisonSnapshotBuilder()
+        self.domain_comparators = (
+            TransformComparator(),
+            VariantComparator(),
+            MaterialComparator(),
+            ShaderComparator(),
+            MaterialBindingComparator(),
+            DependencyComparator(),
+            LayerComparator(),
+            SurfaceComparator(),
+            CameraComparator(),
+            InstancingComparator(),
+            SublayerComparator(),
+            CompositionArcComparator(),
+            RelationshipComparator(),
+            CollectionComparator(),
+            GeomSubsetComparator(),
+            PrimvarComparator(),
+        )
 
     def compare(self, previous_path, current_path):
         previous = self.snapshot_builder.build(previous_path)
@@ -23,8 +59,9 @@ class SemanticComparisonEngine:
         self._compare_dependencies(result, previous.dependencies, current.dependencies)
         self._compare_animation(result, previous.animation, current.animation)
         for comparator in self.domain_comparators:
-            result.changes.extend(comparator.compare(previous.transforms, current.transforms))
+            result.changes.extend(comparator.compare(previous, current))
         self._compare_validation(result, previous_report, current_report)
+        self._correlate_validation(result, previous_report, current_report)
         self._compatibility_warnings(result, previous_report, current_report)
         result.changes.sort(key=lambda item: (item.category, item.path, item.label))
         return result
@@ -202,6 +239,39 @@ class SemanticComparisonEngine:
         result.changes.append(SemanticChange(
             category, path, label, kind, previous, current,
         ))
+
+    @staticmethod
+    def _correlate_validation(result, previous, current):
+        previous_results = {item.check_id: item for item in previous.results}
+        current_results = {item.check_id: item for item in current.results}
+        correlated = []
+        for change in result.changes:
+            consequences = []
+            details = []
+            for check_id in change.related_check_ids:
+                old = previous_results.get(check_id)
+                new = current_results.get(check_id)
+                old_status = old.status.value if old else "NOT_RUN"
+                new_status = new.status.value if new else "NOT_RUN"
+                details.append({
+                    "check_id": check_id,
+                    "previous_status": old_status,
+                    "current_status": new_status,
+                })
+                if old_status != "FAILED" and new_status == "FAILED":
+                    consequences.append(f"{check_id} regressed")
+                elif old_status == "FAILED" and new_status != "FAILED":
+                    consequences.append(f"{check_id} resolved")
+            if consequences:
+                correlation = "; ".join(consequences)
+                correlated.append(replace(
+                    change,
+                    validation_consequence=correlation,
+                    details={**change.details, "validation_correlation": details},
+                ))
+            else:
+                correlated.append(change)
+        result.changes[:] = correlated
 
     @staticmethod
     def _compatibility_warnings(result, previous, current):
