@@ -2,6 +2,10 @@ import json
 from pathlib import Path
 
 from validation import PublishChecker
+from validation.version import (
+    REPORT_SCHEMA_NAME,
+    REPORT_SCHEMA_VERSION,
+)
 
 
 def test_publish_report_serializes_to_stable_json():
@@ -12,7 +16,11 @@ def test_publish_report_serializes_to_stable_json():
 
     expected_path = Path("tests/fixtures/valid_stage.usda").resolve()
 
-    assert data["schema_version"] == "1.0"
+    assert data["schema_version"] == REPORT_SCHEMA_VERSION
+    assert data["schema"] == {
+        "name": REPORT_SCHEMA_NAME,
+        "version": REPORT_SCHEMA_VERSION,
+    }
     assert data["source"]["path"] == str(expected_path).replace("\\", "/")
     assert data["source"]["stage_opened"] is True
     assert data["summary"]["total"] == len(report.results)
@@ -46,5 +54,9 @@ def test_publish_report_writes_json(tmp_path):
 
     data = json.loads(output_path.read_text(encoding="utf-8"))
 
-    assert data["schema_version"] == "1.0"
+    assert data["schema_version"] == REPORT_SCHEMA_VERSION
+    assert data["schema"] == {
+        "name": REPORT_SCHEMA_NAME,
+        "version": REPORT_SCHEMA_VERSION,
+    }
     assert data["source"]["stage_opened"] is True

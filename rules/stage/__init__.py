@@ -1,3 +1,5 @@
+# rules/stage/__init__.py
+
 from .checks import (
     check_stage_can_open,
     check_stage_has_prims,

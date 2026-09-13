@@ -1,3 +1,5 @@
+# rules/stage/checks.py
+
 from validation.check_ids import (
     USD_STAGE_CAN_OPEN, USD_STAGE_HAS_PRIMS, USD_STAGE_HAS_ROOT_PRIM,
     USD_STAGE_PRIM_COUNT_LIMIT, USD_STAGE_PRIM_DEPTH_LIMIT,

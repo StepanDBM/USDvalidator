@@ -1,3 +1,5 @@
+# rules/dependencies/__init__.py
+
 from .checks import (
     check_dependencies_resolve,
     check_payloads_resolve,

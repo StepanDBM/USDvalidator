@@ -1,3 +1,5 @@
+# rules/stage/register.py
+
 from contexts import StageContext, StageHealthContext
 from validation.check_ids import *
 from validation.enums import Severity

@@ -1,3 +1,5 @@
+# rules/composition/checks.py
+
 from validation.check_ids import *
 from validation.enums import CheckStatus
 from validation.models import CheckResult

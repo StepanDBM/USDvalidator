@@ -1,3 +1,5 @@
+# rules/metadata/checks.py
+
 from validation.check_ids import (
     USD_DEFAULT_PRIM_AUTHORED,
     USD_DEFAULT_PRIM_VALID,

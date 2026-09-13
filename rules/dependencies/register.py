@@ -1,3 +1,5 @@
+# rules/dependencies/register.py
+
 from contexts import StageHealthContext
 from validation.enums import Severity
 from validation.models import CheckDefinition

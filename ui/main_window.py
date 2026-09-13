@@ -20,6 +20,7 @@ from .stylesheet import (
 
 from .widgets.validation_view import ValidationView
 from .widgets.profile_editor import ProfileEditor
+from .widgets.comparison_browser import ComparisonView
 
 
 class MainWindow(QMainWindow):
@@ -58,6 +59,7 @@ class MainWindow(QMainWindow):
 
         self.tab_bar.addTab("Validation")
         self.tab_bar.addTab("Profiles")
+        self.tab_bar.addTab("Comparison")
 
         top_layout.addWidget(
             self.tab_bar
@@ -106,6 +108,10 @@ class MainWindow(QMainWindow):
             registry=self.registry,
         )
 
+        self.comparison_view = ComparisonView(
+            profile_loader=self.profile_loader
+        )
+
         self.tabs.addTab(
             self.validation_view,
             "Validation",
@@ -114,6 +120,11 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(
             self.profile_editor,
             "Profiles",
+        )
+
+        self.tabs.addTab(
+            self.comparison_view,
+            "Comparison",
         )
 
         main_layout.addWidget(

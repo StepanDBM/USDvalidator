@@ -1,38 +1,72 @@
-from PySide6.QtWidgets import QComboBox, QLabel, QVBoxLayout, QWidget
-
-from validation.profiles import DEFAULT_PROFILE
+from PySide6.QtWidgets import (
+    QComboBox,
+    QHBoxLayout,
+    QLabel,
+    QWidget,
+)
 
 
 class ProfileSelector(QWidget):
-    def __init__(self, profile_loader, parent=None):
+    def __init__(
+        self,
+        profile_loader,
+        parent=None,
+    ):
         super().__init__(parent)
 
         self.profile_loader = profile_loader
 
         self._build_ui()
-        self._load_profiles()
+        self.refresh()
 
     def _build_ui(self):
-        layout = QVBoxLayout(self)
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
 
-        layout.addWidget(QLabel("Profile"))
+        layout.addWidget(
+            QLabel("Profile:")
+        )
 
         self.combo = QComboBox()
-        layout.addWidget(self.combo)
+        self.combo.setMinimumWidth(180)
 
-    def _load_profiles(self):
-        for name in self.profile_loader.get_profile_names():
+        layout.addWidget(
+            self.combo
+        )
+
+    def refresh(self):
+        current_name = self.get_profile_name()
+
+        self.combo.blockSignals(True)
+        self.combo.clear()
+
+        for name in (
+            self.profile_loader
+            .get_profile_names()
+        ):
             self.combo.addItem(name)
 
-        index = self.combo.findText(DEFAULT_PROFILE)
+        index = self.combo.findText(
+            current_name
+        )
+
+        if index < 0 and self.combo.count():
+            index = 0
 
         if index >= 0:
             self.combo.setCurrentIndex(index)
 
-    def get_profile(self):
-        return self.profile_loader.get_profile(
-            self.combo.currentText()
-        )
+        self.combo.blockSignals(False)
 
     def get_profile_name(self):
         return self.combo.currentText()
+
+    def get_profile(self):
+        name = self.get_profile_name()
+
+        if not name:
+            return None
+
+        return self.profile_loader.get_profile(
+            name
+        )
