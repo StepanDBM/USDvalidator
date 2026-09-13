@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from PySide6.QtCore import QAbstractTableModel, QEvent, QModelIndex, QPoint, Qt
-from PySide6.QtGui import QColor, QFontDatabase, QPainter, QPen
+from PySide6.QtGui import QColor, QFontDatabase, QKeySequence, QPainter, QPen, QShortcut
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QHeaderView,
@@ -17,6 +17,7 @@ from .diff_toolbar import DiffToolbar
 CHANGED_COLLAPSE_THRESHOLD = 15
 UNCHANGED_COLLAPSE_THRESHOLD = 20
 UNCHANGED_CONTEXT_LINES = 3
+CHANGE_CONTEXT_LINES = 3
 EXPAND_ALL_WARNING_THRESHOLD = 250000
 SEPARATOR_HIT_RADIUS = 7
 
@@ -30,17 +31,14 @@ class DiffSection:
     context_lines: int
 
     @property
-    def row_count(self):
-        return self.end - self.start
-
-    @property
-    def hidden_count(self):
-        visible_count = min(self.row_count, self.context_lines * 2)
-        return max(0, self.row_count - visible_count)
-
-    @property
     def changed(self):
         return self.kind != "UNCHANGED"
+
+
+@dataclass(frozen=True)
+class ChangeRegion:
+    start: int
+    end: int
 
 
 class SideBySideDiffModel(QAbstractTableModel):
@@ -54,8 +52,10 @@ class SideBySideDiffModel(QAbstractTableModel):
         super().__init__(parent)
         self.rows = ()
         self.sections = {}
+        self.change_regions = ()
         self.visible_indices = ()
         self.expanded_sections = set()
+        self.changes_only = False
 
     def rowCount(self, parent=QModelIndex()):
         return 0 if parent.isValid() else len(self.visible_indices)
@@ -74,7 +74,6 @@ class SideBySideDiffModel(QAbstractTableModel):
 
         row = self.rows[self.visible_indices[index.row()]]
         column = index.column()
-
         if role == Qt.ItemDataRole.DisplayRole:
             return self._display_value(row, column)
         if role == Qt.ItemDataRole.BackgroundRole:
@@ -90,8 +89,10 @@ class SideBySideDiffModel(QAbstractTableModel):
     def set_rows(self, rows):
         self.beginResetModel()
         self.rows = tuple(rows)
-        self.sections = self._find_sections()
+        self.sections = self._find_collapsible_sections()
+        self.change_regions = self._find_change_regions()
         self.expanded_sections.clear()
+        self.changes_only = False
         self.visible_indices = self._build_visible_indices()
         self.endResetModel()
 
@@ -113,21 +114,16 @@ class SideBySideDiffModel(QAbstractTableModel):
         return section.start
 
     def collapse_all(self):
-        if not self.expanded_sections:
-            return
-
-        self.beginResetModel()
-        self.expanded_sections.clear()
-        self.visible_indices = self._build_visible_indices()
-        self.endResetModel()
+        self._set_expanded_sections(set())
 
     def expand_all(self):
-        section_ids = set(self.sections)
-        if self.expanded_sections == section_ids:
-            return
+        self._set_expanded_sections(set(self.sections))
 
+    def set_changes_only(self, enabled):
+        if self.changes_only == enabled:
+            return
         self.beginResetModel()
-        self.expanded_sections = section_ids
+        self.changes_only = enabled
         self.visible_indices = self._build_visible_indices()
         self.endResetModel()
 
@@ -139,117 +135,96 @@ class SideBySideDiffModel(QAbstractTableModel):
 
     def section_boundaries(self):
         boundaries = []
-
         for section in self.sections.values():
-            leading_source = min(
-                section.start + section.context_lines - 1,
-                section.end - 1,
-            )
-            trailing_source = max(
-                section.start,
-                section.end - section.context_lines,
-            )
-            leading_row = self.display_row_for_source(leading_source)
-            trailing_row = self.display_row_for_source(trailing_source)
-
+            leading = min(section.start + section.context_lines - 1, section.end - 1)
+            trailing = max(section.start, section.end - section.context_lines)
+            leading_row = self.display_row_for_source(leading)
+            trailing_row = self.display_row_for_source(trailing)
             if leading_row is None or trailing_row is None:
                 continue
-
-            boundaries.append((
-                section.section_id,
-                leading_row,
-                "after",
-                section.kind,
-            ))
-
+            boundaries.append((section.section_id, leading_row, "after", section.kind))
             if section.section_id in self.expanded_sections:
-                boundaries.append((
-                    section.section_id,
-                    trailing_row,
-                    "before",
-                    section.kind,
-                ))
-
+                boundaries.append((section.section_id, trailing_row, "before", section.kind))
         return tuple(boundaries)
 
     def section_counts(self):
         changed = sum(section.changed for section in self.sections.values())
         return changed, len(self.sections) - changed
 
-    def _find_sections(self):
+    def _set_expanded_sections(self, section_ids):
+        if self.expanded_sections == section_ids:
+            return
+        self.beginResetModel()
+        self.expanded_sections = section_ids
+        self.visible_indices = self._build_visible_indices()
+        self.endResetModel()
+
+    def _find_collapsible_sections(self):
         sections = {}
         section_id = 0
         index = 0
-
         while index < len(self.rows):
             start = index
             unchanged = self.rows[index].kind == "UNCHANGED"
             kinds = []
-
-            while index < len(self.rows):
-                row_unchanged = self.rows[index].kind == "UNCHANGED"
-                if row_unchanged != unchanged:
-                    break
+            while index < len(self.rows) and (self.rows[index].kind == "UNCHANGED") == unchanged:
                 kinds.append(self.rows[index].kind)
                 index += 1
 
-            row_count = index - start
-            threshold = (
-                UNCHANGED_COLLAPSE_THRESHOLD
-                if unchanged
-                else CHANGED_COLLAPSE_THRESHOLD
-            )
-
-            if row_count <= threshold:
+            threshold = UNCHANGED_COLLAPSE_THRESHOLD if unchanged else CHANGED_COLLAPSE_THRESHOLD
+            if index - start <= threshold:
                 continue
 
             section_id += 1
-            kind = "UNCHANGED" if unchanged else self._changed_kind(kinds)
-            context_lines = UNCHANGED_CONTEXT_LINES if unchanged else 1
-            sections[section_id] = DiffSection(
-                section_id,
-                start,
-                index,
-                kind,
-                context_lines,
-            )
-
+            kind = "UNCHANGED" if unchanged else kinds[0] if len(set(kinds)) == 1 else "CHANGED"
+            context = UNCHANGED_CONTEXT_LINES if unchanged else 1
+            sections[section_id] = DiffSection(section_id, start, index, kind, context)
         return sections
 
+    def _find_change_regions(self):
+        regions = []
+        index = 0
+        while index < len(self.rows):
+            if self.rows[index].kind == "UNCHANGED":
+                index += 1
+                continue
+            start = index
+            while index < len(self.rows) and self.rows[index].kind != "UNCHANGED":
+                index += 1
+            regions.append(ChangeRegion(start, index))
+        return tuple(regions)
+
     def _build_visible_indices(self):
-        sections_by_start = {
-            section.start: section for section in self.sections.values()
-        }
+        normal = self._normal_visible_indices()
+        if not self.changes_only:
+            return normal
+
+        allowed = set()
+        for region in self.change_regions:
+            start = max(0, region.start - CHANGE_CONTEXT_LINES)
+            end = min(len(self.rows), region.end + CHANGE_CONTEXT_LINES)
+            allowed.update(range(start, end))
+        return tuple(index for index in normal if index in allowed)
+
+    def _normal_visible_indices(self):
+        sections_by_start = {section.start: section for section in self.sections.values()}
         visible = []
         index = 0
-
         while index < len(self.rows):
             section = sections_by_start.get(index)
             if section is None:
                 visible.append(index)
                 index += 1
                 continue
-
             if section.section_id in self.expanded_sections:
                 visible.extend(range(section.start, section.end))
             else:
-                visible.extend(self._collapsed_indices(section))
+                leading_end = min(section.start + section.context_lines, section.end)
+                trailing_start = max(leading_end, section.end - section.context_lines)
+                visible.extend(range(section.start, leading_end))
+                visible.extend(range(trailing_start, section.end))
             index = section.end
-
         return tuple(visible)
-
-    @staticmethod
-    def _collapsed_indices(section):
-        leading_end = min(section.start + section.context_lines, section.end)
-        trailing_start = max(leading_end, section.end - section.context_lines)
-        indices = list(range(section.start, leading_end))
-        indices.extend(range(trailing_start, section.end))
-        return tuple(indices)
-
-    @staticmethod
-    def _changed_kind(kinds):
-        unique = set(kinds)
-        return kinds[0] if len(unique) == 1 else "CHANGED"
 
     @staticmethod
     def _display_value(row, column):
@@ -293,6 +268,7 @@ class DiffTableView(QTableView):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.hovered_boundary = None
+        self.active_source_range = None
         self.setMouseTracking(True)
         self.viewport().setMouseTracking(True)
 
@@ -305,16 +281,10 @@ class DiffTableView(QTableView):
     def mouseMoveEvent(self, event):
         boundary = self.boundary_at(event.position().toPoint())
         identity = self._boundary_identity(boundary)
-
         if identity != self.hovered_boundary:
             self.hovered_boundary = identity
-            self.setCursor(
-                Qt.CursorShape.PointingHandCursor
-                if boundary
-                else Qt.CursorShape.ArrowCursor
-            )
+            self.setCursor(Qt.CursorShape.PointingHandCursor if boundary else Qt.CursorShape.ArrowCursor)
             self.viewport().update()
-
         super().mouseMoveEvent(event)
 
     def leaveEvent(self, event):
@@ -345,11 +315,9 @@ class DiffTableView(QTableView):
             rect = self.visualRect(model.index(row, 0))
             if not rect.isValid():
                 continue
-
             y = rect.bottom() + 1 if position == "after" else rect.top()
             if not -SEPARATOR_HIT_RADIUS <= y <= self.viewport().height() + SEPARATOR_HIT_RADIUS:
                 continue
-
             identity = section_id, position
             boundaries.append({
                 "section_id": section_id,
@@ -358,7 +326,6 @@ class DiffTableView(QTableView):
                 "y": y,
                 "hovered": identity == self.hovered_boundary,
             })
-
         return tuple(boundaries)
 
     def boundary_at(self, position):
@@ -370,13 +337,20 @@ class DiffTableView(QTableView):
     def restore_anchor(self, source_index):
         if source_index is None:
             return
-
         row = self.model().display_row_for_source(source_index)
         if row is not None:
-            self.scrollTo(
-                self.model().index(row, 0),
-                QAbstractItemView.ScrollHint.PositionAtTop,
-            )
+            self.scrollTo(self.model().index(row, 0), QAbstractItemView.ScrollHint.PositionAtTop)
+
+    def show_change_region(self, region):
+        row = self.model().display_row_for_source(region.start)
+        if row is None:
+            return
+        self.active_source_range = region.start, region.end
+        index = self.model().index(row, 0)
+        self.setCurrentIndex(index)
+        self.selectRow(row)
+        self.scrollTo(index, QAbstractItemView.ScrollHint.PositionAtCenter)
+        self.viewport().update()
 
     def _paint_separators(self):
         boundaries = self.visible_boundaries()
@@ -385,29 +359,20 @@ class DiffTableView(QTableView):
 
         painter = QPainter(self.viewport())
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
         for boundary in boundaries:
             color = self._separator_color(boundary["kind"], boundary["hovered"])
             width = self.SEPARATOR_LINE_WIDTH + int(boundary["hovered"])
-            painter.setPen(QPen(
-                color,
-                width,
-                Qt.PenStyle.SolidLine,
-                Qt.PenCapStyle.RoundCap,
-            ))
+            painter.setPen(QPen(color, width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
             painter.setBrush(color)
-
             y = boundary["y"]
             radius = self.SEPARATOR_DOT_RADIUS
             left = radius + 6
             right = self.viewport().width() - radius - 6
             if right <= left:
                 continue
-
             painter.drawLine(left, y, right, y)
             painter.drawEllipse(QPoint(left, y), radius, radius)
             painter.drawEllipse(QPoint(right, y), radius, radius)
-
         painter.end()
 
     @staticmethod
@@ -424,17 +389,16 @@ class DiffTableView(QTableView):
 
     @staticmethod
     def _boundary_identity(boundary):
-        return None if boundary is None else (
-            boundary["section_id"],
-            boundary["position"],
-        )
+        return None if boundary is None else (boundary["section_id"], boundary["position"])
 
 
 class FileDiffView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.model = SideBySideDiffModel(self)
+        self.current_change_index = -1
         self._build_ui()
+        self._create_shortcuts()
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
@@ -462,29 +426,70 @@ class FileDiffView(QWidget):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
 
+        self.toolbar.previous_requested.connect(self.previous_change)
+        self.toolbar.next_requested.connect(self.next_change)
+        self.toolbar.changes_only_toggled.connect(self.set_changes_only)
         self.toolbar.collapse_all_requested.connect(self.collapse_all)
         self.toolbar.expand_all_requested.connect(self.expand_all)
         layout.addWidget(self.toolbar)
         layout.addWidget(self.table, 1)
 
+    def _create_shortcuts(self):
+        QShortcut(QKeySequence(Qt.Key.Key_F7), self, activated=self.previous_change)
+        QShortcut(QKeySequence(Qt.Key.Key_F8), self, activated=self.next_change)
+        QShortcut(QKeySequence("Shift+F7"), self, activated=self.collapse_all)
+        QShortcut(QKeySequence("Shift+F8"), self, activated=self.expand_all)
+
     def set_diff(self, rows):
         self.model.set_rows(rows)
-        changed, unchanged = self.model.section_counts()
-        self.toolbar.set_summary(len(self.model.rows), changed, unchanged)
-
+        self.current_change_index = -1
+        changed_sections, unchanged_sections = self.model.section_counts()
+        self.toolbar.set_summary(
+            len(self.model.rows),
+            len(self.model.change_regions),
+            changed_sections,
+            unchanged_sections,
+        )
+        self.toolbar.changes_only_check.blockSignals(True)
+        self.toolbar.changes_only_check.setChecked(False)
+        self.toolbar.changes_only_check.blockSignals(False)
         if self.model.rowCount():
             self.table.scrollToTop()
         self.table.viewport().update()
 
     def clear(self):
         self.model.clear()
+        self.current_change_index = -1
         self.toolbar.clear()
+        self.table.clearSelection()
+        self.table.viewport().update()
+
+    def previous_change(self):
+        count = len(self.model.change_regions)
+        if not count:
+            return
+        self.current_change_index = (self.current_change_index - 1) % count
+        self._show_current_change()
+
+    def next_change(self):
+        count = len(self.model.change_regions)
+        if not count:
+            return
+        self.current_change_index = (self.current_change_index + 1) % count
+        self._show_current_change()
+
+    def set_changes_only(self, enabled):
+        anchor = self._top_source_index()
+        self.model.set_changes_only(enabled)
+        self.table.restore_anchor(anchor)
+        self._restore_current_change()
         self.table.viewport().update()
 
     def collapse_all(self):
         anchor = self._top_source_index()
         self.model.collapse_all()
         self.table.restore_anchor(anchor)
+        self._restore_current_change()
         self.table.viewport().update()
 
     def expand_all(self):
@@ -503,7 +508,17 @@ class FileDiffView(QWidget):
         anchor = self._top_source_index()
         self.model.expand_all()
         self.table.restore_anchor(anchor)
+        self._restore_current_change()
         self.table.viewport().update()
+
+    def _show_current_change(self):
+        region = self.model.change_regions[self.current_change_index]
+        self.table.show_change_region(region)
+        self.toolbar.set_counter(self.current_change_index, len(self.model.change_regions))
+
+    def _restore_current_change(self):
+        if 0 <= self.current_change_index < len(self.model.change_regions):
+            self._show_current_change()
 
     def _top_source_index(self):
         index = self.table.indexAt(QPoint(0, 0))
