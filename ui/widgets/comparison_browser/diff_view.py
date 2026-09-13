@@ -1,17 +1,24 @@
 from dataclasses import dataclass
 
-from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
-from PySide6.QtGui import QColor, QFontDatabase
+from PySide6.QtCore import QAbstractTableModel, QEvent, QModelIndex, QPoint, Qt
+from PySide6.QtGui import QColor, QFontDatabase, QPainter, QPen
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QHeaderView,
+    QMessageBox,
     QTableView,
     QVBoxLayout,
     QWidget,
 )
 
+from .diff_toolbar import DiffToolbar
 
-COLLAPSE_THRESHOLD = 15
+
+CHANGED_COLLAPSE_THRESHOLD = 15
+UNCHANGED_COLLAPSE_THRESHOLD = 20
+UNCHANGED_CONTEXT_LINES = 3
+EXPAND_ALL_WARNING_THRESHOLD = 250000
+SEPARATOR_HIT_RADIUS = 7
 
 
 @dataclass(frozen=True)
@@ -19,6 +26,8 @@ class DiffSection:
     section_id: int
     start: int
     end: int
+    kind: str
+    context_lines: int
 
     @property
     def row_count(self):
@@ -26,39 +35,30 @@ class DiffSection:
 
     @property
     def hidden_count(self):
-        return max(0, self.row_count - 2)
-
-
-@dataclass(frozen=True)
-class DisplayRow:
-    source_index: int | None = None
-    section_id: int | None = None
+        visible_count = min(self.row_count, self.context_lines * 2)
+        return max(0, self.row_count - visible_count)
 
     @property
-    def is_control(self):
-        return self.section_id is not None
+    def changed(self):
+        return self.kind != "UNCHANGED"
 
 
 class SideBySideDiffModel(QAbstractTableModel):
     COLUMNS = ("Old", "Previous", "New", "Current")
-    CONTROL_ROLE = Qt.ItemDataRole.UserRole + 1
-
     OLD_REMOVED = QColor(248, 81, 73, 65)
     NEW_ADDED = QColor(46, 160, 67, 75)
-    CONTROL_BACKGROUND = QColor(56, 139, 253, 45)
-    CONTROL_FOREGROUND = QColor(88, 166, 255)
-    REMOVED_FOREGROUND = QColor(248, 81, 73)
-    ADDED_FOREGROUND = QColor(63, 185, 80)
+    REMOVED_TEXT = QColor(248, 81, 73)
+    ADDED_TEXT = QColor(63, 185, 80)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.rows = ()
         self.sections = {}
-        self.display_rows = ()
+        self.visible_indices = ()
         self.expanded_sections = set()
 
     def rowCount(self, parent=QModelIndex()):
-        return 0 if parent.isValid() else len(self.display_rows)
+        return 0 if parent.isValid() else len(self.visible_indices)
 
     def columnCount(self, parent=QModelIndex()):
         return 0 if parent.isValid() else len(self.COLUMNS)
@@ -72,11 +72,7 @@ class SideBySideDiffModel(QAbstractTableModel):
         if not index.isValid():
             return None
 
-        display_row = self.display_rows[index.row()]
-        if display_row.is_control:
-            return self._control_data(display_row.section_id, index.column(), role)
-
-        row = self.rows[display_row.source_index]
+        row = self.rows[self.visible_indices[index.row()]]
         column = index.column()
 
         if role == Qt.ItemDataRole.DisplayRole:
@@ -89,8 +85,6 @@ class SideBySideDiffModel(QAbstractTableModel):
             return self._alignment(column)
         if role == Qt.ItemDataRole.ToolTipRole:
             return row.old_text if column == 1 else row.new_text if column == 3 else row.kind
-        if role == self.CONTROL_ROLE:
-            return False
         return None
 
     def set_rows(self, rows):
@@ -98,28 +92,89 @@ class SideBySideDiffModel(QAbstractTableModel):
         self.rows = tuple(rows)
         self.sections = self._find_sections()
         self.expanded_sections.clear()
-        self.display_rows = self._create_display_rows()
+        self.visible_indices = self._build_visible_indices()
         self.endResetModel()
 
     def clear(self):
         self.set_rows(())
 
-    def is_control_row(self, row):
-        return 0 <= row < len(self.display_rows) and self.display_rows[row].is_control
+    def toggle_section(self, section_id):
+        section = self.sections.get(section_id)
+        if section is None:
+            return None
 
-    def toggle_section(self, display_row):
-        if not self.is_control_row(display_row):
-            return False
-
-        section_id = self.display_rows[display_row].section_id
         self.beginResetModel()
         if section_id in self.expanded_sections:
             self.expanded_sections.remove(section_id)
         else:
             self.expanded_sections.add(section_id)
-        self.display_rows = self._create_display_rows()
+        self.visible_indices = self._build_visible_indices()
         self.endResetModel()
-        return True
+        return section.start
+
+    def collapse_all(self):
+        if not self.expanded_sections:
+            return
+
+        self.beginResetModel()
+        self.expanded_sections.clear()
+        self.visible_indices = self._build_visible_indices()
+        self.endResetModel()
+
+    def expand_all(self):
+        section_ids = set(self.sections)
+        if self.expanded_sections == section_ids:
+            return
+
+        self.beginResetModel()
+        self.expanded_sections = section_ids
+        self.visible_indices = self._build_visible_indices()
+        self.endResetModel()
+
+    def display_row_for_source(self, source_index):
+        try:
+            return self.visible_indices.index(source_index)
+        except ValueError:
+            return None
+
+    def section_boundaries(self):
+        boundaries = []
+
+        for section in self.sections.values():
+            leading_source = min(
+                section.start + section.context_lines - 1,
+                section.end - 1,
+            )
+            trailing_source = max(
+                section.start,
+                section.end - section.context_lines,
+            )
+            leading_row = self.display_row_for_source(leading_source)
+            trailing_row = self.display_row_for_source(trailing_source)
+
+            if leading_row is None or trailing_row is None:
+                continue
+
+            boundaries.append((
+                section.section_id,
+                leading_row,
+                "after",
+                section.kind,
+            ))
+
+            if section.section_id in self.expanded_sections:
+                boundaries.append((
+                    section.section_id,
+                    trailing_row,
+                    "before",
+                    section.kind,
+                ))
+
+        return tuple(boundaries)
+
+    def section_counts(self):
+        changed = sum(section.changed for section in self.sections.values())
+        return changed, len(self.sections) - changed
 
     def _find_sections(self):
         sections = {}
@@ -127,103 +182,101 @@ class SideBySideDiffModel(QAbstractTableModel):
         index = 0
 
         while index < len(self.rows):
-            if self.rows[index].kind == "UNCHANGED":
+            start = index
+            unchanged = self.rows[index].kind == "UNCHANGED"
+            kinds = []
+
+            while index < len(self.rows):
+                row_unchanged = self.rows[index].kind == "UNCHANGED"
+                if row_unchanged != unchanged:
+                    break
+                kinds.append(self.rows[index].kind)
                 index += 1
+
+            row_count = index - start
+            threshold = (
+                UNCHANGED_COLLAPSE_THRESHOLD
+                if unchanged
+                else CHANGED_COLLAPSE_THRESHOLD
+            )
+
+            if row_count <= threshold:
                 continue
 
-            start = index
-            while index < len(self.rows) and self.rows[index].kind != "UNCHANGED":
-                index += 1
-
-            end = index
-            if end - start > COLLAPSE_THRESHOLD:
-                section_id += 1
-                sections[section_id] = DiffSection(section_id, start, end)
+            section_id += 1
+            kind = "UNCHANGED" if unchanged else self._changed_kind(kinds)
+            context_lines = UNCHANGED_CONTEXT_LINES if unchanged else 1
+            sections[section_id] = DiffSection(
+                section_id,
+                start,
+                index,
+                kind,
+                context_lines,
+            )
 
         return sections
 
-    def _create_display_rows(self):
-        sections_by_start = {section.start: section for section in self.sections.values()}
-        display_rows = []
+    def _build_visible_indices(self):
+        sections_by_start = {
+            section.start: section for section in self.sections.values()
+        }
+        visible = []
         index = 0
 
         while index < len(self.rows):
             section = sections_by_start.get(index)
             if section is None:
-                display_rows.append(DisplayRow(source_index=index))
+                visible.append(index)
                 index += 1
                 continue
 
-            display_rows.append(DisplayRow(source_index=section.start))
-            display_rows.append(DisplayRow(section_id=section.section_id))
-
             if section.section_id in self.expanded_sections:
-                for source_index in range(section.start + 1, section.end):
-                    display_rows.append(DisplayRow(source_index=source_index))
+                visible.extend(range(section.start, section.end))
             else:
-                display_rows.append(DisplayRow(source_index=section.end - 1))
-
+                visible.extend(self._collapsed_indices(section))
             index = section.end
 
-        return tuple(display_rows)
+        return tuple(visible)
 
-    def _control_data(self, section_id, column, role):
-        section = self.sections[section_id]
-        expanded = section_id in self.expanded_sections
+    @staticmethod
+    def _collapsed_indices(section):
+        leading_end = min(section.start + section.context_lines, section.end)
+        trailing_start = max(leading_end, section.end - section.context_lines)
+        indices = list(range(section.start, leading_end))
+        indices.extend(range(trailing_start, section.end))
+        return tuple(indices)
 
-        if role == Qt.ItemDataRole.DisplayRole:
-            if column not in (1, 3):
-                return ""
-            marker = "Collapse" if expanded else "Expand"
-            state = "shown" if expanded else "hidden"
-            return f"{marker} {section.hidden_count:,} changed lines ({state})"
-        if role == Qt.ItemDataRole.BackgroundRole:
-            return self.CONTROL_BACKGROUND
-        if role == Qt.ItemDataRole.ForegroundRole:
-            return self.CONTROL_FOREGROUND
-        if role == Qt.ItemDataRole.TextAlignmentRole:
-            return Qt.AlignmentFlag.AlignCenter
-        if role == Qt.ItemDataRole.ToolTipRole:
-            return "Click to collapse this changed region." if expanded else "Click to expand this changed region."
-        if role == self.CONTROL_ROLE:
-            return True
-        return None
+    @staticmethod
+    def _changed_kind(kinds):
+        unique = set(kinds)
+        return kinds[0] if len(unique) == 1 else "CHANGED"
 
     @staticmethod
     def _display_value(row, column):
         if column == 0:
-            if row.old_number is None:
-                return ""
             prefix = "-" if row.kind in {"REMOVED", "CHANGED"} else ""
-            return f"{prefix}{row.old_number}"
+            return "" if row.old_number is None else f"{prefix}{row.old_number}"
         if column == 1:
             return row.old_text
         if column == 2:
-            if row.new_number is None:
-                return ""
             prefix = "+" if row.kind in {"ADDED", "CHANGED"} else ""
-            return f"{prefix}{row.new_number}"
+            return "" if row.new_number is None else f"{prefix}{row.new_number}"
         return row.new_text
 
     @classmethod
     def _background(cls, kind, column):
-        if kind == "REMOVED" and column in (0, 1):
+        if kind in {"REMOVED", "CHANGED"} and column in (0, 1):
             return cls.OLD_REMOVED
-        if kind == "ADDED" and column in (2, 3):
+        if kind in {"ADDED", "CHANGED"} and column in (2, 3):
             return cls.NEW_ADDED
-        if kind == "CHANGED":
-            if column in (0, 1):
-                return cls.OLD_REMOVED
-            if column in (2, 3):
-                return cls.NEW_ADDED
         return None
 
     @classmethod
     def _foreground(cls, kind, column):
-        if column == 0 and kind in {"REMOVED", "CHANGED"}:
-            return cls.REMOVED_FOREGROUND
-        if column == 2 and kind in {"ADDED", "CHANGED"}:
-            return cls.ADDED_FOREGROUND
+        if kind in {"REMOVED", "CHANGED"} and column == 0:
+            return cls.REMOVED_TEXT
+        if kind in {"ADDED", "CHANGED"} and column == 2:
+            return cls.ADDED_TEXT
         return None
 
     @staticmethod
@@ -231,6 +284,150 @@ class SideBySideDiffModel(QAbstractTableModel):
         if column in (0, 2):
             return Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
         return Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+
+
+class DiffTableView(QTableView):
+    SEPARATOR_LINE_WIDTH = 3
+    SEPARATOR_DOT_RADIUS = 4
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.hovered_boundary = None
+        self.setMouseTracking(True)
+        self.viewport().setMouseTracking(True)
+
+    def viewportEvent(self, event):
+        handled = super().viewportEvent(event)
+        if event.type() == QEvent.Type.Paint:
+            self._paint_separators()
+        return handled
+
+    def mouseMoveEvent(self, event):
+        boundary = self.boundary_at(event.position().toPoint())
+        identity = self._boundary_identity(boundary)
+
+        if identity != self.hovered_boundary:
+            self.hovered_boundary = identity
+            self.setCursor(
+                Qt.CursorShape.PointingHandCursor
+                if boundary
+                else Qt.CursorShape.ArrowCursor
+            )
+            self.viewport().update()
+
+        super().mouseMoveEvent(event)
+
+    def leaveEvent(self, event):
+        self.hovered_boundary = None
+        self.setCursor(Qt.CursorShape.ArrowCursor)
+        self.viewport().update()
+        super().leaveEvent(event)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            boundary = self.boundary_at(event.position().toPoint())
+            if boundary:
+                anchor = self.model().toggle_section(boundary["section_id"])
+                self.restore_anchor(anchor)
+                self.hovered_boundary = None
+                self.viewport().update()
+                event.accept()
+                return
+        super().mousePressEvent(event)
+
+    def visible_boundaries(self):
+        model = self.model()
+        if model is None or not hasattr(model, "section_boundaries"):
+            return ()
+
+        boundaries = []
+        for section_id, row, position, kind in model.section_boundaries():
+            rect = self.visualRect(model.index(row, 0))
+            if not rect.isValid():
+                continue
+
+            y = rect.bottom() + 1 if position == "after" else rect.top()
+            if not -SEPARATOR_HIT_RADIUS <= y <= self.viewport().height() + SEPARATOR_HIT_RADIUS:
+                continue
+
+            identity = section_id, position
+            boundaries.append({
+                "section_id": section_id,
+                "position": position,
+                "kind": kind,
+                "y": y,
+                "hovered": identity == self.hovered_boundary,
+            })
+
+        return tuple(boundaries)
+
+    def boundary_at(self, position):
+        for boundary in self.visible_boundaries():
+            if abs(position.y() - boundary["y"]) <= SEPARATOR_HIT_RADIUS:
+                return boundary
+        return None
+
+    def restore_anchor(self, source_index):
+        if source_index is None:
+            return
+
+        row = self.model().display_row_for_source(source_index)
+        if row is not None:
+            self.scrollTo(
+                self.model().index(row, 0),
+                QAbstractItemView.ScrollHint.PositionAtTop,
+            )
+
+    def _paint_separators(self):
+        boundaries = self.visible_boundaries()
+        if not boundaries:
+            return
+
+        painter = QPainter(self.viewport())
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        for boundary in boundaries:
+            color = self._separator_color(boundary["kind"], boundary["hovered"])
+            width = self.SEPARATOR_LINE_WIDTH + int(boundary["hovered"])
+            painter.setPen(QPen(
+                color,
+                width,
+                Qt.PenStyle.SolidLine,
+                Qt.PenCapStyle.RoundCap,
+            ))
+            painter.setBrush(color)
+
+            y = boundary["y"]
+            radius = self.SEPARATOR_DOT_RADIUS
+            left = radius + 6
+            right = self.viewport().width() - radius - 6
+            if right <= left:
+                continue
+
+            painter.drawLine(left, y, right, y)
+            painter.drawEllipse(QPoint(left, y), radius, radius)
+            painter.drawEllipse(QPoint(right, y), radius, radius)
+
+        painter.end()
+
+    @staticmethod
+    def _separator_color(kind, hovered):
+        if hovered:
+            return QColor(88, 166, 255, 255)
+        if kind == "ADDED":
+            return QColor(63, 185, 80, 230)
+        if kind == "REMOVED":
+            return QColor(248, 81, 73, 230)
+        if kind == "UNCHANGED":
+            return QColor(139, 148, 158, 210)
+        return QColor(210, 153, 34, 230)
+
+    @staticmethod
+    def _boundary_identity(boundary):
+        return None if boundary is None else (
+            boundary["section_id"],
+            boundary["position"],
+        )
 
 
 class FileDiffView(QWidget):
@@ -242,8 +439,10 @@ class FileDiffView(QWidget):
     def _build_ui(self):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
 
-        self.table = QTableView()
+        self.toolbar = DiffToolbar()
+        self.table = DiffTableView()
         self.table.setModel(self.model)
         self.table.setFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
         self.table.setAlternatingRowColors(False)
@@ -263,37 +462,51 @@ class FileDiffView(QWidget):
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
 
-        self.table.clicked.connect(self._toggle_clicked_section)
-        layout.addWidget(self.table)
+        self.toolbar.collapse_all_requested.connect(self.collapse_all)
+        self.toolbar.expand_all_requested.connect(self.expand_all)
+        layout.addWidget(self.toolbar)
+        layout.addWidget(self.table, 1)
 
     def set_diff(self, rows):
         self.model.set_rows(rows)
+        changed, unchanged = self.model.section_counts()
+        self.toolbar.set_summary(len(self.model.rows), changed, unchanged)
+
         if self.model.rowCount():
             self.table.scrollToTop()
+        self.table.viewport().update()
 
     def clear(self):
         self.model.clear()
+        self.toolbar.clear()
+        self.table.viewport().update()
 
-    def _toggle_clicked_section(self, index):
-        if not self.model.is_control_row(index.row()):
-            return
+    def collapse_all(self):
+        anchor = self._top_source_index()
+        self.model.collapse_all()
+        self.table.restore_anchor(anchor)
+        self.table.viewport().update()
 
-        section_id = self.model.display_rows[index.row()].section_id
-        section = self.model.sections[section_id]
-        expanded = section_id in self.model.expanded_sections
-        target_source_index = section.start
-        self.model.toggle_section(index.row())
-        target_row = self._display_row_for_source(target_source_index)
+    def expand_all(self):
+        if len(self.model.rows) > EXPAND_ALL_WARNING_THRESHOLD:
+            answer = QMessageBox.question(
+                self,
+                "Expand Large Diff",
+                (
+                    f"This diff contains {len(self.model.rows):,} rows.\n\n"
+                    "Expanding every region may use significant memory. Continue?"
+                ),
+            )
+            if answer != QMessageBox.StandardButton.Yes:
+                return
 
-        if target_row is not None:
-            target = self.model.index(target_row, 0)
-            self.table.scrollTo(target, QAbstractItemView.ScrollHint.PositionAtTop)
+        anchor = self._top_source_index()
+        self.model.expand_all()
+        self.table.restore_anchor(anchor)
+        self.table.viewport().update()
 
-        if expanded:
-            self.table.clearSelection()
-
-    def _display_row_for_source(self, source_index):
-        for display_index, row in enumerate(self.model.display_rows):
-            if row.source_index == source_index:
-                return display_index
-        return None
+    def _top_source_index(self):
+        index = self.table.indexAt(QPoint(0, 0))
+        if index.isValid():
+            return self.model.visible_indices[index.row()]
+        return 0 if self.model.rows else None
