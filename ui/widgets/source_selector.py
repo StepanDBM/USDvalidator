@@ -5,8 +5,8 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
     QLabel,
+    QMenu,
     QPushButton,
-    QRadioButton,
     QVBoxLayout,
     QWidget,
 )
@@ -17,18 +17,14 @@ USD_EXTENSIONS = {".usd", ".usda", ".usdc", ".usdz"}
 
 class SourceSelector(QWidget):
     source_changed = Signal(object)
-    mode_changed = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-
         self.source_path = None
-
         self._build_ui()
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
-
         layout.addWidget(QLabel("Source"))
 
         source_layout = QHBoxLayout()
@@ -36,72 +32,97 @@ class SourceSelector(QWidget):
         self.source_label = QLabel("No file or folder selected")
         self.source_label.setWordWrap(True)
 
-        browse_button = QPushButton("Browse...")
-        browse_button.clicked.connect(self._browse)
+        self.browse_button = QPushButton("Browse...")
+        self.browse_menu = QMenu(self)
+
+        select_file_action = self.browse_menu.addAction("Select USD File...")
+        select_folder_action = self.browse_menu.addAction("Select Folder...")
+
+        select_file_action.triggered.connect(self._browse_file)
+        select_folder_action.triggered.connect(self._browse_folder)
+
+        self.browse_button.setMenu(self.browse_menu)
 
         source_layout.addWidget(self.source_label, 1)
-        source_layout.addWidget(browse_button)
+        source_layout.addWidget(self.browse_button)
 
         layout.addLayout(source_layout)
 
-        mode_layout = QHBoxLayout()
+    def _browse_file(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select USD File",
+            self._initial_directory(),
+            "USD Files (*.usd *.usda *.usdc *.usdz)",
+        )
 
-        mode_layout.addWidget(QLabel("Mode:"))
+        if path:
+            self.set_source(path)
 
-        self.file_radio = QRadioButton("File")
-        self.folder_radio = QRadioButton("Folder")
+    def _browse_folder(self):
+        path = QFileDialog.getExistingDirectory(
+            self,
+            "Select USD Folder",
+            self._initial_directory(),
+        )
 
-        self.file_radio.setChecked(True)
+        if path:
+            self.set_source(path)
 
-        self.file_radio.toggled.connect(self._on_mode_changed)
-        self.folder_radio.toggled.connect(self._on_mode_changed)
+    def _initial_directory(self):
+        if self.source_path is None:
+            return ""
 
-        mode_layout.addWidget(self.file_radio)
-        mode_layout.addWidget(self.folder_radio)
-        mode_layout.addStretch()
+        if self.source_path.is_dir():
+            return str(self.source_path)
 
-        layout.addLayout(mode_layout)
-
-    def _browse(self):
-        if self.file_radio.isChecked():
-            path, _ = QFileDialog.getOpenFileName(
-                self,
-                "Select USD File",
-                "",
-                "USD Files (*.usd *.usda *.usdc *.usdz)",
-            )
-
-            if not path:
-                return
-
-        else:
-            path = QFileDialog.getExistingDirectory(
-                self,
-                "Select USD Directory",
-            )
-
-            if not path:
-                return
-
-        self.set_source(Path(path))
-
-    def _on_mode_changed(self):
-        self.source_path = None
-        self.source_label.setText("No file or folder selected")
-
-        mode = "file" if self.file_radio.isChecked() else "folder"
-        self.mode_changed.emit(mode)
+        return str(self.source_path.parent)
 
     def set_source(self, path):
-        self.source_path = Path(path)
-        self.source_label.setText(str(self.source_path))
-        self.source_changed.emit(self.source_path)
+        source_path = Path(path).expanduser()
+
+        if not source_path.exists():
+            raise FileNotFoundError(
+                f"Source does not exist: {source_path}"
+            )
+
+        if source_path.is_file():
+            if source_path.suffix.lower() not in USD_EXTENSIONS:
+                raise ValueError(
+                    f"Unsupported USD extension: {source_path.suffix}"
+                )
+
+            source_type = "USD File"
+
+        elif source_path.is_dir():
+            source_type = "Folder"
+
+        else:
+            raise ValueError(
+                f"Source must be a USD file or directory: {source_path}"
+            )
+
+        self.source_path = source_path
+
+        self.source_label.setText(
+            f"{source_type}: {source_path}"
+        )
+
+        self.source_label.setToolTip(
+            str(source_path)
+        )
+
+        self.source_changed.emit(
+            source_path
+        )
 
     def get_source(self):
         return self.source_path
 
-    def is_file_mode(self):
-        return self.file_radio.isChecked()
-
-    def is_folder_mode(self):
-        return self.folder_radio.isChecked()
+    def clear_source(self):
+        self.source_path = None
+        self.source_label.setText(
+            "No file or folder selected"
+        )
+        self.source_label.setToolTip("")
+        self.source_changed.emit(None)

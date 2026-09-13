@@ -63,15 +63,19 @@ class ValidationView(QWidget):
             profile=profile
         )
 
-        if self.source_selector.is_file_mode():
+        if source_path.is_file():
             self._run_single(
                 checker,
                 source_path,
             )
-        else:
+        elif source_path.is_dir():
             self._run_batch(
                 checker,
                 source_path,
+            )
+        else:
+            self.results_view.show_message(
+                "The selected source is not a valid file or directory."
             )
 
     def _run_single(self, checker, source_path):
@@ -84,7 +88,7 @@ class ValidationView(QWidget):
     def _run_batch(self, checker, source_path):
         source_paths = sorted(
             path
-            for path in Path(source_path).iterdir()
+            for path in source_path.iterdir()
             if path.is_file()
             and path.suffix.lower() in USD_EXTENSIONS
         )
