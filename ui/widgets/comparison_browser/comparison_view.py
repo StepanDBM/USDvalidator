@@ -16,6 +16,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from comparison.source_preflight import DiffMode, DiffScale, inspect_source_diff
+from ui.dialogs.large_diff_dialog import LargeDiffDialog
 from ui.workers import ComparisonWorker
 
 from .change_details import ChangeDetails
@@ -228,6 +230,15 @@ class ComparisonView(QWidget):
             )
             return
 
+        preflight = inspect_source_diff(previous, current)
+        diff_mode = DiffMode.FULL
+
+        if preflight.scale in {DiffScale.LARGE, DiffScale.EXTREME}:
+            dialog = LargeDiffDialog(preflight, self)
+            if dialog.exec() != dialog.DialogCode.Accepted:
+                return
+            diff_mode = dialog.selected_mode
+
         profile_name = self.profile_combo.currentText()
 
         profile = (
@@ -248,6 +259,7 @@ class ComparisonView(QWidget):
             previous=previous,
             current=current,
             profile=profile,
+            diff_mode=diff_mode,
         )
 
         self.worker.moveToThread(
@@ -295,12 +307,27 @@ class ComparisonView(QWidget):
         self,
         comparison,
         diff_rows,
+        diff_mode,
     ):
         self.comparison = comparison
 
         self._refresh_semantic_tree()
-        self.diff_view.set_diff(diff_rows)
+
+        if diff_mode is DiffMode.SKIP:
+            self.diff_view.clear()
+        else:
+            self.diff_view.set_diff(diff_rows)
+
         self._update_summary()
+
+        if diff_mode is DiffMode.SKIP:
+            self.summary_label.setText(
+                f"{self.summary_label.text()} · source diff skipped"
+            )
+        elif diff_mode is DiffMode.SUMMARY:
+            self.summary_label.setText(
+                f"{self.summary_label.text()} · summary source diff"
+            )
 
     def _on_comparison_failed(self, message):
         self.summary_label.setText(
