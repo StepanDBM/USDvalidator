@@ -55,7 +55,7 @@ class NamingRuleConfig:
 @dataclass
 class HierarchyRuleConfig:
     require_single_root: bool = True
-    required_paths_csv: str = "/World"
+    required_paths_csv: str = ""
     geometry_root_path: str = "/World/Geometry"
     require_meshes_under_geometry_root: bool = False
 

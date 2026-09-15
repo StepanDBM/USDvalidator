@@ -22,6 +22,7 @@ from .stylesheet import (
 from .widgets.validation_view import ValidationView
 from .widgets.profile_editor import ProfileEditor
 from .widgets.comparison_browser import ComparisonView
+from .widgets.usd_viewport import UsdViewportWidget
 
 def _change_theme(self, index):
     themes = (
@@ -42,9 +43,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("USDvalidator")
         self.resize(1280, 800)
 
-        self.profile_loader = ProfileLoader(
-            "validation/profiles.json"
-        )
+        self.profile_loader = ProfileLoader("validation/profiles.json")
 
         self.registry = build_registry()
 
@@ -63,9 +62,7 @@ class MainWindow(QMainWindow):
         top_bar = QWidget()
         top_layout = QHBoxLayout(top_bar)
 
-        top_layout.setContentsMargins(
-            0, 0, 0, 0
-        )
+        top_layout.setContentsMargins(0, 0, 0, 0)
 
         # Custom tab bar
         self.tab_bar = QTabBar()
@@ -73,6 +70,7 @@ class MainWindow(QMainWindow):
         self.tab_bar.addTab("Validation")
         self.tab_bar.addTab("Profiles")
         self.tab_bar.addTab("Comparison")
+        self.tab_bar.addTab("Viewport")
 
         top_layout.addWidget(self.tab_bar)
 
@@ -100,15 +98,15 @@ class MainWindow(QMainWindow):
         # Hide the QTabWidget's own tab bar
         self.tabs.tabBar().hide()
         self.validation_view = ValidationView(profile_loader=self.profile_loader)
-        self.profile_editor = ProfileEditor(
-            profile_loader=self.profile_loader,
-            registry=self.registry,
-        )
+        self.profile_editor = ProfileEditor(profile_loader=self.profile_loader,
+            registry=self.registry,)
 
         self.comparison_view = ComparisonView(profile_loader=self.profile_loader)
+        self.viewport_view = UsdViewportWidget()
         self.tabs.addTab(self.validation_view, "Validation")
         self.tabs.addTab(self.profile_editor, "Profiles")
         self.tabs.addTab(self.comparison_view, "Comparison")
+        self.tabs.addTab(self.viewport_view, "Viewport")
         main_layout.addWidget(self.tabs, 1)
         self.setCentralWidget(central_widget)
 
@@ -126,6 +124,10 @@ class MainWindow(QMainWindow):
         ]
 
         self.setStyleSheet(themes[index]())
+
+    def closeEvent(self, event):
+        self.viewport_view.shutdown()
+        super().closeEvent(event)
 
     def _refresh_validation_profiles(self):
         self.validation_view.refresh_profiles()

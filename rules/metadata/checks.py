@@ -14,6 +14,8 @@ from validation.check_ids import (
 from validation.enums import CheckStatus
 from validation.models import CheckResult
 
+from pxr import Sdf
+
 
 def _result(
     *,
@@ -224,16 +226,13 @@ def check_meters_per_unit_valid(context, runtime_context):
         ),
     )
 
-
 def check_root_prim_name_valid(context, runtime_context):
-    value = context.stage.root_prim_name
-    required = (
-        runtime_context
-        .config
-        .metadata
-        .required_root_prim_name
-    )
-    passed = value == required
+    name = context.stage.root_prim_name
+    path = context.stage.default_prim
+
+    name_valid = bool(name) and Sdf.Path.IsValidIdentifier(name)
+    path_valid = bool(path) and Sdf.Path(path).IsRootPrimPath()
+    passed = name_valid and path_valid
 
     return _result(
         check_id=USD_ROOT_PRIM_NAME_VALID,
@@ -242,24 +241,22 @@ def check_root_prim_name_valid(context, runtime_context):
         runtime_context=runtime_context,
         passed=passed,
         message=(
-            f"Root prim name {value!r}; "
-            f"required name {required!r}."
+            f"Default prim name {name!r}; "
+            f"valid identifier: {name_valid}; "
+            f"root prim path: {path_valid}."
         ),
-        location=context.stage.default_prim,
+        location=path,
         details={
-            "value": value,
-            "required": required,
+            "name": name,
+            "path": path,
+            "name_valid": name_valid,
+            "root_prim_path": path_valid,
         },
         suggestion=(
-            ""
-            if passed
-            else (
-                "Rename the default root prim or override "
-                "the required name."
-            )
+            "Use a valid USD identifier for the default prim and ensure "
+            "that the default prim identifies a top-level prim."
         ),
     )
-
 
 def check_root_prim_type_valid(context, runtime_context):
     value = context.stage.root_prim_type

@@ -15,11 +15,48 @@ def check_single_root_prim_required(context, runtime_context):
 
 
 def check_required_hierarchy_paths_exist(context, runtime_context):
-    required = csv_values(runtime_context.config.hierarchy.required_paths_csv)
+    required = csv_values(
+        runtime_context.config.hierarchy.required_paths_csv
+    )
+
+    if not required:
+        return result(
+            USD_REQUIRED_HIERARCHY_PATHS_EXIST,
+            "Required Hierarchy Paths Exist",
+            "Hierarchy",
+            runtime_context,
+            True,
+            "No required hierarchy paths are configured.",
+            details={
+                "required_paths": [],
+                "missing_paths": [],
+                "enforced": False,
+            },
+        )
+
     existing = {prim.path for prim in context.pipeline.prims}
     missing = [path for path in required if path not in existing]
-    return result(USD_REQUIRED_HIERARCHY_PATHS_EXIST, "Required Hierarchy Paths Exist", "Hierarchy", runtime_context, not missing, f"Missing required hierarchy paths: {len(missing)}.", details={"missing_paths": missing, "required_paths": list(required)}, suggestion="Author the required prim hierarchy.")
 
+    return result(
+        USD_REQUIRED_HIERARCHY_PATHS_EXIST,
+        "Required Hierarchy Paths Exist",
+        "Hierarchy",
+        runtime_context,
+        not missing,
+        (
+            f"Required hierarchy paths: {len(required)}; "
+            f"missing: {len(missing)}."
+        ),
+        details={
+            "required_paths": list(required),
+            "missing_paths": missing,
+            "enforced": True,
+        },
+        suggestion=(
+            "Author the configured hierarchy paths or remove the path "
+            "requirements from this validation profile."
+        ),
+    )
 
 def check_meshes_under_required_scope(context, runtime_context):
     config = runtime_context.config.hierarchy

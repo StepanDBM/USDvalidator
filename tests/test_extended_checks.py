@@ -19,12 +19,11 @@ def get_result(report, check_id):
     return next(item for item in report.results if item.check_id == check_id)
 
 
-def test_invalid_policy_fixture_fails_extended_checks():
+def test_invalid_policy_fixture_reports_expected_policy_results():
     report = PublishChecker().check(FIXTURE)
 
     for check_id in (
         USD_METERS_PER_UNIT_VALID,
-        USD_ROOT_PRIM_NAME_VALID,
         USD_ROOT_PRIM_TYPE_VALID,
         USD_FRAME_RANGE_LENGTH_LIMIT,
         USD_ASSET_PATHS_RELATIVE,
