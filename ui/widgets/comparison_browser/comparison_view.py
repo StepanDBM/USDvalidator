@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QThread
+from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -27,6 +27,7 @@ from .semantic_tree import SemanticChangesTree
 
 
 class ComparisonView(QWidget):
+    open_in_viewport_requested = Signal(object, object, str)
     def __init__(self, profile_loader, parent=None):
         super().__init__(parent)
 
@@ -170,6 +171,9 @@ class ComparisonView(QWidget):
 
         self.semantic_tree.change_selected.connect(
             self.change_details.show_change
+        )
+        self.semantic_tree.open_in_viewport_requested.connect(
+            self._request_viewport
         )
         self.semantic_toolbar.filters_changed.connect(
             self._refresh_semantic_tree
@@ -470,3 +474,6 @@ class ComparisonView(QWidget):
             show_unchanged=self.show_unchanged.isChecked(),
             filters=self.semantic_toolbar.filters(),
         )
+    def _request_viewport(self, change, side):
+        if self.comparison is not None:
+            self.open_in_viewport_requested.emit(self.comparison, change, side)

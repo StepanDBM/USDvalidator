@@ -15,16 +15,18 @@ class ContextTabs(QTabWidget):
         self.composition = _table(["Layer", "Arc / Spec", "Path", "Has Spec"])
         self.materials = _table(["Purpose", "Material", "Relationship"])
         self.validation = _table(["Status", "Check", "Message"])
+        self.semantic = _table(["Field", "Value"])
         self.addTab(self.value, "Value")
         self.addTab(self.metadata, "Metadata")
         self.addTab(self.layers, "Layer Stack")
         self.addTab(self.composition, "Composition")
         self.addTab(self.materials, "Materials")
         self.addTab(self.validation, "Validation")
+        self.addTab(self.semantic, "Semantic Change")
 
     def set_prim(self, prim):
         self.value.clear()
-        for table in (self.metadata, self.layers, self.composition, self.materials, self.validation):
+        for table in (self.metadata, self.layers, self.composition, self.materials, self.validation, self.semantic):
             table.setRowCount(0)
         if not prim or not prim.IsValid():
             return
@@ -54,6 +56,23 @@ class ContextTabs(QTabWidget):
             row = list(results).index(selected)
             self.validation.selectRow(row)
             self.validation.scrollToItem(self.validation.item(row, 0))
+
+    def show_semantic_change(self, change, side):
+        rows = [
+            ("Side", side.title()),
+            ("Kind", change.kind.value),
+            ("Impact", change.impact.value),
+            ("Domain", change.domain or change.category),
+            ("Path", change.path),
+            ("Property", change.property_path),
+            ("Change", change.label),
+            ("Previous", change.previous),
+            ("Current", change.current),
+            ("Why it matters", change.why_it_matters),
+            ("Validation consequence", change.validation_consequence),
+        ]
+        _fill(self.semantic, rows)
+        self.setCurrentWidget(self.semantic)
 
     def _set_metadata(self, prim):
         rows = []

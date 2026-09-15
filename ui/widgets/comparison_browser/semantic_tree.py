@@ -1,6 +1,6 @@
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
-from PySide6.QtWidgets import QAbstractItemView, QTreeWidget, QTreeWidgetItem
+from PySide6.QtWidgets import QAbstractItemView, QMenu, QTreeWidget, QTreeWidgetItem
 
 
 KIND_COLORS = {
@@ -25,6 +25,7 @@ IMPACT_ORDER = {
 
 class SemanticChangesTree(QTreeWidget):
     change_selected = Signal(object)
+    open_in_viewport_requested = Signal(object, str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -54,7 +55,9 @@ class SemanticChangesTree(QTreeWidget):
         self.setColumnWidth(4, 95)
         self.setColumnWidth(5, 150)
         self.setColumnWidth(6, 150)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.currentItemChanged.connect(self._on_current_changed)
+        self.customContextMenuRequested.connect(self._show_context_menu)
 
     def set_comparison(self, comparison, show_unchanged=False, filters=None):
         self.comparison = comparison
@@ -122,3 +125,26 @@ class SemanticChangesTree(QTreeWidget):
     def _on_current_changed(self, current, previous):
         change = current.data(0, Qt.ItemDataRole.UserRole) if current else None
         self.change_selected.emit(change)
+
+    def _show_context_menu(self, position):
+        item = self.itemAt(position)
+        change = item.data(0, Qt.ItemDataRole.UserRole) if item else None
+        if change is None:
+            return
+
+        menu = QMenu(self)
+        automatic = "Previous" if change.kind.value == "REMOVED" else "Current"
+        action = menu.addAction(f"Open and Frame in Viewport ({automatic})")
+        action.triggered.connect(
+            lambda checked=False, value=change: self.open_in_viewport_requested.emit(value, "auto")
+        )
+        menu.addSeparator()
+        previous = menu.addAction("Open Previous in Viewport")
+        current = menu.addAction("Open Current in Viewport")
+        previous.triggered.connect(
+            lambda checked=False, value=change: self.open_in_viewport_requested.emit(value, "previous")
+        )
+        current.triggered.connect(
+            lambda checked=False, value=change: self.open_in_viewport_requested.emit(value, "current")
+        )
+        menu.exec(self.viewport().mapToGlobal(position))

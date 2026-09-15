@@ -116,12 +116,19 @@ class MainWindow(QMainWindow):
         self.tabs.currentChanged.connect(self.tab_bar.setCurrentIndex)
         self.theme_selector.currentIndexChanged.connect(self._change_theme)
         self.validation_view.open_in_viewport_requested.connect(self._open_validation_result_in_viewport)
+        self.comparison_view.open_in_viewport_requested.connect(self._open_comparison_change_in_viewport)
 
     def _open_validation_result_in_viewport(self, report, result):
         index = self.tabs.indexOf(self.viewport_view)
         self.tabs.setCurrentIndex(index)
         self.tab_bar.setCurrentIndex(index)
         self.viewport_view.show_validation_result(report, result)
+
+    def _open_comparison_change_in_viewport(self, comparison, change, side):
+        index = self.tabs.indexOf(self.viewport_view)
+        self.tabs.setCurrentIndex(index)
+        self.tab_bar.setCurrentIndex(index)
+        self.viewport_view.show_comparison_change(comparison, change, side)
 
     def _change_theme(self, index):
         themes = [

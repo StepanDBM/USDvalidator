@@ -30,3 +30,6 @@ class PrimInspector(QWidget):
 
     def show_validation_results(self, results, selected=None):
         self.context.show_validation_results(results, selected)
+
+    def show_semantic_change(self, change, side):
+        self.context.show_semantic_change(change, side)

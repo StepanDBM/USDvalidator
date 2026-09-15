@@ -15,7 +15,7 @@ from .viewport_models import StageStatistics
 from .viewport_state import ViewportState
 from .viewport_toolbar import ViewportToolbar
 from .viewport_tools import ViewportTools
-from ui.navigation import resolve_validation_target
+from ui.navigation import resolve_comparison_target, resolve_validation_target
 
 
 DRAW_MODES = {
@@ -98,6 +98,27 @@ class UsdViewportWidget(QWidget):
         QTimer.singleShot(100, self._refresh_renderer_controls)
         self._set_status("Opened stage")
         self.source_changed.emit(self.state.source_path)
+        return True
+
+    def show_comparison_change(self, comparison, change, side="auto"):
+        target = resolve_comparison_target(comparison, change, side)
+        camera_state = self.viewport.copyViewState() if self.viewport.stage else None
+        if self.state.source_path != target.source_path and not self.set_source(target.source_path):
+            return False
+        if camera_state:
+            self.viewport.restoreViewState(camera_state)
+
+        navigated = self.select_path(target.prim_path, frame=True) if target.prim_path else False
+        if not target.prim_path:
+            self.viewport.frame_all()
+        if navigated and target.property_path:
+            self.inspector.select_property(target.property_path)
+        self.inspector.show_semantic_change(change, target.side)
+
+        action = f"Comparison {target.side}: {change.kind.value} {change.label}"
+        if target.prim_path and not navigated:
+            action += f" | target unavailable: {target.prim_path}"
+        self._set_status(action)
         return True
 
     def show_validation_result(self, report, result):
