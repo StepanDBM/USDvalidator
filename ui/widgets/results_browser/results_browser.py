@@ -4,13 +4,12 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QLabel,
-    QListWidget,
-    QListWidgetItem,
     QSplitter,
     QVBoxLayout,
     QWidget,
 )
 
+from .batch_files_tree import BatchFilesTree
 from .filter_bar import ResultsFilterBar
 from .result_details import ResultDetails
 from .results_tree import ResultsTree
@@ -43,8 +42,8 @@ class ResultsBrowser(QWidget):
         file_layout.setContentsMargins(0, 0, 0, 0)
         file_layout.addWidget(QLabel("Batch Files"))
 
-        self.file_list = QListWidget()
-        file_layout.addWidget(self.file_list)
+        self.file_tree = BatchFilesTree()
+        file_layout.addWidget(self.file_tree)
 
         self.file_panel.setMinimumWidth(240)
         self.file_panel.hide()
@@ -76,7 +75,7 @@ class ResultsBrowser(QWidget):
         self.filter_bar.filters_changed.connect(self._refresh_results)
         self.results_tree.result_selected.connect(self.result_details.show_result)
         self.results_tree.open_in_viewport_requested.connect(self._request_viewport)
-        self.file_list.currentRowChanged.connect(self._on_file_selected)
+        self.file_tree.report_selected.connect(self._on_file_selected)
 
     def show_single_report(self, report):
         self.batch_report = None
@@ -97,24 +96,8 @@ class ResultsBrowser(QWidget):
         self.main_splitter.show()
         self.file_panel.show()
         self.summary_header.show_batch(batch)
-        self.file_list.blockSignals(True)
-        self.file_list.clear()
-        for report in batch.reports:
-            item = QListWidgetItem(Path(report.source_path).name)
-            item.setData(Qt.ItemDataRole.UserRole, report)
-            item.setToolTip(str(report.source_path))
-            item.setForeground(
-                QColor("#4CAF50" if report.publish_passed else "#F44336")
-            )
-            item.setText(
-                f"{'PASSED' if report.publish_passed else 'FAILED'}  "
-                f"{Path(report.source_path).name}"
-            )
-            self.file_list.addItem(item)
-        self.file_list.blockSignals(False)
-        if self.file_list.count():
-            self.file_list.setCurrentRow(0)
-        else:
+        self.file_tree.set_reports(batch.reports)
+        if not batch.reports:
             self.show_message("The batch contains no reports.")
 
     def show_message(self, message):
@@ -129,16 +112,14 @@ class ResultsBrowser(QWidget):
     def clear_results(self):
         self.current_report = None
         self.batch_report = None
-        self.file_list.clear()
+        self.file_tree.clear()
         self.results_tree.clear()
         self.result_details.show_result(None)
         self.show_message("Run validation to see results.")
 
-    def _on_file_selected(self, row):
-        if row < 0:
+    def _on_file_selected(self, report):
+        if report is None:
             return
-        item = self.file_list.item(row)
-        report = item.data(Qt.ItemDataRole.UserRole)
         self.current_report = report
         self.filter_bar.set_categories(
             {result.category for result in report.results if result.category}
