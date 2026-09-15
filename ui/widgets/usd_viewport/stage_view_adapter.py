@@ -55,6 +55,14 @@ class StageViewAdapter(StageView):
         self.renderer_changed.emit()
         return stage
 
+    def set_current_time(self, value):
+        if not self._stage:
+            return
+        self._dataModel.currentFrame = Usd.TimeCode(float(value))
+        self.SetForceRefresh(True)
+        self.updateView()
+        self.update()
+
     def select_path(self, value):
         path = owning_prim_path(value)
         if not path or not self._stage:

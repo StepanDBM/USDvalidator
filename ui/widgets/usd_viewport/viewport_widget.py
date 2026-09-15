@@ -15,6 +15,7 @@ from .viewport_models import StageStatistics
 from .viewport_state import ViewportState
 from .viewport_toolbar import ViewportToolbar
 from .viewport_tools import ViewportTools
+from .timeline import TimelineWidget
 from ui.navigation import resolve_comparison_target, resolve_validation_target
 
 
@@ -65,6 +66,10 @@ class UsdViewportWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.addWidget(self.toolbar)
         layout.addWidget(workspace, 1)
+        self.timeline = TimelineWidget()
+        self.timeline.time_changed.connect(self._set_current_time)
+        self.timeline.set_sample_provider(self.inspector.selected_time_samples)
+        layout.addWidget(self.timeline)
         layout.addWidget(self.status_label)
         self._connect_signals()
 
@@ -78,6 +83,7 @@ class UsdViewportWidget(QWidget):
     def set_source(self, source_path):
         if not source_path:
             return False
+
         try:
             stage = self.viewport.set_source(source_path)
         except Exception as error:
@@ -90,6 +96,9 @@ class UsdViewportWidget(QWidget):
         self.state.selected_path = ""
         self.state.stage_loaded = True
         self.toolbar.source_edit.setText(self.state.source_path)
+
+        self.timeline.set_stage(stage)
+
         self.outliner.set_stage(stage)
         self.inspector.set_prim(None)
         self.statistics = _stage_statistics(stage)
@@ -144,6 +153,12 @@ class UsdViewportWidget(QWidget):
             self._frame_selected()
         return True
 
+    def _set_current_time(self, value):
+        self.viewport.set_current_time(value)
+        self.inspector.set_current_time(value)
+        self.inspector.context.set_clips(self.viewport.stage, self.viewport.stage.GetPrimAtPath(self.state.selected_path) if self.state.selected_path else None)
+        self._set_status(f"Time {value:g}")
+
     def _select_from_outliner(self, path):
         if self.viewport.select_path(path):
             self._apply_selection(path, False)
@@ -157,6 +172,8 @@ class UsdViewportWidget(QWidget):
         if update_outliner:
             self.outliner.select_path(path)
         self.inspector.set_prim(prim)
+        self.inspector.set_current_time(self.timeline.current_time)
+        self.inspector.context.set_clips(stage, prim)
         self.state.selected_path = path
         self._set_status(f"Selected {path}")
         self.path_selected.emit(path)
@@ -231,6 +248,7 @@ class UsdViewportWidget(QWidget):
         )
 
     def shutdown(self):
+        self.timeline.stop()
         self.viewport.shutdown()
 
 

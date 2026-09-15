@@ -16,6 +16,7 @@ class ContextTabs(QTabWidget):
         self.materials = _table(["Purpose", "Material", "Relationship"])
         self.validation = _table(["Status", "Check", "Message"])
         self.semantic = _table(["Field", "Value"])
+        self.clips = _table(["Set", "Prim Path", "Assets", "Manifest", "Active", "Times"])
         self.addTab(self.value, "Value")
         self.addTab(self.metadata, "Metadata")
         self.addTab(self.layers, "Layer Stack")
@@ -23,10 +24,11 @@ class ContextTabs(QTabWidget):
         self.addTab(self.materials, "Materials")
         self.addTab(self.validation, "Validation")
         self.addTab(self.semantic, "Semantic Change")
+        self.addTab(self.clips, "Clips")
 
     def set_prim(self, prim):
         self.value.clear()
-        for table in (self.metadata, self.layers, self.composition, self.materials, self.validation, self.semantic):
+        for table in (self.metadata, self.layers, self.composition, self.materials, self.validation, self.semantic, self.clips):
             table.setRowCount(0)
         if not prim or not prim.IsValid():
             return
@@ -73,6 +75,16 @@ class ContextTabs(QTabWidget):
         ]
         _fill(self.semantic, rows)
         self.setCurrentWidget(self.semantic)
+
+    def set_clips(self, stage, prim=None):
+        rows = []
+        prims = (prim,) if prim else stage.TraverseAll() if stage else ()
+        for item in prims:
+            for name, values in (item.GetMetadata("clips") or {}).items():
+                assets = tuple(str(getattr(value, "path", value)) for value in values.get("assetPaths", ()))
+                manifest = getattr(values.get("manifestAssetPath"), "path", values.get("manifestAssetPath", ""))
+                rows.append((name, item.GetPath(), assets, manifest, values.get("active", ()), values.get("times", ())))
+        _fill(self.clips, rows)
 
     def _set_metadata(self, prim):
         rows = []

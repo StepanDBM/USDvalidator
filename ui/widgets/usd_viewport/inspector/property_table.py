@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QLineEdit, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
-from pxr import UsdGeom
+from pxr import Usd, UsdGeom
 
 from ..viewport_models import PropertyRow
 
@@ -13,6 +13,8 @@ class PropertyTable(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._rows = []
+        self._prim = None
+        self._time = Usd.TimeCode.Default()
         self.search = QLineEdit()
         self.search.setPlaceholderText("Search properties...")
         self.table = QTableWidget(0, 3)
@@ -32,6 +34,21 @@ class PropertyTable(QWidget):
     def set_prim(self, prim):
         self._rows = self._build_rows(prim) if prim and prim.IsValid() else []
         self._rebuild()
+
+    def set_current_time(self, value):
+        self._time = Usd.TimeCode(float(value))
+        if self._prim:
+            self._rows = self._build_rows(self._prim)
+            self._rebuild()
+
+    def selected_time_samples(self):
+        row = self.table.currentRow()
+        item = self.table.item(row, 0) if row >= 0 else None
+        data = item.data(Qt.ItemDataRole.UserRole) if item else None
+        if not data or data.kind != "A" or not self._prim:
+            return ()
+        attribute = self._prim.GetAttribute(data.name)
+        return tuple(attribute.GetTimeSamples()) if attribute else ()
 
     def select_property(self, property_path):
         name = str(property_path).rsplit(".", 1)[-1]
@@ -59,10 +76,13 @@ class PropertyTable(QWidget):
             ])
         for attribute in sorted(prim.GetAttributes(), key=lambda value: value.GetName()):
             try:
-                value = attribute.Get()
+                value = attribute.Get(self._time)
             except Exception as error:
                 value = f"<unavailable: {error}>"
-            rows.append(PropertyRow("A", attribute.GetName(), _short(value), value))
+            samples = tuple(attribute.GetTimeSamples())
+            kind = "A*" if samples else "A"
+            summary = f"{_short(value)}  [{len(samples)} samples]" if samples else _short(value)
+            rows.append(PropertyRow(kind, attribute.GetName(), summary, value))
         for relationship in sorted(prim.GetRelationships(), key=lambda value: value.GetName()):
             value = tuple(path.pathString for path in relationship.GetTargets())
             rows.append(PropertyRow("R", relationship.GetName(), _short(value), value))

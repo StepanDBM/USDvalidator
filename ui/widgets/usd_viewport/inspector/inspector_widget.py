@@ -33,3 +33,9 @@ class PrimInspector(QWidget):
 
     def show_semantic_change(self, change, side):
         self.context.show_semantic_change(change, side)
+
+    def set_current_time(self, value):
+        self.properties.set_current_time(value)
+
+    def selected_time_samples(self):
+        return self.properties.selected_time_samples()

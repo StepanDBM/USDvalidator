@@ -13,7 +13,7 @@ from .geometry_context import (
     MeshGeometry,
 )
 
-from .animation_context import AnimationStatistics
+from .animation_context import AnimatedPropertyInfo, AnimationStatistics, ValueClipInfo
 from .lookdev_context import (
     LayerInfo,
     LookdevStatistics,
@@ -38,7 +38,9 @@ __all__ = [
     "SceneStatistics",
     "GeometryStatistics",
     "MeshGeometry",
-    "AnimationStatistics",
+    "AnimatedPropertyInfo",
+"AnimationStatistics",
+"ValueClipInfo",
     "CameraInfo",
     "LayerInfo",
     "LookdevStatistics",
