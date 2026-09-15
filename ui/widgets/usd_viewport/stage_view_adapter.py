@@ -3,12 +3,16 @@ from __future__ import annotations
 from pathlib import Path
 
 from PySide6.QtCore import Signal
-from pxr import Sdf, Usd
+from PySide6.QtGui import QColor
+from pxr import Gf, Sdf, Usd
+from pxr.Usdviewq.common import SelectionHighlightModes
+from pxr.Usdviewq.viewSettingsDataModel import RefinementComplexities
 from pxr.Usdviewq.stageView import StageView
 
 
 class StageViewAdapter(StageView):
     prim_picked = Signal(str)
+    renderer_changed = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -25,6 +29,10 @@ class StageViewAdapter(StageView):
     def stage(self):
         return self._stage
 
+    @property
+    def selected_path(self):
+        return self._selected_path
+
     def set_source(self, source_path):
         path = Path(source_path).expanduser().resolve()
         if not path.is_file():
@@ -38,25 +46,19 @@ class StageViewAdapter(StageView):
         self._clear_selection()
         self._source_path = str(path)
         self._stage = stage
-        self._selected_path = ""
         self._dataModel.stage = stage
         self.recomputeBBox()
         self.reset_camera()
         self.SetForceRefresh(True)
         self.updateView()
         self.update()
+        self.renderer_changed.emit()
         return stage
-
-    def reload_source(self):
-        if not self._source_path:
-            return None
-        return self.set_source(self._source_path)
 
     def select_path(self, value):
         path = owning_prim_path(value)
         if not path or not self._stage:
             return False
-
         prim = self._stage.GetPrimAtPath(path)
         if not prim or not prim.IsValid():
             return False
@@ -70,18 +72,24 @@ class StageViewAdapter(StageView):
         self.update()
         return True
 
+    def clear_selection(self):
+        self._clear_selection()
+        self.updateSelection()
+        self.updateView()
+        self.update()
+
     def frame_all(self):
         if not self._stage:
-            return
+            return False
         self._clear_selection()
         self.recomputeBBox()
         self.resetCam()
         self.updateView()
+        return True
 
     def frame_selected(self):
         if not self._stage or not self._selected_path:
             return False
-
         self.select_path(self._selected_path)
         self.getSelectionBBox()
         self.resetCam()
@@ -91,26 +99,203 @@ class StageViewAdapter(StageView):
 
     def reset_camera(self):
         if not self._stage:
-            return
+            return False
         settings = self._dataModel.viewSettings
         settings.freeCamera = self._createNewFreeCamera(settings, True)
         self.switchToFreeCamera()
         self.recomputeBBox()
         self.resetCam()
         self.updateView()
-
-    def selected_paths(self):
-        selection = self._dataModel.selection
-        for name in ("getPrimPaths", "GetPrimPaths"):
-            getter = getattr(selection, name, None)
-            if getter:
-                return tuple(str(path) for path in getter())
-        paths = getattr(selection, "_primSelection", {})
-        return tuple(str(path) for path in paths)
+        return True
 
     def set_draw_mode(self, draw_mode):
         self._dataModel.viewSettings.renderMode = draw_mode
         self.updateView()
+
+    def set_complexity(self, value):
+        complexity = {
+            "low": RefinementComplexities.LOW,
+            "medium": RefinementComplexities.MEDIUM,
+            "high": RefinementComplexities.HIGH,
+            "very_high": RefinementComplexities.VERY_HIGH,
+        }[value]
+        self._dataModel.viewSettings.complexity = complexity
+
+    def set_display_purpose(self, purpose, enabled):
+        name = {
+            "guide": "displayGuide",
+            "proxy": "displayProxy",
+            "render": "displayRender",
+        }[purpose]
+        setattr(self._dataModel.viewSettings, name, bool(enabled))
+        self.updateBboxPurposes()
+        self.recomputeBBox()
+        self.updateView()
+
+    def set_backface_culling(self, enabled):
+        self._dataModel.viewSettings.cullBackfaces = bool(enabled)
+
+    def set_bounding_boxes(self, enabled):
+        settings = self._dataModel.viewSettings
+        settings.showBBoxes = bool(enabled)
+        if enabled and not settings.showAABBox and not settings.showOBBox:
+            settings.showAABBox = True
+        self.recomputeBBox()
+        self.updateView()
+
+    def set_use_extents_hint(self, enabled):
+        self._dataModel.viewSettings.useExtentsHint = bool(enabled)
+        self.recomputeBBox()
+        self.updateView()
+
+    def set_auto_clipping(self, enabled):
+        self._dataModel.viewSettings.autoComputeClippingPlanes = bool(enabled)
+
+    def set_scene_lights(self, enabled):
+        self._dataModel.viewSettings.enableSceneLights = bool(enabled)
+
+    def set_camera_light(self, enabled):
+        self._dataModel.viewSettings.ambientLightOnly = bool(enabled)
+
+    def set_dome_light(self, enabled):
+        self._dataModel.viewSettings.domeLightEnabled = bool(enabled)
+
+    def set_dome_textures(self, enabled):
+        self._dataModel.viewSettings.domeLightTexturesVisible = bool(enabled)
+
+    def set_background_color(self, color):
+        qcolor = QColor(color)
+        self._dataModel.viewSettings.clearColor = Gf.Vec4f(
+            qcolor.redF(), qcolor.greenF(), qcolor.blueF(), 1.0
+        )
+
+    def set_selection_highlight(self, enabled):
+        settings = self._dataModel.viewSettings
+        settings.selHighlightMode = (
+            SelectionHighlightModes.ALWAYS
+            if enabled
+            else SelectionHighlightModes.NEVER
+        )
+
+        self.updateSelection()
+        self.SetForceRefresh(True)
+        self.updateView()
+        self.update()
+        return True
+
+    def set_selection_color(self, color):
+        color_name = {
+            "#ffff00": "Yellow",
+            "#ffffff": "White",
+            "#00ffff": "Cyan",
+        }.get(str(color).lower())
+
+        if not color_name:
+            return False
+
+        settings = self._dataModel.viewSettings
+        settings.highlightColorName = color_name
+
+        renderer = self.ensure_renderer()
+        if renderer:
+            renderer.SetSelectionColor(settings.highlightColor)
+
+        self.updateSelection()
+        self.SetForceRefresh(True)
+        self.updateView()
+        self.update()
+        return True
+    
+    def ensure_renderer(self):
+        if self._renderer:
+            return self._renderer
+        if not self.context() or not self.context().isValid():
+            return None
+        self.makeCurrent()
+        try:
+            return self._getRenderer()
+        finally:
+            self.doneCurrent()
+
+    def renderer_plugins(self):
+        try:
+            self.ensure_renderer()
+            return tuple(self.GetRendererPlugins())
+        except Exception:
+            return ()
+
+    def renderer_display_name(self, plugin_id):
+        try:
+            return self.GetRendererDisplayName(plugin_id)
+        except Exception:
+            return str(plugin_id)
+
+    def set_renderer(self, plugin_id):
+        if not self.ensure_renderer():
+            return False
+        state = self.copyViewState()
+        self.SetRendererPlugin(plugin_id)
+        self.restoreViewState(state)
+        self.renderer_changed.emit()
+        self.updateView()
+        return True
+
+    def renderer_aovs(self):
+        try:
+            self.ensure_renderer()
+            return tuple(str(value) for value in self.GetRendererAovs())
+        except Exception:
+            return ()
+
+    def set_renderer_aov(self, name):
+        if name and self.ensure_renderer():
+            self.SetRendererAov(name)
+            self.updateView()
+
+    def renderer_settings(self):
+        try:
+            self.ensure_renderer()
+            return tuple(self.GetRendererSettingsList())
+        except Exception:
+            return ()
+
+    def set_renderer_setting(self, key, value):
+        if not self.ensure_renderer():
+            return False
+        self.SetRendererSetting(key, value)
+        self.updateView()
+        return True
+
+    def stage_cameras(self):
+        if not self._stage:
+            return ()
+        return tuple(
+            prim.GetPath().pathString for prim in self._stage.TraverseAll()
+            if prim.GetTypeName() == "Camera"
+        )
+
+    def set_camera_path(self, path):
+        if not self._stage or not path:
+            self.switchToFreeCamera()
+            return
+        prim = self._stage.GetPrimAtPath(path)
+        if prim and prim.IsValid():
+            self._dataModel.viewSettings.cameraPrim = prim
+            self.resolveCamera()
+            self.updateView()
+
+    def grab_image(self):
+        return self.grabFramebuffer()
+
+    def _set_setting(self, names, value):
+        settings = self._dataModel.viewSettings
+        for name in names:
+            if hasattr(settings, name):
+                setattr(settings, name, value)
+                self.updateView()
+                self.update()
+                return True
+        return False
 
     def _on_prim_picked(self, *args):
         for value in args:

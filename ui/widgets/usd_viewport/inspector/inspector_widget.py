@@ -1,0 +1,26 @@
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QSplitter, QVBoxLayout, QWidget
+
+from .context_tabs import ContextTabs
+from .property_table import PropertyTable
+
+
+class PrimInspector(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.properties = PropertyTable()
+        self.context = ContextTabs()
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.addWidget(self.properties)
+        splitter.addWidget(self.context)
+        splitter.setStretchFactor(0, 3)
+        splitter.setStretchFactor(1, 2)
+        splitter.setSizes([650, 430])
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(splitter)
+        self.properties.property_selected.connect(self.context.set_property)
+
+    def set_prim(self, prim):
+        self.properties.set_prim(prim)
+        self.context.set_prim(prim)
