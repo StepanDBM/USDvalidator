@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from PySide6.QtCore import QThread
+from PySide6.QtCore import QThread, Signal
 from PySide6.QtWidgets import (
     QCheckBox,
     QFileDialog,
@@ -28,6 +28,7 @@ from .validate_button import ValidateButton
 
 
 class ValidationView(QWidget):
+    open_in_viewport_requested = Signal(object, object)
     def __init__(
         self,
         profile_loader,
@@ -160,6 +161,7 @@ class ValidationView(QWidget):
         return widget
 
     def _connect_signals(self):
+        self.results_view.open_in_viewport_requested.connect(self.open_in_viewport_requested)
         self.validate_button.validate_requested.connect(self._run_validation)
         self.cancel_button.clicked.connect(self._cancel_validation)
         self.output_button.clicked.connect(self._browse_output_directory)

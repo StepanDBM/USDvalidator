@@ -15,6 +15,7 @@ from .viewport_models import StageStatistics
 from .viewport_state import ViewportState
 from .viewport_toolbar import ViewportToolbar
 from .viewport_tools import ViewportTools
+from ui.navigation import resolve_validation_target
 
 
 DRAW_MODES = {
@@ -97,6 +98,20 @@ class UsdViewportWidget(QWidget):
         QTimer.singleShot(100, self._refresh_renderer_controls)
         self._set_status("Opened stage")
         self.source_changed.emit(self.state.source_path)
+        return True
+
+    def show_validation_result(self, report, result):
+        target = resolve_validation_target(report, result)
+        if self.state.source_path != target.source_path and not self.set_source(target.source_path):
+            return False
+        if target.prim_path:
+            self.select_path(target.prim_path, frame=True)
+        else:
+            self.viewport.frame_all()
+        self.inspector.show_validation_results(report.results, result)
+        if target.property_path:
+            self.inspector.select_property(target.property_path)
+        self._set_status(f"Validation: {result.check_id}")
         return True
 
     def select_path(self, path, frame=False):

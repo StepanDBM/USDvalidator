@@ -231,7 +231,14 @@ def check_root_prim_name_valid(context, runtime_context):
     path = context.stage.default_prim
 
     name_valid = bool(name) and Sdf.Path.IsValidIdentifier(name)
-    path_valid = bool(path) and Sdf.Path(path).IsRootPrimPath()
+    path_text = str(path or "").strip()
+    path_valid = False
+
+    if path_text.startswith("/"):
+        try:
+            path_valid = Sdf.Path(path_text).IsRootPrimPath()
+        except Exception:
+            pass
     passed = name_valid and path_valid
 
     return _result(

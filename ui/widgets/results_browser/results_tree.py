@@ -15,6 +15,7 @@ STATUS_COLORS = {
 
 class ResultsTree(QTreeWidget):
     result_selected = Signal(object)
+    open_in_viewport_requested = Signal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -96,6 +97,10 @@ class ResultsTree(QTreeWidget):
         if result is None:
             return
         menu = QMenu(self)
+        open_action = menu.addAction("Open and Frame in Viewport")
+        open_action.setEnabled(True)
+        open_action.triggered.connect(lambda checked=False, value=result: self.open_in_viewport_requested.emit(value))
+        menu.addSeparator()
         actions = {
             "Copy Check ID": result.check_id,
             "Copy Message": result.message,

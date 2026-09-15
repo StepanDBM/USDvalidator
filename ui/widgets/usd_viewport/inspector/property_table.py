@@ -33,6 +33,17 @@ class PropertyTable(QWidget):
         self._rows = self._build_rows(prim) if prim and prim.IsValid() else []
         self._rebuild()
 
+    def select_property(self, property_path):
+        name = str(property_path).rsplit(".", 1)[-1]
+        self.search.clear()
+        for row in range(self.table.rowCount()):
+            item = self.table.item(row, 1)
+            if item and item.text() == name:
+                self.table.setCurrentCell(row, 1)
+                self.table.scrollToItem(item)
+                return True
+        return False
+
     def _build_rows(self, prim):
         rows = [
             PropertyRow("C", "Prim Path", prim.GetPath().pathString, prim.GetPath()),

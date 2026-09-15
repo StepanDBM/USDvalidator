@@ -46,6 +46,15 @@ class ContextTabs(QTabWidget):
             text = str(value)
         self.value.setPlainText(text)
 
+    def show_validation_results(self, results, selected=None):
+        rows = [(item.status.value, item.check_id, item.message) for item in results]
+        _fill(self.validation, rows)
+        self.setCurrentWidget(self.validation)
+        if selected in results:
+            row = list(results).index(selected)
+            self.validation.selectRow(row)
+            self.validation.scrollToItem(self.validation.item(row, 0))
+
     def _set_metadata(self, prim):
         rows = []
         for key in prim.GetAllMetadata():

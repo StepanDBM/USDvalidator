@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QLabel,
@@ -18,6 +18,7 @@ from .summary_header import SummaryHeader
 
 
 class ResultsBrowser(QWidget):
+    open_in_viewport_requested = Signal(object, object)
     def __init__(self, parent=None):
         super().__init__(parent)
         self.current_report = None
@@ -74,6 +75,7 @@ class ResultsBrowser(QWidget):
     def _connect_signals(self):
         self.filter_bar.filters_changed.connect(self._refresh_results)
         self.results_tree.result_selected.connect(self.result_details.show_result)
+        self.results_tree.open_in_viewport_requested.connect(self._request_viewport)
         self.file_list.currentRowChanged.connect(self._on_file_selected)
 
     def show_single_report(self, report):
@@ -150,3 +152,7 @@ class ResultsBrowser(QWidget):
             self.current_report.results,
             self.filter_bar.values(),
         )
+
+    def _request_viewport(self, result):
+        if self.current_report is not None:
+            self.open_in_viewport_requested.emit(self.current_report, result)

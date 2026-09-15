@@ -24,3 +24,9 @@ class PrimInspector(QWidget):
     def set_prim(self, prim):
         self.properties.set_prim(prim)
         self.context.set_prim(prim)
+
+    def select_property(self, property_path):
+        return self.properties.select_property(property_path)
+
+    def show_validation_results(self, results, selected=None):
+        self.context.show_validation_results(results, selected)
