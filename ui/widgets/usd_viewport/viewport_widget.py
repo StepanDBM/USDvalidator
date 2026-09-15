@@ -75,7 +75,12 @@ class UsdViewportWidget(QWidget):
 
     def _connect_signals(self):
         self.toolbar.source_requested.connect(self.set_source)
-        self.outliner.path_selected.connect(self._select_from_outliner)
+        self.outliner.paths_selected.connect(self._select_from_outliner)
+        self.outliner.visibility_requested.connect(self._set_session_visibility)
+        self.outliner.frame_requested.connect(self._frame_selected)
+        self.outliner.hide_requested.connect(lambda: self._set_session_visibility(self.outliner.selected_paths(), False))
+        self.outliner.show_requested.connect(lambda: self._set_session_visibility(self.outliner.selected_paths(), True))
+        self.outliner.show_all_requested.connect(self._show_all)
         self.viewport.prim_picked.connect(self._select_from_viewport)
         self.viewport.renderer_changed.connect(self._refresh_renderer_controls)
         self.tools.action_requested.connect(self._handle_action)
@@ -159,12 +164,15 @@ class UsdViewportWidget(QWidget):
         self.inspector.context.set_clips(self.viewport.stage, self.viewport.stage.GetPrimAtPath(self.state.selected_path) if self.state.selected_path else None)
         self._set_status(f"Time {value:g}")
 
-    def _select_from_outliner(self, path):
-        if self.viewport.select_path(path):
-            self._apply_selection(path, False)
+    def _select_from_outliner(self, paths, primary_path):
+        if self.viewport.select_paths(paths, primary_path):
+            self._apply_selection(primary_path, False)
+            self._set_status(f"Selected {len(paths)} prim(s)")
 
     def _select_from_viewport(self, path):
-        self._apply_selection(path, True)
+        self.viewport.select_paths([path], path)
+        self.outliner.select_paths([path], path)
+        self._apply_selection(path, False)
 
     def _apply_selection(self, path, update_outliner):
         stage = self.viewport.stage
@@ -212,13 +220,27 @@ class UsdViewportWidget(QWidget):
             handler()
             self._set_status(action.replace("_", " ").title())
 
+    def _set_session_visibility(self, paths, visible):
+        if not paths:
+            return
+        if self.viewport.set_session_visibility(paths, visible):
+            hidden = set(self.outliner.model.hidden_paths)
+            hidden.difference_update(paths) if visible else hidden.update(paths)
+            self.outliner.set_hidden_paths(hidden)
+            self._set_status(("Showed" if visible else "Hid") + f" {len(paths)} prim(s)")
+
+    def _show_all(self):
+        if self.viewport.clear_session_visibility():
+            self.outliner.set_hidden_paths(set())
+            self._set_status("Showed all prims")
+
     def _frame_selected(self):
         if not self.viewport.frame_selected():
             self.status_label.setText("Select a prim in the outliner or viewport first.")
 
     def _clear_selection(self):
         self.viewport.clear_selection()
-        self.outliner.tree.clearSelection()
+        self.outliner.clear_selection()
         self.inspector.set_prim(None)
         self.state.selected_path = ""
 

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QColor
-from pxr import Gf, Sdf, Usd
+from pxr import Gf, Sdf, Usd, UsdGeom
 from pxr.Usdviewq.common import SelectionHighlightModes
 from pxr.Usdviewq.viewSettingsDataModel import RefinementComplexities
 from pxr.Usdviewq.stageView import StageView
@@ -65,17 +65,61 @@ class StageViewAdapter(StageView):
 
     def select_path(self, value):
         path = owning_prim_path(value)
-        if not path or not self._stage:
+        return self.select_paths([path.pathString], path.pathString) if path else False
+
+    def select_paths(self, values, primary_path=""):
+        if not self._stage:
             return False
-        prim = self._stage.GetPrimAtPath(path)
-        if not prim or not prim.IsValid():
+        paths = []
+        for value in values:
+            path = owning_prim_path(value)
+            prim = self._stage.GetPrimAtPath(path) if path else None
+            if prim and prim.IsValid() and path not in paths:
+                paths.append(path)
+        if not paths:
             return False
 
         selection = self._dataModel.selection
         selection.clearPrims()
-        selection.addPrimPath(path)
-        self._selected_path = path.pathString
+        for path in paths:
+            selection.addPrimPath(path)
+        primary = owning_prim_path(primary_path) if primary_path else paths[-1]
+        self._selected_path = primary.pathString if primary in paths else paths[-1].pathString
         self.updateSelection()
+        self.updateView()
+        self.update()
+        return True
+
+    def set_session_visibility(self, paths, visible):
+        if not self._stage:
+            return False
+        edit_target = self._stage.GetEditTarget()
+        self._stage.SetEditTarget(self._stage.GetSessionLayer())
+        try:
+            for value in paths:
+                path = owning_prim_path(value)
+                prim = self._stage.GetPrimAtPath(path) if path else None
+                if not prim or not prim.IsValid() or not prim.IsA(UsdGeom.Imageable):
+                    continue
+                attribute = UsdGeom.Imageable(prim).GetVisibilityAttr()
+                if visible:
+                    attribute.Clear()
+                else:
+                    attribute.Set(UsdGeom.Tokens.invisible)
+        finally:
+            self._stage.SetEditTarget(edit_target)
+        self.SetForceRefresh(True)
+        self.updateView()
+        self.update()
+        return True
+
+    def clear_session_visibility(self):
+        if not self._stage:
+            return False
+        session = self._stage.GetSessionLayer()
+        for prim_spec in list(session.rootPrims):
+            session.RemovePrim(prim_spec.path)
+        self.SetForceRefresh(True)
         self.updateView()
         self.update()
         return True
