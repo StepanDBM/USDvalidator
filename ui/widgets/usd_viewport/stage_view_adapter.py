@@ -19,6 +19,7 @@ class StageViewAdapter(StageView):
         self._source_path = ""
         self._stage = None
         self._selected_path = ""
+        self._session_visibility_paths = set()
         self.signalPrimSelected.connect(self._on_prim_picked)
 
     @property
@@ -46,6 +47,7 @@ class StageViewAdapter(StageView):
         self._clear_selection()
         self._source_path = str(path)
         self._stage = stage
+        self._session_visibility_paths.clear()
         self._dataModel.stage = stage
         self.recomputeBBox()
         self.reset_camera()
@@ -104,8 +106,10 @@ class StageViewAdapter(StageView):
                 attribute = UsdGeom.Imageable(prim).GetVisibilityAttr()
                 if visible:
                     attribute.Clear()
+                    self._session_visibility_paths.discard(path.pathString)
                 else:
                     attribute.Set(UsdGeom.Tokens.invisible)
+                    self._session_visibility_paths.add(path.pathString)
         finally:
             self._stage.SetEditTarget(edit_target)
         self.SetForceRefresh(True)

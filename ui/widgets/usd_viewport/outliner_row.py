@@ -23,6 +23,7 @@ class PrimRowDelegate(QStyledItemDelegate):
         validation_visible = bool(
             index.data(Qt.ItemDataRole.UserRole + 6)
         )
+        context_only = index.data(Qt.ItemDataRole.UserRole + 20) == 2
 
         validation_width = (
             self.badge_width
@@ -38,10 +39,10 @@ class PrimRowDelegate(QStyledItemDelegate):
             0,
         )
 
-        if effectively_hidden:
+        if effectively_hidden or context_only:
             text_option.palette.setColor(
                 text_option.palette.ColorRole.Text,
-                QColor("#777777"),
+                QColor("#777777" if effectively_hidden else "#8f98a3"),
             )
 
         super().paint(painter, text_option, index)
@@ -113,6 +114,7 @@ class PrimRowDelegate(QStyledItemDelegate):
         validation_visible = bool(
             index.data(Qt.ItemDataRole.UserRole + 6)
         )
+        context_only = index.data(Qt.ItemDataRole.UserRole + 20) == 2
         validation_width = (
             self.badge_width
             if validation_visible and summary and summary.total_count

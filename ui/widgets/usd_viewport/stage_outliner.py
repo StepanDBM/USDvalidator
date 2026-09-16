@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from PySide6.QtCore import QItemSelectionModel, Qt, Signal
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtGui import QAction, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QAbstractItemView,
+    QCheckBox,
     QHBoxLayout,
     QLineEdit,
+    QMenu,
     QPushButton,
     QToolButton,
     QTreeView,
@@ -31,6 +33,7 @@ class StageOutliner(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.primary_path = ""
+        self._expansion_before_filter = None
         self.filter_edit = QLineEdit()
         self.filter_edit.setPlaceholderText("Search prim name, path or type...")
         self.tree = QTreeView()
@@ -49,11 +52,41 @@ class StageOutliner(QWidget):
         self.validation_refresh.setToolTip("Run validation again for the loaded source")
         self.validation_refresh.setEnabled(False)
 
+        self.type_filter = QToolButton()
+        self.type_filter.setText("Types: All")
+        self.type_filter.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        self.type_menu = QMenu(self.type_filter)
+        self.type_filter.setMenu(self.type_menu)
+        self.type_actions = {}
+
+        self.status_filter = QToolButton()
+        self.status_filter.setText("Status: All")
+        self.status_filter.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        self.status_menu = QMenu(self.status_filter)
+        self.status_filter.setMenu(self.status_menu)
+        self.status_actions = {}
+        for key, label in (("PASSED", "Passed"), ("FAILED", "Failed"), ("ERROR", "Errors"), ("WARNING", "Warnings"), ("INFO", "Information"), ("SKIPPED", "Skipped"), ("NONE", "No findings")):
+            action = self.status_menu.addAction(label)
+            action.setCheckable(True)
+            action.toggled.connect(self._status_filter_changed)
+            self.status_actions[key] = action
+
+        self.findings_only = QCheckBox("Findings only")
+        self.animated_only = QCheckBox("Animated only")
+
         filter_layout = QHBoxLayout()
         filter_layout.setContentsMargins(0, 0, 0, 0)
         filter_layout.addWidget(self.filter_edit, 1)
         filter_layout.addWidget(self.validation_toggle)
         filter_layout.addWidget(self.validation_refresh)
+
+        options_layout = QHBoxLayout()
+        options_layout.setContentsMargins(0, 0, 0, 0)
+        options_layout.addWidget(self.type_filter)
+        options_layout.addWidget(self.status_filter)
+        options_layout.addWidget(self.findings_only)
+        options_layout.addWidget(self.animated_only)
+        options_layout.addStretch(1)
 
         self.model = PrimOutlinerModel(self)
         self.proxy = PrimOutlinerProxy(self)
@@ -66,12 +99,15 @@ class StageOutliner(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addLayout(filter_layout)
+        layout.addLayout(options_layout)
         layout.addWidget(self.tree, 1)
 
         self.validation_toggle.toggled.connect(self._validation_toggled)
         self.validation_refresh.clicked.connect(self.validation_refresh_requested.emit)
 
-        self.filter_edit.textChanged.connect(self._set_filter)
+        self.filter_edit.textChanged.connect(lambda value: self._apply_filter_change(lambda: self.proxy.set_query(value)))
+        self.findings_only.toggled.connect(lambda enabled: self._apply_filter_change(lambda: self.proxy.set_findings_only(enabled)))
+        self.animated_only.toggled.connect(lambda enabled: self._apply_filter_change(lambda: self.proxy.set_animated_only(enabled)))
         self.model.visibility_requested.connect(
             lambda path, visible: self.visibility_requested.emit([path], visible)
         )
@@ -82,10 +118,13 @@ class StageOutliner(QWidget):
     def set_stage(self, stage):
         self.primary_path = ""
         self.model.set_stage(stage)
+        self._rebuild_type_menu()
+        self._expansion_before_filter = None
         self.tree.expandToDepth(1)
 
     def set_validation_results(self, results):
         self.model.set_validation_results(results)
+        self.proxy.invalidateFilter()
         self.tree.viewport().update()
 
     def set_hidden_paths(self, paths):
@@ -155,13 +194,58 @@ class StageOutliner(QWidget):
         self.tree.clearSelection()
         self.primary_path = ""
 
-    def _set_filter(self, value):
-        expanded = self._expanded_paths()
-        self.proxy.set_query(value)
-        if value:
+    def _apply_filter_change(self, change):
+        was_active = self.proxy.filters_active
+        if not was_active:
+            self._expansion_before_filter = self._expanded_paths()
+        change()
+        if self.proxy.filters_active:
             self.tree.expandAll()
-        else:
-            self._restore_expanded_paths(expanded)
+        elif self._expansion_before_filter is not None:
+            self.tree.collapseAll()
+            self._restore_expanded_paths(self._expansion_before_filter)
+            self._expansion_before_filter = None
+
+    def _rebuild_type_menu(self):
+        self.type_menu.clear()
+        self.type_actions = {}
+        all_action = self.type_menu.addAction("All")
+        all_action.setCheckable(True)
+        all_action.setChecked(True)
+        all_action.toggled.connect(self._all_types_toggled)
+        self.all_types_action = all_action
+        self.type_menu.addSeparator()
+        for type_name in sorted({item.type_name for item in self.model.items.values()}, key=str.lower):
+            action = self.type_menu.addAction(type_name)
+            action.setCheckable(True)
+            action.setChecked(True)
+            action.toggled.connect(self._type_filter_changed)
+            self.type_actions[type_name] = action
+        self.proxy.set_type_filter(self.type_actions, all_types=True)
+        self.type_filter.setText("Types: All")
+
+    def _all_types_toggled(self, checked):
+        if not checked and all(action.isChecked() for action in self.type_actions.values()):
+            return
+        for action in self.type_actions.values():
+            action.blockSignals(True)
+            action.setChecked(checked)
+            action.blockSignals(False)
+        self._type_filter_changed()
+
+    def _type_filter_changed(self, *args):
+        enabled = {name for name, action in self.type_actions.items() if action.isChecked()}
+        all_types = len(enabled) == len(self.type_actions)
+        self.all_types_action.blockSignals(True)
+        self.all_types_action.setChecked(all_types)
+        self.all_types_action.blockSignals(False)
+        self.type_filter.setText("Types: All" if all_types else f"Types: {len(enabled)}")
+        self._apply_filter_change(lambda: self.proxy.set_type_filter(enabled, all_types))
+
+    def _status_filter_changed(self, *args):
+        enabled = {name for name, action in self.status_actions.items() if action.isChecked()}
+        self.status_filter.setText("Status: All" if not enabled else f"Status: {len(enabled)}")
+        self._apply_filter_change(lambda: self.proxy.set_validation_statuses(enabled))
 
     def _remember_primary(self, index):
         path = index.data(Qt.ItemDataRole.UserRole)

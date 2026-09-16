@@ -30,6 +30,7 @@ from .validate_button import ValidateButton
 class ValidationView(QWidget):
     open_in_viewport_requested = Signal(object, object)
     report_ready = Signal(object)
+    validation_finished = Signal()
     def __init__(
         self,
         profile_loader,
@@ -181,15 +182,23 @@ class ValidationView(QWidget):
         profile = self.profile_selector.get_profile()
         checker = PublishChecker(profile=profile)
 
-        discovery_options = SourceDiscoveryOptions(recursive=False)
+        discovery_options = (
+            SourceDiscoveryOptions(recursive=False)
+            if viewport_request
+            else SourceDiscoveryOptions(
+                recursive=self.recursive_checkbox.isChecked(),
+                include_patterns=self._patterns(self.include_edit.text()),
+                exclude_patterns=self._patterns(self.exclude_edit.text()),
+            )
+        )
 
         self.worker_thread = QThread(self)
         self.worker = ValidationWorker(
             source_path=source_path,
             checker=checker,
             discovery_options=discovery_options,
-            worker_count=1,
-            export_options=None,
+            worker_count=1 if viewport_request else self.worker_count_spin.value(),
+            export_options=None if viewport_request else self._export_options(),
         )
         self.worker.moveToThread(self.worker_thread)
 
@@ -202,6 +211,7 @@ class ValidationView(QWidget):
         self.worker.finished.connect(self._on_finished)
         self.worker.finished.connect(self.worker_thread.quit)
         self.worker_thread.finished.connect(self.worker.deleteLater)
+        self.worker_thread.finished.connect(self._validation_thread_finished)
         self.worker_thread.finished.connect(self.worker_thread.deleteLater)
 
         self._set_running(True)
@@ -270,8 +280,11 @@ class ValidationView(QWidget):
 
     def _on_finished(self):
         self._set_running(False)
+
+    def _validation_thread_finished(self):
         self.worker = None
         self.worker_thread = None
+        self.validation_finished.emit()
 
     def _set_running(self, running):
         self.validate_button.setEnabled(not running)

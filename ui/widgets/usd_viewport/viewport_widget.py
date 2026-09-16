@@ -47,6 +47,7 @@ class UsdViewportWidget(QWidget):
         self.inspector = PrimInspector()
         self.tools = ViewportTools()
         self._validation_report = None
+        self._pending_validation = None
         self._validation_cache = {}
 
         self.status_label = QLabel("No stage loaded.")
@@ -325,7 +326,9 @@ class UsdViewportWidget(QWidget):
         key = self._validation_cache_key(report.source_path)
         self._validation_cache[key] = report
 
-        if not self._same_source(self.state.source_path,report.source_path):
+        if not self._same_source(self.state.source_path, report.source_path):
+            if self.outliner.validation_toggle.isChecked() and not self._cached_validation_report():
+                self._pending_validation = (self.state.source_path, False)
             return
 
         self._validation_report = report
@@ -337,6 +340,20 @@ class UsdViewportWidget(QWidget):
         if self.state.selected_path:
             self._show_selected_validation()
 
+
+    def defer_validation(self, source_path, force=False):
+        self._pending_validation = (str(source_path), bool(force))
+        self.outliner.set_validation_busy(True)
+        self.status_label.setText("Validation queued for the current viewport source...")
+
+    def retry_pending_validation(self):
+        pending = self._pending_validation
+        self._pending_validation = None
+        if not pending or not self.outliner.validation_toggle.isChecked():
+            return
+        source_path, force = pending
+        if self._same_source(self.state.source_path, source_path):
+            self._request_validation(force=force)
 
     def validation_failed(self, message):
         self.outliner.set_validation_busy(False)

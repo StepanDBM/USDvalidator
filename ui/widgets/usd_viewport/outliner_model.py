@@ -14,6 +14,7 @@ class PrimTreeItem:
     children: list["PrimTreeItem"] = field(default_factory=list)
     validation_summary: object = None
     validation_visible: bool = False
+    animated: bool = False
 
     @property
     def path(self):
@@ -142,13 +143,8 @@ class PrimOutlinerModel(QAbstractItemModel):
         if role == Qt.ItemDataRole.DisplayRole:
             return item.name if index.column() == 0 else item.type_name
         if role == Qt.ItemDataRole.ToolTipRole:
-            summary = self.findings.summary(item.path)
-            if not summary.count:
-                return item.path
-            counts = summary.counts
-            return (f"{item.path}\n\n{summary.count} validation results\n"
-                    f"Direct: {len(summary.direct)} | Descendants: {len(summary.descendants)}\n"
-                    f"Passed: {counts.get('PASSED', 0)} | Failed: {counts.get('FAILED', 0)} | Errors: {counts.get('ERROR', 0)} | Skipped: {counts.get('SKIPPED', 0)}")
+            summary = item.validation_summary
+            return f"{item.path}\n\n{summary.tooltip}" if summary and summary.total_count else item.path
         if role == Qt.ItemDataRole.UserRole:
             return item.path
         if role == Qt.ItemDataRole.UserRole + 1:
@@ -163,6 +159,8 @@ class PrimOutlinerModel(QAbstractItemModel):
             return item.validation_summary
         if role == Qt.ItemDataRole.UserRole + 6:
             return item.validation_visible
+        if role == Qt.ItemDataRole.UserRole + 7:
+            return item.animated
 
         return None
 
@@ -177,11 +175,21 @@ class PrimOutlinerModel(QAbstractItemModel):
         return None
 
     def _append_prim(self, prim, parent):
-        item = PrimTreeItem(prim, parent)
+        item = PrimTreeItem(prim, parent, animated=self._prim_is_animated(prim))
         parent.children.append(item)
         self.items[item.path] = item
         for child in prim.GetChildren():
             self._append_prim(child, item)
+
+    @staticmethod
+    def _prim_is_animated(prim):
+        for attribute in prim.GetAttributes():
+            try:
+                if attribute.ValueMightBeTimeVarying() or attribute.GetNumTimeSamples() > 0:
+                    return True
+            except Exception:
+                continue
+        return False
 
     def _index_for_item(self, item, column):
         if not item or not item.parent:
@@ -204,4 +212,5 @@ class PrimOutlinerModel(QAbstractItemModel):
                 Qt.ItemDataRole.UserRole + 4,
                 Qt.ItemDataRole.UserRole + 5,
                 Qt.ItemDataRole.UserRole + 6,
+                Qt.ItemDataRole.UserRole + 7,
             ])
