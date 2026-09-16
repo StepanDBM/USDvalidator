@@ -50,6 +50,20 @@ class CheckDefinition:
             )
 
 
+@dataclass(frozen=True)
+class CheckTargetResult:
+    prim_path: str
+    property_path: str = ""
+    status: CheckStatus = CheckStatus.PASSED
+    observed: Any = None
+    expected: Any = None
+    message: str = ""
+
+    def __post_init__(self):
+        if not isinstance(self.status, CheckStatus):
+            raise TypeError("Check target status must be a CheckStatus.")
+
+
 @dataclass
 class CheckResult:
     check_id: str
@@ -63,6 +77,7 @@ class CheckResult:
     suggestion: str = ""
     details: dict[str, Any] = field(default_factory=dict)
     check_version: str = "1"
+    targets: tuple[CheckTargetResult, ...] = ()
 
     def __post_init__(self):
         if not self.check_id.strip():
@@ -77,6 +92,9 @@ class CheckResult:
             raise TypeError(
                 f"Check result severity must be a Severity: {self.check_id}"
             )
+
+        if not isinstance(self.targets, tuple) or any(not isinstance(item, CheckTargetResult) for item in self.targets):
+            raise TypeError(f"Check result targets must be CheckTargetResult tuples: {self.check_id}")
 
         if not isinstance(self.details, dict):
             raise TypeError(

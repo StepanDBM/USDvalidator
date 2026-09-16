@@ -117,6 +117,8 @@ class MainWindow(QMainWindow):
         self.theme_selector.currentIndexChanged.connect(self._change_theme)
         self.validation_view.open_in_viewport_requested.connect(self._open_validation_result_in_viewport)
         self.comparison_view.open_in_viewport_requested.connect(self._open_comparison_change_in_viewport)
+        self.viewport_view.validation_requested.connect(self._validate_viewport_source)
+        self.validation_view.report_ready.connect(self._handle_validation_report)
 
     def _open_validation_result_in_viewport(self, report, result):
         index = self.tabs.indexOf(self.viewport_view)
@@ -145,3 +147,16 @@ class MainWindow(QMainWindow):
 
     def _refresh_validation_profiles(self):
         self.validation_view.refresh_profiles()
+
+    def _validate_viewport_source(
+        self,
+        source_path,
+        force=False,
+    ):
+        started = self.validation_view.validate_source(source_path,viewport_request=True)
+
+        if not started:
+            self.viewport_view.validation_failed("Another validation is already running.")
+
+    def _handle_validation_report(self, report):
+        self.viewport_view.set_validation_report(report)

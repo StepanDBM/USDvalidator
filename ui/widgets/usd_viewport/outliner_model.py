@@ -4,12 +4,16 @@ from dataclasses import dataclass, field
 
 from PySide6.QtCore import QAbstractItemModel, QModelIndex, Qt, Signal
 
+from .prim_finding_index import PrimFindingIndex
+
 
 @dataclass
 class PrimTreeItem:
     prim: object = None
     parent: "PrimTreeItem | None" = None
     children: list["PrimTreeItem"] = field(default_factory=list)
+    validation_summary: object = None
+    validation_visible: bool = False
 
     @property
     def path(self):
@@ -34,6 +38,33 @@ class PrimOutlinerModel(QAbstractItemModel):
         self.stage = None
         self.items = {}
         self.hidden_paths = set()
+        self.findings = PrimFindingIndex()
+        self.validation_visible = False
+        
+    def set_validation_results(self, results):
+        self.findings = PrimFindingIndex(self.stage, results)
+
+        for item in self.items.values():
+            item.validation_summary = self.findings.summary(item.path)
+            item.validation_visible = self.validation_visible
+
+        self._emit_all_rows_changed()
+
+
+    def set_validation_visible(self, visible):
+        self.validation_visible = bool(visible)
+
+        for item in self.items.values():
+            item.validation_visible = self.validation_visible
+
+        self._emit_all_rows_changed()
+
+
+    def validation_results_for_paths(self, paths, include_descendants=False):
+        return self.findings.results_for_paths(
+            paths,
+            include_descendants=include_descendants,
+        )
 
     def set_stage(self, stage):
         self.beginResetModel()
@@ -44,6 +75,13 @@ class PrimOutlinerModel(QAbstractItemModel):
         if stage:
             for prim in stage.GetPseudoRoot().GetChildren():
                 self._append_prim(prim, self.root)
+
+        self.findings = PrimFindingIndex(stage, self.findings.results)
+
+        for item in self.items.values():
+            item.validation_summary = self.findings.summary(item.path)
+            item.validation_visible = self.validation_visible
+
         self.endResetModel()
 
     def set_hidden_paths(self, paths):
@@ -104,7 +142,13 @@ class PrimOutlinerModel(QAbstractItemModel):
         if role == Qt.ItemDataRole.DisplayRole:
             return item.name if index.column() == 0 else item.type_name
         if role == Qt.ItemDataRole.ToolTipRole:
-            return item.path
+            summary = self.findings.summary(item.path)
+            if not summary.count:
+                return item.path
+            counts = summary.counts
+            return (f"{item.path}\n\n{summary.count} validation results\n"
+                    f"Direct: {len(summary.direct)} | Descendants: {len(summary.descendants)}\n"
+                    f"Passed: {counts.get('PASSED', 0)} | Failed: {counts.get('FAILED', 0)} | Errors: {counts.get('ERROR', 0)} | Skipped: {counts.get('SKIPPED', 0)}")
         if role == Qt.ItemDataRole.UserRole:
             return item.path
         if role == Qt.ItemDataRole.UserRole + 1:
@@ -115,6 +159,11 @@ class PrimOutlinerModel(QAbstractItemModel):
             return self.is_effectively_hidden(item.path)
         if role == Qt.ItemDataRole.UserRole + 4:
             return self.is_hidden_by_ancestor(item.path)
+        if role == Qt.ItemDataRole.UserRole + 5:
+            return item.validation_summary
+        if role == Qt.ItemDataRole.UserRole + 6:
+            return item.validation_visible
+
         return None
 
     def flags(self, index):
@@ -143,9 +192,16 @@ class PrimOutlinerModel(QAbstractItemModel):
         for item in self.items.values():
             left = self._index_for_item(item, 0)
             right = self._index_for_item(item, self.columnCount() - 1)
-            if left.isValid():
-                self.dataChanged.emit(left, right, [
-                    Qt.ItemDataRole.UserRole + 2,
-                    Qt.ItemDataRole.UserRole + 3,
-                    Qt.ItemDataRole.UserRole + 4,
-                ])
+
+            if not left.isValid():
+                continue
+
+            self.dataChanged.emit(left, right, [
+                Qt.ItemDataRole.DisplayRole,
+                Qt.ItemDataRole.ToolTipRole,
+                Qt.ItemDataRole.UserRole + 2,
+                Qt.ItemDataRole.UserRole + 3,
+                Qt.ItemDataRole.UserRole + 4,
+                Qt.ItemDataRole.UserRole + 5,
+                Qt.ItemDataRole.UserRole + 6,
+            ])

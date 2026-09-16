@@ -6,7 +6,8 @@ from pathlib import Path
 
 from contexts import StageHealthContext
 
-from .models import CheckResult, ValidationSummary
+from .enums import CheckStatus, Severity
+from .models import CheckResult, CheckTargetResult, ValidationSummary
 from .version import (
     CHECK_CATALOG_VERSION,
     REPORT_SCHEMA_NAME,
@@ -110,7 +111,64 @@ class PublishReport:
             "suggestion": result.suggestion,
             "details": result.details,
             "check_version": result.check_version,
+            "targets": [
+                {
+                    "prim_path": PublishReport._serialize_path(target.prim_path),
+                    "property_path": PublishReport._serialize_path(target.property_path),
+                    "status": target.status.value,
+                    "observed": target.observed,
+                    "expected": target.expected,
+                    "message": target.message,
+                }
+                for target in result.targets
+            ],
         }
+
+    @classmethod
+    def from_dict(cls, data):
+        source = data.get("source", {})
+        validation = data.get("validation", {})
+        profile = validation.get("profile", {})
+        catalog = validation.get("check_catalog", {})
+        return cls(
+            source_path=source.get("path", data.get("source_path", "")),
+            stage_opened=bool(source.get("stage_opened", data.get("stage_opened", False))),
+            root_layer=source.get("root_layer", data.get("root_layer", "")),
+            results=[cls._deserialize_result(item) for item in data.get("results", ())],
+            validation_timestamp_utc=validation.get("timestamp_utc", ""),
+            validation_duration_seconds=float(validation.get("duration_seconds", 0.0)),
+            profile_name=profile.get("name", "default"),
+            configuration_fingerprint=profile.get("configuration_fingerprint", ""),
+            check_catalog_version=catalog.get("version", CHECK_CATALOG_VERSION),
+            check_catalog_fingerprint=catalog.get("fingerprint", ""),
+            cancelled=bool(validation.get("cancelled", False)),
+        )
+
+    @classmethod
+    def from_json(cls, value):
+        return cls.from_dict(json.loads(value))
+
+    @classmethod
+    def read_json(cls, path):
+        return cls.from_json(Path(path).read_text(encoding="utf-8"))
+
+    @staticmethod
+    def _deserialize_result(data):
+        targets = tuple(CheckTargetResult(
+            prim_path=item.get("prim_path", ""),
+            property_path=item.get("property_path", ""),
+            status=CheckStatus(item.get("status", CheckStatus.PASSED.value)),
+            observed=item.get("observed"), expected=item.get("expected"),
+            message=item.get("message", ""),
+        ) for item in data.get("targets", ()))
+        return CheckResult(
+            check_id=data["check_id"], label=data.get("label", data["check_id"]),
+            category=data.get("category", ""), status=CheckStatus(data["status"]),
+            severity=Severity(data["severity"]), message=data.get("message", ""),
+            location=data.get("location", ""), layer=data.get("layer", ""),
+            suggestion=data.get("suggestion", ""), details=data.get("details") or {},
+            check_version=str(data.get("check_version", "1")), targets=targets,
+        )
 
     @staticmethod
     def _serialize_path(path):

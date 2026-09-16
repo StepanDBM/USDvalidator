@@ -1,0 +1,32 @@
+#usda 1.0
+(
+    defaultPrim = "ValidationTargets"
+    upAxis = "Y"
+)
+
+def Xform "ValidationTargets"
+{
+    def Scope "Passed"
+    {
+        def Mesh "ValidMesh" { point3f[] points = [(0,0,0), (1,0,0), (0,1,0)] int[] faceVertexCounts = [3] int[] faceVertexIndices = [0,1,2] }
+        def Mesh "ValidUvMesh" { point3f[] points = [(0,0,0), (1,0,0), (0,1,0)] int[] faceVertexCounts = [3] int[] faceVertexIndices = [0,1,2] texCoord2f[] primvars:st = [(0,0), (1,0), (0,1)] (interpolation = "vertex") }
+        def Mesh "ValidNormalsMesh" { point3f[] points = [(0,0,0), (1,0,0), (0,1,0)] int[] faceVertexCounts = [3] int[] faceVertexIndices = [0,1,2] normal3f[] normals = [(0,0,1), (0,0,1), (0,0,1)] (interpolation = "vertex") }
+    }
+    def Scope "GeometryFailures"
+    {
+        def Mesh "BadTopologyMesh" { point3f[] points = [(0,0,0), (1,0,0), (0,1,0)] int[] faceVertexCounts = [4] int[] faceVertexIndices = [0,1,2] }
+        def Mesh "BadIndicesMesh" { point3f[] points = [(0,0,0), (1,0,0), (0,1,0)] int[] faceVertexCounts = [3] int[] faceVertexIndices = [0,1,9] }
+        def Mesh "BadPointDataMesh" { point3f[] points = [] int[] faceVertexCounts = [3] int[] faceVertexIndices = [0,1,2] }
+    }
+    def Scope "NormalFailures"
+    {
+        def Mesh "BadNormalCountMesh" { point3f[] points = [(0,0,0), (1,0,0), (0,1,0)] int[] faceVertexCounts = [3] int[] faceVertexIndices = [0,1,2] normal3f[] normals = [(0,0,1)] (interpolation = "vertex") }
+        def Mesh "NonFiniteNormalsMesh" { point3f[] points = [(0,0,0), (1,0,0), (0,1,0)] int[] faceVertexCounts = [3] int[] faceVertexIndices = [0,1,2] normal3f[] normals = [(nan,0,1), (0,0,1), (0,0,1)] (interpolation = "vertex") }
+    }
+    def Scope "PrimvarFailures"
+    {
+        def Mesh "BadUvIndicesMesh" { point3f[] points = [(0,0,0), (1,0,0), (0,1,0)] int[] faceVertexCounts = [3] int[] faceVertexIndices = [0,1,2] texCoord2f[] primvars:st = [(0,0)] (interpolation = "vertex") int[] primvars:st:indices = [0,1,2] }
+        def Mesh "BadUvInterpolationMesh" { point3f[] points = [(0,0,0), (1,0,0), (0,1,0)] int[] faceVertexCounts = [3] int[] faceVertexIndices = [0,1,2] texCoord2f[] primvars:st = [(0,0)] (interpolation = "constant") }
+        def Mesh "BadPrimvarCardinalityMesh" { point3f[] points = [(0,0,0), (1,0,0), (0,1,0)] int[] faceVertexCounts = [3] int[] faceVertexIndices = [0,1,2] texCoord2f[] primvars:st = [(0,0), (1,0)] (interpolation = "vertex") }
+    }
+}

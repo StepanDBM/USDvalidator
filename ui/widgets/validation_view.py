@@ -29,6 +29,7 @@ from .validate_button import ValidateButton
 
 class ValidationView(QWidget):
     open_in_viewport_requested = Signal(object, object)
+    report_ready = Signal(object)
     def __init__(
         self,
         profile_loader,
@@ -166,37 +167,30 @@ class ValidationView(QWidget):
         self.cancel_button.clicked.connect(self._cancel_validation)
         self.output_button.clicked.connect(self._browse_output_directory)
 
-    def _run_validation(self):
-        source_path = self.source_selector.get_source()
 
-        if source_path is None:
-            self.results_view.show_message("Select a USD file or directory first.")
-            return
+    def validate_source(
+        self,
+        source_path,
+        viewport_request=False,
+    ):
+        source_path = Path(source_path)
+
+        if self.worker_thread is not None:
+            return False
 
         profile = self.profile_selector.get_profile()
-
         checker = PublishChecker(profile=profile)
 
-        discovery_options = (
-            SourceDiscoveryOptions(
-                recursive=self.recursive_checkbox.isChecked(),
-                include_patterns=self._patterns(self.include_edit.text()),
-                exclude_patterns=self._patterns(self.exclude_edit.text()),
-            )
-        )
-
-        export_options = self._export_options()
+        discovery_options = SourceDiscoveryOptions(recursive=False)
 
         self.worker_thread = QThread(self)
-
         self.worker = ValidationWorker(
             source_path=source_path,
             checker=checker,
             discovery_options=discovery_options,
-            worker_count=self.worker_count_spin.value(),
-            export_options=export_options,
+            worker_count=1,
+            export_options=None,
         )
-
         self.worker.moveToThread(self.worker_thread)
 
         self.worker_thread.started.connect(self.worker.run)
@@ -204,16 +198,26 @@ class ValidationView(QWidget):
         self.worker.file_started.connect(self._on_file_started)
         self.worker.progress_changed.connect(self._on_progress)
         self.worker.completed.connect(self._on_completed)
-
         self.worker.failed.connect(self._on_failed)
         self.worker.finished.connect(self._on_finished)
         self.worker.finished.connect(self.worker_thread.quit)
-
         self.worker_thread.finished.connect(self.worker.deleteLater)
         self.worker_thread.finished.connect(self.worker_thread.deleteLater)
 
         self._set_running(True)
         self.worker_thread.start()
+        return True
+
+    def _run_validation(self):
+        source_path = self.source_selector.get_source()
+
+        if source_path is None:
+            self.results_view.show_message(
+                "Select a USD file or directory first."
+            )
+            return
+
+        self.validate_source(source_path)
 
     def _cancel_validation(self):
         if self.worker is None:
@@ -238,6 +242,9 @@ class ValidationView(QWidget):
         self.progress_bar.setValue(completed)
 
     def _on_completed(self, batch):
+        for report in batch.reports:
+            self.report_ready.emit(report)
+
         if (
             batch.total_files == 1
             and batch.reports

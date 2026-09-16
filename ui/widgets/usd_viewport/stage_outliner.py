@@ -2,7 +2,16 @@ from __future__ import annotations
 
 from PySide6.QtCore import QItemSelectionModel, Qt, Signal
 from PySide6.QtGui import QKeySequence, QShortcut
-from PySide6.QtWidgets import QAbstractItemView, QLineEdit, QTreeView, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QHBoxLayout,
+    QLineEdit,
+    QPushButton,
+    QToolButton,
+    QTreeView,
+    QVBoxLayout,
+    QWidget,
+)
 
 from .outliner_model import PrimOutlinerModel
 from .outliner_proxy import PrimOutlinerProxy
@@ -16,6 +25,8 @@ class StageOutliner(QWidget):
     hide_requested = Signal()
     show_requested = Signal()
     show_all_requested = Signal()
+    validation_toggled = Signal(bool)
+    validation_refresh_requested = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -29,6 +40,21 @@ class StageOutliner(QWidget):
         self.tree.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.tree.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
+        self.validation_toggle = QToolButton()
+        self.validation_toggle.setText("Validation")
+        self.validation_toggle.setCheckable(True)
+        self.validation_toggle.setToolTip("Show validation badges for the loaded source")
+
+        self.validation_refresh = QPushButton("Refresh")
+        self.validation_refresh.setToolTip("Run validation again for the loaded source")
+        self.validation_refresh.setEnabled(False)
+
+        filter_layout = QHBoxLayout()
+        filter_layout.setContentsMargins(0, 0, 0, 0)
+        filter_layout.addWidget(self.filter_edit, 1)
+        filter_layout.addWidget(self.validation_toggle)
+        filter_layout.addWidget(self.validation_refresh)
+
         self.model = PrimOutlinerModel(self)
         self.proxy = PrimOutlinerProxy(self)
         self.proxy.setSourceModel(self.model)
@@ -39,8 +65,11 @@ class StageOutliner(QWidget):
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.filter_edit)
+        layout.addLayout(filter_layout)
         layout.addWidget(self.tree, 1)
+
+        self.validation_toggle.toggled.connect(self._validation_toggled)
+        self.validation_refresh.clicked.connect(self.validation_refresh_requested.emit)
 
         self.filter_edit.textChanged.connect(self._set_filter)
         self.model.visibility_requested.connect(
@@ -55,8 +84,38 @@ class StageOutliner(QWidget):
         self.model.set_stage(stage)
         self.tree.expandToDepth(1)
 
+    def set_validation_results(self, results):
+        self.model.set_validation_results(results)
+        self.tree.viewport().update()
+
     def set_hidden_paths(self, paths):
         self.model.set_hidden_paths(paths)
+
+    def set_validation_busy(self, busy):
+        self.validation_toggle.setEnabled(not busy)
+        self.validation_refresh.setEnabled(
+            not busy and self.validation_toggle.isChecked()
+        )
+
+        self.validation_toggle.setText("Validating..."
+            if busy
+            else "Validation"
+        )
+
+    def set_validation_enabled(self, enabled):
+        self.validation_toggle.blockSignals(True)
+        self.validation_toggle.setChecked(bool(enabled))
+        self.validation_toggle.blockSignals(False)
+
+        self.model.set_validation_visible(enabled)
+        self.validation_refresh.setEnabled(bool(enabled))
+        self.tree.viewport().update()
+
+    def _validation_toggled(self, enabled):
+        self.model.set_validation_visible(enabled)
+        self.validation_refresh.setEnabled(enabled)
+        self.tree.viewport().update()
+        self.validation_toggled.emit(enabled)
 
     def selected_paths(self):
         paths = []
