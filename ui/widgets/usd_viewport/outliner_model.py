@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 
 from PySide6.QtCore import QAbstractItemModel, QModelIndex, Qt, Signal
 
+from .comparison_finding_index import ComparisonFindingIndex
 from .prim_finding_index import PrimFindingIndex
 
 
@@ -15,6 +16,9 @@ class PrimTreeItem:
     validation_summary: object = None
     validation_visible: bool = False
     animated: bool = False
+    animated_property_count: int = 0
+    animation_sample_count: int = 0
+    comparison_summary: object = None
 
     @property
     def path(self):
@@ -40,14 +44,27 @@ class PrimOutlinerModel(QAbstractItemModel):
         self.items = {}
         self.hidden_paths = set()
         self.findings = PrimFindingIndex()
+        self.comparison_findings = ComparisonFindingIndex()
+        self.display_mode = "All"
         self.validation_visible = False
         
+    def set_display_mode(self, mode):
+        self.display_mode = str(mode or "All")
+        self._emit_all_rows_changed()
+
+    def set_comparison_changes(self, changes):
+        self.comparison_findings = ComparisonFindingIndex(self.stage, changes)
+        for item in self.items.values():
+            item.comparison_summary = self.comparison_findings.summary(item.path)
+        self._emit_all_rows_changed()
+
     def set_validation_results(self, results):
         self.findings = PrimFindingIndex(self.stage, results)
 
         for item in self.items.values():
             item.validation_summary = self.findings.summary(item.path)
             item.validation_visible = self.validation_visible
+            item.comparison_summary = self.comparison_findings.summary(item.path)
 
         self._emit_all_rows_changed()
 
@@ -57,6 +74,7 @@ class PrimOutlinerModel(QAbstractItemModel):
 
         for item in self.items.values():
             item.validation_visible = self.validation_visible
+            item.comparison_summary = self.comparison_findings.summary(item.path)
 
         self._emit_all_rows_changed()
 
@@ -78,10 +96,12 @@ class PrimOutlinerModel(QAbstractItemModel):
                 self._append_prim(prim, self.root)
 
         self.findings = PrimFindingIndex(stage, self.findings.results)
+        self.comparison_findings = ComparisonFindingIndex(stage, self.comparison_findings.changes)
 
         for item in self.items.values():
             item.validation_summary = self.findings.summary(item.path)
             item.validation_visible = self.validation_visible
+            item.comparison_summary = self.comparison_findings.summary(item.path)
 
         self.endResetModel()
 
@@ -161,6 +181,14 @@ class PrimOutlinerModel(QAbstractItemModel):
             return item.validation_visible
         if role == Qt.ItemDataRole.UserRole + 7:
             return item.animated
+        if role == Qt.ItemDataRole.UserRole + 8:
+            return item.animated_property_count
+        if role == Qt.ItemDataRole.UserRole + 9:
+            return item.animation_sample_count
+        if role == Qt.ItemDataRole.UserRole + 10:
+            return item.comparison_summary
+        if role == Qt.ItemDataRole.UserRole + 11:
+            return self.display_mode
 
         return None
 
@@ -175,21 +203,26 @@ class PrimOutlinerModel(QAbstractItemModel):
         return None
 
     def _append_prim(self, prim, parent):
-        item = PrimTreeItem(prim, parent, animated=self._prim_is_animated(prim))
+        property_count, sample_count = self._animation_counts(prim)
+        item = PrimTreeItem(prim, parent, animated=bool(property_count), animated_property_count=property_count, animation_sample_count=sample_count)
         parent.children.append(item)
         self.items[item.path] = item
         for child in prim.GetChildren():
             self._append_prim(child, item)
 
     @staticmethod
-    def _prim_is_animated(prim):
+    def _animation_counts(prim):
+        property_count = 0
+        sample_count = 0
         for attribute in prim.GetAttributes():
             try:
-                if attribute.ValueMightBeTimeVarying() or attribute.GetNumTimeSamples() > 0:
-                    return True
+                samples = attribute.GetNumTimeSamples()
+                if attribute.ValueMightBeTimeVarying() or samples:
+                    property_count += 1
+                    sample_count += samples
             except Exception:
                 continue
-        return False
+        return property_count, sample_count
 
     def _index_for_item(self, item, column):
         if not item or not item.parent:
@@ -213,4 +246,8 @@ class PrimOutlinerModel(QAbstractItemModel):
                 Qt.ItemDataRole.UserRole + 5,
                 Qt.ItemDataRole.UserRole + 6,
                 Qt.ItemDataRole.UserRole + 7,
+                Qt.ItemDataRole.UserRole + 8,
+                Qt.ItemDataRole.UserRole + 9,
+                Qt.ItemDataRole.UserRole + 10,
+                Qt.ItemDataRole.UserRole + 11,
             ])

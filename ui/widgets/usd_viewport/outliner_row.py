@@ -6,6 +6,8 @@ from PySide6.QtWidgets import QStyledItemDelegate
 class PrimRowDelegate(QStyledItemDelegate):
     eye_width = 24
     badge_width = 28
+    comparison_width = 24
+    animation_width = 48
 
     def paint(self, painter, option, index):
         if index.column() != 0:
@@ -24,16 +26,17 @@ class PrimRowDelegate(QStyledItemDelegate):
             index.data(Qt.ItemDataRole.UserRole + 6)
         )
         context_only = index.data(Qt.ItemDataRole.UserRole + 20) == 2
-
-        validation_width = (
-            self.badge_width
-            if validation_visible and summary and summary.total_count
-            else 0
-        )
+        animated_properties = int(index.data(Qt.ItemDataRole.UserRole + 8) or 0)
+        animation_samples = int(index.data(Qt.ItemDataRole.UserRole + 9) or 0)
+        comparison = index.data(Qt.ItemDataRole.UserRole + 10)
+        display_mode = index.data(Qt.ItemDataRole.UserRole + 11) or "All"
+        validation_width = self.badge_width if display_mode in {"All", "Validation"} and validation_visible and summary and summary.total_count else 0
+        comparison_width = self.comparison_width if display_mode in {"All", "Comparison"} and comparison and comparison.total_count else 0
+        animation_width = self.animation_width if display_mode in {"All", "Animation"} and animated_properties else 0
 
         text_option = type(option)(option)
         text_option.rect.adjust(
-            self.eye_width + validation_width,
+            self.eye_width + validation_width + comparison_width + animation_width,
             0,
             0,
             0,
@@ -56,13 +59,15 @@ class PrimRowDelegate(QStyledItemDelegate):
             dimmed=ancestor_hidden and not hidden,
         )
 
+        offset = self.eye_width
         if validation_width:
-            self._draw_badge(
-                painter,
-                self.badge_rect(option.rect),
-                summary,
-            )
-
+            self._draw_badge(painter, self.badge_rect(option.rect), summary)
+            offset += validation_width
+        if comparison_width:
+            self._draw_comparison_badge(painter, option.rect, offset, comparison)
+            offset += comparison_width
+        if animation_width:
+            self._draw_animation_marker(painter, option.rect, offset, animated_properties, animation_samples)
         painter.restore()
 
     def editorEvent(self, event, model, option, index):
@@ -115,16 +120,19 @@ class PrimRowDelegate(QStyledItemDelegate):
             index.data(Qt.ItemDataRole.UserRole + 6)
         )
         context_only = index.data(Qt.ItemDataRole.UserRole + 20) == 2
-        validation_width = (
-            self.badge_width
-            if validation_visible and summary and summary.total_count
-            else 0
-        )
+        display_mode = index.data(Qt.ItemDataRole.UserRole + 11) or "All"
+        comparison = index.data(Qt.ItemDataRole.UserRole + 10)
+        animated = int(index.data(Qt.ItemDataRole.UserRole + 8) or 0)
+        validation_width = self.badge_width if display_mode in {"All", "Validation"} and validation_visible and summary and summary.total_count else 0
+        comparison_width = self.comparison_width if display_mode in {"All", "Comparison"} and comparison and comparison.total_count else 0
+        animation_width = self.animation_width if display_mode in {"All", "Animation"} and animated else 0
 
         size.setWidth(
             size.width()
             + self.eye_width
             + validation_width
+            + comparison_width
+            + animation_width
         )
         return size
 
@@ -183,6 +191,31 @@ class PrimRowDelegate(QStyledItemDelegate):
             Qt.AlignmentFlag.AlignCenter,
             count,
         )
+
+    @staticmethod
+    def _draw_comparison_badge(painter, row_rect, offset, summary):
+        size = min(17, row_rect.height() - 3)
+        rect = QRectF(row_rect.left() + offset + 2, row_rect.center().y() - size / 2, size, size)
+        colors = {"INFORMATIONAL": "#3f83bd", "LOW": "#6f8fba", "MEDIUM": "#d1a637", "HIGH": "#dc7136", "CRITICAL": "#d94848"}
+        painter.setBrush(QColor(colors.get(summary.highest_impact, "#75808d")))
+        painter.setPen(QPen(QColor("#e5e9ef"), 1.2))
+        painter.drawRoundedRect(rect, 4, 4)
+        painter.setPen(QColor("#ffffff"))
+        font = QFont(painter.font())
+        font.setBold(True)
+        font.setPixelSize(8)
+        painter.setFont(font)
+        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, "99+" if summary.total_count > 99 else str(summary.total_count))
+
+    @staticmethod
+    def _draw_animation_marker(painter, row_rect, offset, properties, samples):
+        rect = QRectF(row_rect.left() + offset, row_rect.top(), 46, row_rect.height())
+        painter.setPen(QColor("#78b7ff"))
+        font = QFont(painter.font())
+        font.setBold(True)
+        font.setPixelSize(9)
+        painter.setFont(font)
+        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, f"A* {properties}/{samples}")
 
     @staticmethod
     def _draw_eye(painter, rect, open_eye, dimmed):

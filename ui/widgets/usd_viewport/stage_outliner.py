@@ -5,6 +5,7 @@ from PySide6.QtGui import QAction, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QCheckBox,
+    QComboBox,
     QHBoxLayout,
     QLineEdit,
     QMenu,
@@ -73,6 +74,22 @@ class StageOutliner(QWidget):
 
         self.findings_only = QCheckBox("Findings only")
         self.animated_only = QCheckBox("Animated only")
+        self.display_mode = QComboBox()
+        self.display_mode.addItems(("All", "Validation", "Comparison", "Animation"))
+        self.display_mode.setToolTip("Choose visible outliner evidence layers")
+        self.comparison_filter = QToolButton()
+        self.comparison_filter.setText("Comparison: All")
+        self.comparison_filter.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        self.comparison_menu = QMenu(self.comparison_filter)
+        self.comparison_filter.setMenu(self.comparison_menu)
+        self.comparison_actions = {}
+        for group, values in (("Impact", ("INFORMATIONAL", "LOW", "MEDIUM", "HIGH", "CRITICAL")), ("Kind", ("ADDED", "REMOVED", "CHANGED", "INCREASED", "DECREASED", "REGRESSION", "RESOLVED", "UNCHANGED"))):
+            submenu = self.comparison_menu.addMenu(group)
+            for value in values:
+                action = submenu.addAction(value.title())
+                action.setCheckable(True)
+                action.toggled.connect(self._comparison_filter_changed)
+                self.comparison_actions[(group, value)] = action
 
         filter_layout = QHBoxLayout()
         filter_layout.setContentsMargins(0, 0, 0, 0)
@@ -86,6 +103,8 @@ class StageOutliner(QWidget):
         options_layout.addWidget(self.status_filter)
         options_layout.addWidget(self.findings_only)
         options_layout.addWidget(self.animated_only)
+        options_layout.addWidget(self.comparison_filter)
+        options_layout.addWidget(self.display_mode)
         options_layout.addStretch(1)
 
         self.model = PrimOutlinerModel(self)
@@ -108,6 +127,7 @@ class StageOutliner(QWidget):
         self.filter_edit.textChanged.connect(lambda value: self._apply_filter_change(lambda: self.proxy.set_query(value)))
         self.findings_only.toggled.connect(lambda enabled: self._apply_filter_change(lambda: self.proxy.set_findings_only(enabled)))
         self.animated_only.toggled.connect(lambda enabled: self._apply_filter_change(lambda: self.proxy.set_animated_only(enabled)))
+        self.display_mode.currentTextChanged.connect(self._set_display_mode)
         self.model.visibility_requested.connect(
             lambda path, visible: self.visibility_requested.emit([path], visible)
         )
@@ -121,6 +141,22 @@ class StageOutliner(QWidget):
         self._rebuild_type_menu()
         self._expansion_before_filter = None
         self.tree.expandToDepth(1)
+
+    def set_comparison_changes(self, changes):
+        self.model.set_comparison_changes(changes)
+        self.proxy.invalidateFilter()
+        self.tree.viewport().update()
+
+    def _set_display_mode(self, mode):
+        self.model.set_display_mode(mode)
+        self.tree.viewport().update()
+
+    def _comparison_filter_changed(self, *args):
+        impacts = {value for (group, value), action in self.comparison_actions.items() if group == "Impact" and action.isChecked()}
+        kinds = {value for (group, value), action in self.comparison_actions.items() if group == "Kind" and action.isChecked()}
+        count = len(impacts) + len(kinds)
+        self.comparison_filter.setText("Comparison: All" if not count else f"Comparison: {count}")
+        self._apply_filter_change(lambda: self.proxy.set_comparison_filters(impacts, kinds))
 
     def set_validation_results(self, results):
         self.model.set_validation_results(results)

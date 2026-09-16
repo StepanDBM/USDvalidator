@@ -48,6 +48,7 @@ class UsdViewportWidget(QWidget):
         self.tools = ViewportTools()
         self._validation_report = None
         self._pending_validation = None
+        self._comparison_result = None
         self._validation_cache = {}
 
         self.status_label = QLabel("No stage loaded.")
@@ -108,6 +109,12 @@ class UsdViewportWidget(QWidget):
 
         self.state.source_path = self.viewport.source_path
         self.state.selected_path = ""
+        comparison_sources = () if not self._comparison_result else (self._comparison_result.previous_source, self._comparison_result.current_source)
+        if self._comparison_result and any(self._same_source(self.state.source_path, source) for source in comparison_sources):
+            self.outliner.set_comparison_changes(self._comparison_result.changes)
+        else:
+            self._comparison_result = None
+            self.outliner.set_comparison_changes(())
         self.state.stage_loaded = True
         self.toolbar.source_edit.setText(self.state.source_path)
 
@@ -150,6 +157,8 @@ class UsdViewportWidget(QWidget):
             self.viewport.frame_all()
         if navigated and target.property_path:
             self.inspector.select_property(target.property_path)
+        self._comparison_result = comparison
+        self.outliner.set_comparison_changes(comparison.changes)
         self.inspector.show_semantic_change(change, target.side)
 
         action = f"Comparison {target.side}: {change.kind.value} {change.label}"

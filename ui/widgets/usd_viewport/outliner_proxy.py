@@ -7,6 +7,7 @@ class PrimOutlinerProxy(QSortFilterProxyModel):
     TYPE_ROLE = Qt.ItemDataRole.UserRole + 1
     SUMMARY_ROLE = Qt.ItemDataRole.UserRole + 5
     ANIMATED_ROLE = Qt.ItemDataRole.UserRole + 7
+    COMPARISON_ROLE = Qt.ItemDataRole.UserRole + 10
     MATCH_ROLE = Qt.ItemDataRole.UserRole + 20
     NO_MATCH = 0
     DIRECT_MATCH = 1
@@ -20,12 +21,14 @@ class PrimOutlinerProxy(QSortFilterProxyModel):
         self.validation_statuses = set()
         self.findings_only = False
         self.animated_only = False
+        self.comparison_impacts = set()
+        self.comparison_kinds = set()
         self.setRecursiveFilteringEnabled(False)
         self.setAutoAcceptChildRows(False)
 
     @property
     def filters_active(self):
-        return bool(self.query or not self.all_types or self.validation_statuses or self.findings_only or self.animated_only)
+        return bool(self.query or not self.all_types or self.validation_statuses or self.findings_only or self.animated_only or self.comparison_impacts or self.comparison_kinds)
 
     def data(self, index, role=Qt.ItemDataRole.DisplayRole):
         if role == self.MATCH_ROLE:
@@ -66,6 +69,11 @@ class PrimOutlinerProxy(QSortFilterProxyModel):
         self.animated_only = bool(enabled)
         self.invalidateFilter()
 
+    def set_comparison_filters(self, impacts=(), kinds=()):
+        self.comparison_impacts = set(impacts or ())
+        self.comparison_kinds = set(kinds or ())
+        self.invalidateFilter()
+
     def filterAcceptsRow(self, source_row, source_parent):
         index = self.sourceModel().index(source_row, 0, source_parent)
         return self._matches_index(index) or self._has_matching_descendant(index)
@@ -87,6 +95,12 @@ class PrimOutlinerProxy(QSortFilterProxyModel):
         if self.validation_statuses and not self._matches_validation(direct):
             return False
         if self.animated_only and not index.data(self.ANIMATED_ROLE):
+            return False
+        comparison = index.data(self.COMPARISON_ROLE)
+        direct_changes = comparison.direct_changes if comparison else ()
+        if self.comparison_impacts and not any(change.impact.value in self.comparison_impacts for change in direct_changes):
+            return False
+        if self.comparison_kinds and not any(change.kind.value in self.comparison_kinds for change in direct_changes):
             return False
         return True
 
