@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from batch.source_discovery import SourceDiscoveryOptions, discover_usd_files
+from s_usd_core.batch.source_discovery import SourceDiscoveryOptions, discover_usd_files
 
 
 def test_recursive_discovery_is_deterministic(tmp_path):

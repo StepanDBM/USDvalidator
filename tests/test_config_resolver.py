@@ -2,14 +2,14 @@
 
 import pytest
 
-from validation.attribute_override import AttributeOverride
-from validation.config_resolver import build_effective_config
-from validation.profiles import ValidationProfile
-from validation.rule_config import ValidationRuleConfig
+from s_usd_core.validation.attribute_override import AttributeOverride
+from s_usd_core.validation.config_resolver import build_effective_config
+from s_usd_core.validation.profiles import ValidationProfile
+from s_usd_core.validation.rule_config import ValidationRuleConfig
 
-from validation.check_ids import USD_MESH_POLYGON_COUNT_LIMIT
-from validation.enums import CheckStatus
-from validation.publish_checker import PublishChecker
+from s_usd_core.validation.check_ids import USD_MESH_POLYGON_COUNT_LIMIT
+from s_usd_core.validation.enums import CheckStatus
+from s_usd_core.validation.publish_checker import PublishChecker
 
 
 def find_result(report, check_id):
@@ -148,7 +148,7 @@ def test_wrong_override_type_is_rejected():
 
 import json
 
-from validation.profile_loader import ProfileLoader
+from s_usd_core.validation.profile_loader import ProfileLoader
 
 
 def test_profile_overrides_survive_save_and_reload(tmp_path):

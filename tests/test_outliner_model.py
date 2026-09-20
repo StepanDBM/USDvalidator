@@ -4,7 +4,7 @@ pytest.importorskip("PySide6")
 pxr = pytest.importorskip("pxr")
 from pxr import Usd
 
-from ui.widgets.usd_viewport.outliner_model import PrimOutlinerModel
+from s_usd_desktop.ui.widgets.usd_viewport.outliner_model import PrimOutlinerModel
 
 
 def test_model_preserves_usd_parent_child_hierarchy():

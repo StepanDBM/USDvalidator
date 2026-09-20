@@ -1,13 +1,13 @@
 from types import SimpleNamespace
 
-from comparison.advanced_comparators import (
+from s_usd_core.comparison.advanced_comparators import (
     LightComparator,
     SkeletonComparator,
     TimeConfigurationComparator,
     ValueClipComparator,
 )
-from comparison.engine import SemanticComparisonEngine
-from comparison.models import (
+from s_usd_core.comparison.engine import SemanticComparisonEngine
+from s_usd_core.comparison.models import (
     ChangeImpact,
     ChangeKind,
     LightSnapshot,

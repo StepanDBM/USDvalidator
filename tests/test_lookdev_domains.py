@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from validation.check_ids import (
+from s_usd_core.validation.check_ids import (
     USD_GEOMETRY_HAS_MATERIAL_BINDING,
     USD_MATERIAL_SURFACE_OUTPUT_CONNECTED,
     USD_MESH_NORMALS_COUNT_VALID,
@@ -8,10 +8,10 @@ from validation.check_ids import (
     USD_SHADER_IDS_ALLOWED,
     USD_SHADER_OUTPUTS_AUTHORED,
 )
-from validation.enums import CheckStatus
-from validation.profiles import ValidationProfile
-from validation.publish_checker import PublishChecker
-from validation.rule_config import ValidationRuleConfig
+from s_usd_core.validation.enums import CheckStatus
+from s_usd_core.validation.profiles import ValidationProfile
+from s_usd_core.validation.publish_checker import PublishChecker
+from s_usd_core.validation.rule_config import ValidationRuleConfig
 
 FIXTURES = Path(__file__).parent / "fixtures"
 CHECKS = frozenset({

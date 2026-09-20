@@ -2,7 +2,7 @@
 
 import pytest
 
-from validation import CheckDefinition, Severity, ValidationRegistry
+from s_usd_core.validation import CheckDefinition, Severity, ValidationRegistry
 
 
 def dummy_check(context, runtime_context):
@@ -37,7 +37,7 @@ def test_registry_sorts_by_execution_phase():
 
 
 def test_explicit_empty_profile_resolves_no_checks():
-    from validation.profiles import ValidationProfile
+    from s_usd_core.validation.profiles import ValidationProfile
 
     registry = ValidationRegistry()
     registry.register(definition())
@@ -46,7 +46,7 @@ def test_explicit_empty_profile_resolves_no_checks():
 
 
 def test_explicit_profile_resolves_only_added_checks():
-    from validation.profiles import ValidationProfile
+    from s_usd_core.validation.profiles import ValidationProfile
 
     registry = ValidationRegistry()
     registry.register(definition("USD_A"))

@@ -1,15 +1,15 @@
-from contexts import StageHealthContext
-from contexts.pipeline_context import CameraInfo, DependencyInfo, InstancingInfo, PrimInfo, TransformInfo, VariantSetInfo
-from rules.cameras.checks import check_camera_count_limit
-from rules.hierarchy.checks import check_required_hierarchy_paths_exist
-from rules.instancing.checks import check_point_instancer_indices_valid
-from rules.naming.checks import check_forbidden_prim_names
-from rules.packaging.checks import check_no_parent_directory_escapes
-from rules.transforms.checks import check_negative_scale_allowed
-from rules.variants.checks import check_variant_selections_authored
-from validation.enums import CheckStatus, Severity
-from validation.rule_config import ValidationRuleConfig
-from validation.runtime_context import CheckRuntimeContext
+from s_usd_core.contexts import StageHealthContext
+from s_usd_core.contexts.pipeline_context import CameraInfo, DependencyInfo, InstancingInfo, PrimInfo, TransformInfo, VariantSetInfo
+from s_usd_core.rules.cameras.checks import check_camera_count_limit
+from s_usd_core.rules.hierarchy.checks import check_required_hierarchy_paths_exist
+from s_usd_core.rules.instancing.checks import check_point_instancer_indices_valid
+from s_usd_core.rules.naming.checks import check_forbidden_prim_names
+from s_usd_core.rules.packaging.checks import check_no_parent_directory_escapes
+from s_usd_core.rules.transforms.checks import check_negative_scale_allowed
+from s_usd_core.rules.variants.checks import check_variant_selections_authored
+from s_usd_core.validation.enums import CheckStatus, Severity
+from s_usd_core.validation.rule_config import ValidationRuleConfig
+from s_usd_core.validation.runtime_context import CheckRuntimeContext
 
 
 def runtime(config=None):

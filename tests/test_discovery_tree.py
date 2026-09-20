@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from batch.discovery_tree import build_report_tree, common_directory
+from s_usd_core.batch.discovery_tree import build_report_tree, common_directory
 
 
 def report(path, passed=True):

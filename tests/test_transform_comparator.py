@@ -1,5 +1,5 @@
-from comparison.models import ChangeImpact, ChangeKind, TransformSnapshot
-from comparison.transform_comparator import TransformComparator
+from s_usd_core.comparison.models import ChangeImpact, ChangeKind, TransformSnapshot
+from s_usd_core.comparison.transform_comparator import TransformComparator
 
 
 def _transform(path="/World", **changes):

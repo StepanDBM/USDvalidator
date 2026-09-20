@@ -1,4 +1,4 @@
-from rules import build_registry
+from s_usd_core.rules import build_registry
 
 
 def test_expanded_registry_contains_all_domains():

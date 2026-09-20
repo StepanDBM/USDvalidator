@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from validation import CheckStatus, PublishChecker
+from s_usd_core.validation import CheckStatus, PublishChecker
 
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"

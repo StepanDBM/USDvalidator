@@ -2,9 +2,9 @@ from types import SimpleNamespace
 import pytest
 pxr = pytest.importorskip("pxr")
 from pxr import Usd
-from validation.enums import CheckStatus, Severity
-from validation.models import CheckTargetResult
-from ui.widgets.usd_viewport.prim_finding_index import PrimFindingIndex
+from s_usd_core.validation.enums import CheckStatus, Severity
+from s_usd_core.validation.models import CheckTargetResult
+from s_usd_desktop.ui.widgets.usd_viewport.prim_finding_index import PrimFindingIndex
 
 def result(location, status=CheckStatus.FAILED, targets=()):
     return SimpleNamespace(location=location, details={}, status=status, severity=Severity.ERROR, targets=targets)

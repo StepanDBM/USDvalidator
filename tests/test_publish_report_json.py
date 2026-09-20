@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 
-from validation import PublishChecker
-from validation.version import (
+from s_usd_core.validation import PublishChecker
+from s_usd_core.validation.version import (
     REPORT_SCHEMA_NAME,
     REPORT_SCHEMA_VERSION,
 )

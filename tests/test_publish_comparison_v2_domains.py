@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 
-from comparison.engine import SemanticComparisonEngine
-from comparison.lookdev_comparators import ShaderComparator
-from comparison.models import (
+from s_usd_core.comparison.engine import SemanticComparisonEngine
+from s_usd_core.comparison.lookdev_comparators import ShaderComparator
+from s_usd_core.comparison.models import (
     CameraSnapshot,
     ChangeImpact,
     ChangeKind,
@@ -12,7 +12,7 @@ from comparison.models import (
     StageComparisonSnapshot,
     SurfaceSnapshot,
 )
-from comparison.publish_domain_comparators import (
+from s_usd_core.comparison.publish_domain_comparators import (
     CameraComparator,
     InstancingComparator,
     LayerComparator,
@@ -86,7 +86,7 @@ def test_semantic_validation_correlation_marks_regression_and_resolution():
         details={},
         validation_consequence="",
     )
-    from comparison.models import SemanticChange
+    from s_usd_core.comparison.models import SemanticChange
     semantic = SemanticChange(
         "Shaders", "/S", "Shader changed", ChangeKind.CHANGED,
         related_check_ids=("CHECK_A", "CHECK_B"),

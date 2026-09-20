@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from validation import PublishChecker
+from s_usd_core.validation import PublishChecker
 
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"

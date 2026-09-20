@@ -2,9 +2,9 @@ import pytest
 
 pytest.importorskip("PySide6")
 
-from comparison.models import ChangeImpact, ChangeKind, ComparisonResult, SemanticChange
-from ui.widgets.comparison_browser.semantic_toolbar import SemanticComparisonToolbar
-from ui.widgets.comparison_browser.semantic_tree import SemanticChangesTree
+from s_usd_core.comparison.models import ChangeImpact, ChangeKind, ComparisonResult, SemanticChange
+from s_usd_desktop.ui.widgets.comparison_browser.semantic_toolbar import SemanticComparisonToolbar
+from s_usd_desktop.ui.widgets.comparison_browser.semantic_tree import SemanticChangesTree
 
 
 @pytest.fixture(scope="module")

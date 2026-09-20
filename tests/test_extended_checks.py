@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from validation import CheckStatus, PublishChecker
-from validation.attribute_override import AttributeOverride
-from validation.check_ids import (
+from s_usd_core.validation import CheckStatus, PublishChecker
+from s_usd_core.validation.attribute_override import AttributeOverride
+from s_usd_core.validation.check_ids import (
     USD_ASSET_PATHS_RELATIVE,
     USD_FRAME_RANGE_LENGTH_LIMIT,
     USD_METERS_PER_UNIT_VALID,
@@ -10,7 +10,7 @@ from validation.check_ids import (
     USD_ROOT_PRIM_NAME_VALID,
     USD_ROOT_PRIM_TYPE_VALID,
 )
-from validation.profiles import ValidationProfile
+from s_usd_core.validation.profiles import ValidationProfile
 
 FIXTURE = Path(__file__).parent / "fixtures" / "invalid_policy.usda"
 

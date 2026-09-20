@@ -2,12 +2,12 @@ from types import SimpleNamespace
 import pytest
 pytest.importorskip("pxr")
 
-from contexts import GeometryStatistics, MeshGeometry
-from rules.common import property_target_results, target_results
-from rules.geometry.checks import check_mesh_has_valid_topology
-from rules.normals.checks import check_mesh_normals_count_valid
-from rules.uvs.checks import check_mesh_uv_indices_valid
-from validation.enums import CheckStatus, Severity
+from s_usd_core.contexts import GeometryStatistics, MeshGeometry
+from s_usd_core.rules.common import property_target_results, target_results
+from s_usd_core.rules.geometry.checks import check_mesh_has_valid_topology
+from s_usd_core.rules.normals.checks import check_mesh_normals_count_valid
+from s_usd_core.rules.uvs.checks import check_mesh_uv_indices_valid
+from s_usd_core.validation.enums import CheckStatus, Severity
 
 
 def runtime():

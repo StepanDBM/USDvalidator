@@ -1,6 +1,6 @@
 # tests/test_summary.py
 
-from validation import CheckResult, CheckStatus, Severity, ValidationSummary
+from s_usd_core.validation import CheckResult, CheckStatus, Severity, ValidationSummary
 
 
 def make_result(status, severity):

@@ -1,4 +1,4 @@
-from comparison.composition_comparators import (
+from s_usd_core.comparison.composition_comparators import (
     CollectionComparator,
     CompositionArcComparator,
     GeomSubsetComparator,
@@ -6,7 +6,7 @@ from comparison.composition_comparators import (
     RelationshipComparator,
     SublayerComparator,
 )
-from comparison.models import (
+from s_usd_core.comparison.models import (
     ChangeImpact,
     ChangeKind,
     CollectionSnapshot,

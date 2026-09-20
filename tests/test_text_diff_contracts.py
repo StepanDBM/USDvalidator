@@ -1,8 +1,8 @@
 import pytest
 
-from comparison.progress import CancellationToken, ComparisonCancelled, ProgressUpdate
-from comparison.source_preflight import DiffMode
-from comparison.text_diff import SUMMARY_CONTEXT_LINES, build_source_diff
+from s_usd_core.comparison.progress import CancellationToken, ComparisonCancelled, ProgressUpdate
+from s_usd_core.comparison.source_preflight import DiffMode
+from s_usd_core.comparison.text_diff import SUMMARY_CONTEXT_LINES, build_source_diff
 
 
 def _write(path, lines):

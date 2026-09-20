@@ -5,7 +5,7 @@ import pytest
 pxr = pytest.importorskip("pxr")
 from pxr import Usd
 
-from extraction.animation import AnimationExtractor
+from s_usd_core.extraction.animation import AnimationExtractor
 
 
 def test_animation_extractor_lists_properties_and_samples():

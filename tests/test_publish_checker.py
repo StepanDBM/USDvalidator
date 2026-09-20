@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from validation import CheckStatus, PublishChecker
-from rules import build_registry
+from s_usd_core.validation import CheckStatus, PublishChecker
+from s_usd_core.rules import build_registry
 
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"

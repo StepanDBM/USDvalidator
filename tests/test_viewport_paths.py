@@ -2,7 +2,7 @@ import pytest
 
 pytest.importorskip("pxr.Usdviewq")
 
-from ui.widgets.usd_viewport.stage_view_adapter import owning_prim_path
+from s_usd_desktop.ui.widgets.usd_viewport.stage_view_adapter import owning_prim_path
 
 
 def test_owning_prim_path_accepts_prim_path():

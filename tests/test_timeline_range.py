@@ -6,7 +6,7 @@ pytest.importorskip("PySide6")
 pytest.importorskip("pxr")
 from pxr import Usd
 
-from ui.widgets.usd_viewport.timeline import authored_time_range
+from s_usd_desktop.ui.widgets.usd_viewport.timeline import authored_time_range
 
 
 def test_authored_range_uses_actual_samples():

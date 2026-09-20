@@ -3,9 +3,9 @@ pytest.importorskip("PySide6")
 
 from PySide6.QtCore import Qt
 
-from comparison.source_preflight import DiffMode
-from comparison.text_diff import DiffLine, SourceDiffResult
-from ui.widgets.comparison_browser.diff_view import (
+from s_usd_core.comparison.source_preflight import DiffMode
+from s_usd_core.comparison.text_diff import DiffLine, SourceDiffResult
+from s_usd_desktop.ui.widgets.comparison_browser.diff_view import (
     MAX_DISPLAY_LINE_LENGTH,
     MAX_TOOLTIP_LINE_LENGTH,
     SideBySideDiffModel,

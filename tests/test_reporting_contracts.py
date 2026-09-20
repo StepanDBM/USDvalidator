@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from reporting.fingerprint import configuration_fingerprint
-from reporting.manifest import PublishManifest
-from validation import PublishChecker
-from validation.rule_config import ValidationRuleConfig
-from validation.version import (
+from s_usd_core.reporting.fingerprint import configuration_fingerprint
+from s_usd_core.reporting.manifest import PublishManifest
+from s_usd_core.validation import PublishChecker
+from s_usd_core.validation.rule_config import ValidationRuleConfig
+from s_usd_core.validation.version import (
     MANIFEST_SCHEMA_NAME,
     MANIFEST_SCHEMA_VERSION,
     REPORT_SCHEMA_NAME,

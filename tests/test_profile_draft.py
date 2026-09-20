@@ -1,6 +1,6 @@
-from ui.widgets.profile_editor import ProfileDraft
-from validation.attribute_override import AttributeOverride
-from validation.profiles import ValidationProfile
+from s_usd_desktop.ui.widgets.profile_editor import ProfileDraft
+from s_usd_core.validation.attribute_override import AttributeOverride
+from s_usd_core.validation.profiles import ValidationProfile
 
 
 def test_profile_draft_preserves_overrides():

@@ -8,9 +8,9 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 from pxr import Sdf, Usd
 
-from ui.widgets.usd_viewport.stage_outliner import StageOutliner
-from validation.enums import CheckStatus, Severity
-from validation.models import CheckTargetResult
+from s_usd_desktop.ui.widgets.usd_viewport.stage_outliner import StageOutliner
+from s_usd_core.validation.enums import CheckStatus, Severity
+from s_usd_core.validation.models import CheckTargetResult
 
 
 @pytest.fixture(scope="module")

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from comparison import ChangeKind, SemanticComparisonEngine, build_side_by_side_diff
+from s_usd_core.comparison import ChangeKind, SemanticComparisonEngine, build_side_by_side_diff
 
 
 FIXTURES = Path(__file__).parent / "fixtures"

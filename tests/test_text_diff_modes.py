@@ -1,5 +1,5 @@
-from comparison.source_preflight import DiffMode
-from comparison.text_diff import (
+from s_usd_core.comparison.source_preflight import DiffMode
+from s_usd_core.comparison.text_diff import (
     SUMMARY_CONTEXT_LINES,
     build_side_by_side_diff,
 )

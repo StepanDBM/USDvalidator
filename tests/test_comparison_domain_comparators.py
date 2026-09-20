@@ -1,9 +1,9 @@
-from comparison.lookdev_comparators import (
+from s_usd_core.comparison.lookdev_comparators import (
     MaterialBindingComparator,
     MaterialComparator,
     ShaderComparator,
 )
-from comparison.models import (
+from s_usd_core.comparison.models import (
     ChangeImpact,
     ChangeKind,
     MaterialBindingSnapshot,
@@ -12,7 +12,7 @@ from comparison.models import (
     StageComparisonSnapshot,
     VariantSnapshot,
 )
-from comparison.variant_comparator import VariantComparator
+from s_usd_core.comparison.variant_comparator import VariantComparator
 
 
 def _snapshot(**domains):

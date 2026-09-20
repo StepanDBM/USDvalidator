@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 
-from validation.enums import CheckStatus, Severity
-from validation.models import CheckResult, CheckTargetResult
-from validation.publish_report import PublishReport
+from s_usd_core.validation.enums import CheckStatus, Severity
+from s_usd_core.validation.models import CheckResult, CheckTargetResult
+from s_usd_core.validation.publish_report import PublishReport
 
 
 
