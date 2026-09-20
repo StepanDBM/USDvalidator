@@ -66,6 +66,16 @@ class LocalObjectStorage(ObjectStorage):
         self._remove_empty_parents(path.parent)
         return True
 
+    def iter_keys(self):
+        if not self.root.exists():
+            return iter(())
+
+        return (
+            path.relative_to(self.root).as_posix()
+            for path in self.root.rglob("*")
+            if path.is_file()
+        )
+
     def resolve_local_path(self, storage_key: str) -> Path:
         return self._resolve(storage_key)
 

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import BinaryIO
+from typing import BinaryIO, Iterable
 
 from s_usd_service.storage.models import StoredObject
 
@@ -20,6 +20,10 @@ class ObjectStorage(ABC):
 
     @abstractmethod
     def delete(self, storage_key: str) -> bool:
+        pass
+
+    @abstractmethod
+    def iter_keys(self) -> Iterable[str]:
         pass
 
     @abstractmethod
