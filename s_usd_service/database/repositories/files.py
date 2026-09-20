@@ -17,6 +17,21 @@ class StoredFileRepository:
             raise NotFoundError("Stored file not found")
         return stored_file
 
+    def get_by_relative_path(self, version_id: UUID, relative_path: str):
+        statement = select(StoredFile).where(
+            StoredFile.version_id == version_id,
+            StoredFile.relative_path == relative_path
+        )
+        return self.database.scalar(statement)
+
+    def list_for_version(self, version_id: UUID):
+        statement = (
+            select(StoredFile)
+            .where(StoredFile.version_id == version_id)
+            .order_by(StoredFile.relative_path)
+        )
+        return list(self.database.scalars(statement).all())
+
     def list_all(self):
         return list(self.database.scalars(select(StoredFile).order_by(StoredFile.storage_key)).all())
 
