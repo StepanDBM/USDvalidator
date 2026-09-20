@@ -5,7 +5,7 @@ from sqlalchemy import engine_from_config, pool
 
 from s_usd_service.config import get_settings
 from s_usd_service.database.base_class import Base
-from s_usd_service.database.models import Asset, Project, Stream, Version
+from s_usd_service.database.models import Asset, Project, StoredFile, Stream, Version
 
 config = context.config
 config.set_main_option("sqlalchemy.url", get_settings().database_url)

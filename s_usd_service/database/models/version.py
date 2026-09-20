@@ -16,3 +16,4 @@ class Version(IdMixin, TimestampMixin, Base):
     status: Mapped[str] = mapped_column(String(32), default="draft")
     comment: Mapped[str] = mapped_column(Text, default="")
     stream: Mapped["Stream"] = relationship(back_populates="versions")
+    files: Mapped[list["StoredFile"]] = relationship(back_populates="version", cascade="all, delete-orphan")

@@ -71,10 +71,11 @@ local.settings.json
 .s_usd_temp/
 
 # Alternative runtime and cache locations
-storage/
-cache/
-temp/
-tmp/
+# Root-level runtime directories only
+/storage/
+/cache/
+/temp/
+/tmp/
 
 # Partial uploads and downloads
 *.part

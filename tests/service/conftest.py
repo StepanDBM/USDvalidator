@@ -1,62 +1,34 @@
-import sqlite3
+import os
 from pathlib import Path
-from uuid import UUID
 
-database_path = Path(".s_usd_data/s_usd.db")
-database = sqlite3.connect(database_path)
-database.row_factory = sqlite3.Row
+import pytest
 
+TEST_DB = Path(".s_usdv_test.db").resolve()
+os.environ["S_USDV_DATABASE_URL"] = f"sqlite:///{TEST_DB.as_posix()}"
 
-def format_uuid(value):
-    return str(UUID(value)) if value else None
+from fastapi.testclient import TestClient
 
+from s_usd_service.config import get_settings
 
-def format_row(row, uuid_fields=()):
-    result = dict(row)
+get_settings.cache_clear()
 
-    for field in uuid_fields:
-        result[field] = format_uuid(result[field])
-
-    return result
+from s_usd_service.app import create_application
+from s_usd_service.database.base_class import Base
+from s_usd_service.database.session import engine
 
 
-print(f"Database: {database_path.resolve()}")
-print(f"Size: {database_path.stat().st_size} bytes")
+@pytest.fixture(autouse=True)
+def database_schema():
+    Base.metadata.create_all(engine)
 
-tables = database.execute("""
-    SELECT name
-    FROM sqlite_master
-    WHERE type = 'table'
-    ORDER BY name
-""").fetchall()
+    yield
 
-print("\nTables:")
+    Base.metadata.drop_all(engine)
+    engine.dispose()
+    TEST_DB.unlink(missing_ok=True)
 
-for table in tables:
-    print(f"  {table['name']}")
 
-print("\nProjects:")
-
-for row in database.execute("SELECT * FROM projects ORDER BY code"):
-    print(format_row(row, ("id",)))
-
-print("\nAssets:")
-
-for row in database.execute("SELECT * FROM assets ORDER BY code"):
-    print(format_row(row, ("id", "project_id")))
-
-print("\nStreams:")
-
-for row in database.execute("SELECT * FROM streams ORDER BY name"):
-    print(format_row(row, ("id", "asset_id")))
-
-print("\nVersions:")
-
-for row in database.execute("""
-    SELECT *
-    FROM versions
-    ORDER BY stream_id, number DESC
-"""):
-    print(format_row(row, ("id", "stream_id")))
-
-database.close()
+@pytest.fixture
+def client():
+    with TestClient(create_application()) as test_client:
+        yield test_client
