@@ -1,4 +1,4 @@
-from s_usd_desktop.ui.app import main
+from s_usd_desktop.app import main
 
 
 if __name__ == "__main__":

@@ -1,9 +1,320 @@
+# =============================================================================
+# S-USDv
+# Python, PySide6 desktop, FastAPI service and OpenUSD development files
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Python bytecode and caches
+# -----------------------------------------------------------------------------
+
 *__pycache__*
 *__pycache__/*
 */__pycache__/*
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+*.so
 
-tests/fixtures/invalid_geometry_polygon_limit.usda
-batch_report.json
+.pytest_cache/
+.mypy_cache/
+.pyright/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+.hypothesis/
+.tox/
+.nox/
+
+
+# -----------------------------------------------------------------------------
+# Virtual environments
+# -----------------------------------------------------------------------------
+
+.venv/
+venv/
+env/
+ENV/
+
+.python-version
+
+
+# -----------------------------------------------------------------------------
+# Local environment and secrets
+# -----------------------------------------------------------------------------
+
+.env
+.env.*
+!.env.example
+
+*.key
+*.pem
+*.pfx
+*.p12
+secrets/
+credentials/
+
+# Azure local credentials and configuration
+.azure/
+local.settings.json
+
+
+# -----------------------------------------------------------------------------
+# S-USD runtime data
+# -----------------------------------------------------------------------------
+
+.s_usd_data/
+.s_usd_cache/
+.s_usd_temp/
+
+# Alternative runtime and cache locations
+storage/
+cache/
+temp/
+tmp/
+
+# Partial uploads and downloads
+*.part
+*.partial
+*.download
+*.upload
+*.tmp
+*.temp
+
+# SQLite runtime databases
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Keep intentional database fixtures if added later
+!tests/fixtures/**/*.db
+!tests/fixtures/**/*.sqlite
+!tests/fixtures/**/*.sqlite3
+
+
+# -----------------------------------------------------------------------------
+# Generated S-USD reports and manifests
+# -----------------------------------------------------------------------------
+
 report.json
+batch_report.json
+comparison_report.json
+validation_report.json
+publish_manifest.json
+
+reports/
+generated_reports/
+validation_reports/
+comparison_reports/
+manifests/
+
+# Generic generated report patterns
+*_report.json
+*_manifest.json
+
+# Preserve report fixtures used by automated tests
+!tests/fixtures/**/*_report.json
+!tests/fixtures/**/*_manifest.json
+
+
+# -----------------------------------------------------------------------------
+# Generated logs
+# -----------------------------------------------------------------------------
+
+*.log
+logs/
+
+uvicorn-access.log
+uvicorn-error.log
+
+
+# -----------------------------------------------------------------------------
+# Test-generated files
+# -----------------------------------------------------------------------------
+
+.s_usd_test.db
+.s_usd_test.db-*
+test-results/
+test_output/
+tests/output/
+tests/generated/
+tests/temp/
+tests/tmp/
+
+
+# -----------------------------------------------------------------------------
+# Build and packaging output
+# -----------------------------------------------------------------------------
+
+build/
+dist/
+downloads/
+wheels/
+*.egg-info/
+.eggs/
+*.egg
+MANIFEST
+
+# PyInstaller-generated output
+*.manifest
+*.spec.bak
+
+# Keep the intentional S-USD PyInstaller specification
+!USDvalidator.spec
+
+
+# -----------------------------------------------------------------------------
+# OpenUSD generated and temporary files
+# -----------------------------------------------------------------------------
+
+*.usd~
+*.usda~
+*.usdc~
+*.usdz~
+
+*.usd.tmp
+*.usda.tmp
+*.usdc.tmp
+*.usdz.tmp
+
+*.usd.part
+*.usda.part
+*.usdc.part
+*.usdz.part
+
+# Generated flattened or converted files
+*_flattened.usd
+*_flattened.usda
+*_flattened.usdc
+*_converted.usd
+*_converted.usda
+*_converted.usdc
+
+# Generated package output
+generated_usd/
+generated_packages/
+usd_output/
+
+
+# -----------------------------------------------------------------------------
+# Desktop and UI-generated files
+# -----------------------------------------------------------------------------
+
+*.ui.bak
+*.qrc.bak
+
+# Qt runtime settings, if stored beside the application
+qt.conf
+settings.ini
+user_settings.json
+window_state.json
+
+
+# -----------------------------------------------------------------------------
+# IDE and editor files
+# -----------------------------------------------------------------------------
+
+.vscode/
+.idea/
+.vs/
+
+*.code-workspace
+*.sublime-project
+*.sublime-workspace
+
+*.swp
+*.swo
+*.swn
+*~
+.#*
+\#*\#
+
+
+# -----------------------------------------------------------------------------
+# Operating-system files
+# -----------------------------------------------------------------------------
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Linux
+.directory
+.Trash-*
+.nfs*
+
+
+# -----------------------------------------------------------------------------
+# Temporary archives and transfer packages
+# -----------------------------------------------------------------------------
+
+*.zip.tmp
+*.7z.tmp
+*.tar.tmp
+*.gz.tmp
+
+scratch/
+sandbox/
+experiments/
+playground/
+
+
+# -----------------------------------------------------------------------------
+# Profiling and debugging output
+# -----------------------------------------------------------------------------
+
+*.prof
+*.lprof
+*.trace
+profile-results/
+profiling/
+
+debug_output/
+debug_dumps/
+crash_dumps/
+
+
+# -----------------------------------------------------------------------------
+# Documentation build output
+# -----------------------------------------------------------------------------
+
+docs/_build/
+site/
+
+
+# -----------------------------------------------------------------------------
+# IMPORTANT: intentionally tracked files
+# -----------------------------------------------------------------------------
+
+# Database migrations must always be committed.
+!migrations/
+!migrations/**
+!alembic.ini
+
+# USD fixtures are part of the test suite and must remain tracked.
+!tests/fixtures/
+!tests/fixtures/**
+
+# Keep dependency and project configuration files.
+!requirements*.txt
+!pyproject.toml
+!pytest.ini
+!README.md
 
 TO_IGNORE
