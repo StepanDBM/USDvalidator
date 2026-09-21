@@ -9,7 +9,11 @@ from s_usd_service.api.dependencies import DatabaseSession, ObjectStorageDepende
 from s_usd_service.api.schemas.files import StoredFileList, StoredFileRead
 from s_usd_service.api.schemas.storage import FileDeletionResponse
 from s_usd_service.services.file_lifecycle import FileLifecycleService
-from s_usd_service.services.file_transfer import FileTransferService, InvalidRelativePathError
+from s_usd_service.services.file_transfer import (
+    FileTransferService,
+    InvalidUploadError
+)
+from s_usd_service.storage.errors import StorageLimitExceededError
 
 router = APIRouter(tags=["Files"])
 
@@ -47,7 +51,9 @@ def upload_file(
             role=role,
             content_type=file.content_type or "application/octet-stream"
         )
-    except InvalidRelativePathError as error:
+    except StorageLimitExceededError as error:
+        raise HTTPException(status_code=413, detail=str(error)) from error
+    except InvalidUploadError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
     return serialize_file(stored_file)

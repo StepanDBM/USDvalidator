@@ -12,6 +12,8 @@ class FileDeletionResponse(ApiModel):
 
 class ReconciliationResponse(ApiModel):
     consistent: bool
+    consistent_before: bool
+    consistent_after: bool
     database_records: int
     storage_objects: int
     missing_database_objects: list[str]

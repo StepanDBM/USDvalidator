@@ -24,6 +24,13 @@ class StoredFileRepository:
         )
         return self.database.scalar(statement)
 
+    def get_by_role(self, version_id: UUID, role: str):
+        statement = select(StoredFile).where(
+            StoredFile.version_id == version_id,
+            StoredFile.role == role
+        )
+        return self.database.scalar(statement)
+
     def list_for_version(self, version_id: UUID):
         statement = (
             select(StoredFile)

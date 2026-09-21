@@ -3,20 +3,38 @@ from uuid import UUID, uuid4
 
 from sqlalchemy.exc import IntegrityError
 
+from s_usd_service.config import get_settings
 from s_usd_service.database.models import StoredFile
 from s_usd_service.database.repositories.catalog import CatalogRepository
 from s_usd_service.database.repositories.errors import ConflictError
 from s_usd_service.database.repositories.files import StoredFileRepository
 
 
-class InvalidRelativePathError(ValueError):
+class InvalidUploadError(ValueError):
+    pass
+
+
+class InvalidRelativePathError(InvalidUploadError):
+    pass
+
+
+class EmptyUploadError(InvalidUploadError):
+    pass
+
+
+class UnsupportedFileExtensionError(InvalidUploadError):
+    pass
+
+
+class InvalidFileRoleError(InvalidUploadError):
     pass
 
 
 class FileTransferService:
-    def __init__(self, database, storage):
+    def __init__(self, database, storage, settings=None):
         self.database = database
         self.storage = storage
+        self.settings = settings or get_settings()
         self.catalog = CatalogRepository(database)
         self.files = StoredFileRepository(database)
 
@@ -24,18 +42,22 @@ class FileTransferService:
         version = self.catalog.get_version(version_id)
         normalized_path = self.normalize_relative_path(relative_path or original_name)
         safe_name = Path(original_name or PurePosixPath(normalized_path).name).name
-
-        if not safe_name:
-            raise InvalidRelativePathError("Uploaded file must have a filename")
-
-        if self.files.get_by_relative_path(version_id, normalized_path):
-            raise ConflictError(f"A file already exists at '{normalized_path}' in this version")
-
+        normalized_role = role.strip().lower()
+        self._validate_upload(version_id, safe_name, normalized_path, normalized_role)
         storage_key = self._build_storage_key(version, safe_name)
-        stored_object = self.storage.write_stream(source, storage_key)
+        stored_object = self.storage.write_stream(
+            source,
+            storage_key,
+            maximum_bytes=self.settings.maximum_upload_bytes
+        )
+
+        if stored_object.size_bytes == 0:
+            self.storage.delete(stored_object.storage_key)
+            raise EmptyUploadError("Empty files cannot be uploaded")
+
         stored_file = StoredFile(
             version_id=version.id,
-            role=role,
+            role=normalized_role,
             original_name=safe_name,
             relative_path=normalized_path,
             storage_key=stored_object.storage_key,
@@ -67,6 +89,34 @@ class FileTransferService:
     def get(self, file_id: UUID):
         return self.files.get(file_id)
 
+    def _validate_upload(self, version_id, safe_name, relative_path, role):
+        if not safe_name:
+            raise InvalidRelativePathError("Uploaded file must have a filename")
+
+        if role not in self.settings.allowed_file_roles:
+            allowed = ", ".join(self.settings.allowed_file_roles)
+            raise InvalidFileRoleError(f"Unsupported file role '{role}'. Allowed roles: {allowed}")
+
+        extension = Path(safe_name).suffix.lower()
+        logical_extension = PurePosixPath(relative_path).suffix.lower()
+
+        if extension not in self.settings.allowed_usd_extensions:
+            allowed = ", ".join(self.settings.allowed_usd_extensions)
+            raise UnsupportedFileExtensionError(
+                f"Unsupported file extension '{extension or '<none>'}'. Allowed extensions: {allowed}"
+            )
+
+        if logical_extension != extension:
+            raise UnsupportedFileExtensionError(
+                "The uploaded filename and relative path must use the same USD extension"
+            )
+
+        if self.files.get_by_relative_path(version_id, relative_path):
+            raise ConflictError(f"A file already exists at '{relative_path}' in this version")
+
+        if role == "root_layer" and self.files.get_by_role(version_id, "root_layer"):
+            raise ConflictError("A version can contain only one root_layer file")
+
     @staticmethod
     def normalize_relative_path(relative_path):
         value = (relative_path or "").strip().replace("\\", "/")
@@ -74,6 +124,9 @@ class FileTransferService:
 
         if not value or path.is_absolute() or any(part in {"", ".", ".."} for part in path.parts):
             raise InvalidRelativePathError(f"Invalid relative path: {relative_path}")
+
+        if len(value) > 1024:
+            raise InvalidRelativePathError("Relative path exceeds 1024 characters")
 
         return path.as_posix()
 

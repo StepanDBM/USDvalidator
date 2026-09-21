@@ -12,13 +12,22 @@ class ReconciliationReport:
     restored_records: list[str] = field(default_factory=list)
     marked_missing_records: list[str] = field(default_factory=list)
     deleted_orphaned_objects: list[str] = field(default_factory=list)
+    consistent_after: bool | None = None
+
+    @property
+    def consistent_before(self):
+        return not self.missing_database_objects and not self.orphaned_storage_objects
 
     @property
     def consistent(self):
-        return not self.missing_database_objects and not self.orphaned_storage_objects
+        return self.consistent_before
 
     def to_dict(self):
-        return {"consistent": self.consistent, **asdict(self)}
+        return {
+            "consistent": self.consistent_before,
+            "consistent_before": self.consistent_before,
+            **asdict(self)
+        }
 
 
 class StorageReconciliationService:
@@ -50,8 +59,16 @@ class StorageReconciliationService:
                         report.deleted_orphaned_objects.append(storage_key)
 
             self.files.commit()
+            report.consistent_after = self._is_consistent()
+        else:
+            report.consistent_after = report.consistent_before
 
         return report
+
+    def _is_consistent(self):
+        database_keys = {item.storage_key for item in self.files.list_all()}
+        storage_keys = set(self.storage.iter_keys())
+        return database_keys == storage_keys
 
     @staticmethod
     def _repair_records(records_by_key, missing_keys, report):

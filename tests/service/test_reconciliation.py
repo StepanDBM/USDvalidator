@@ -121,3 +121,18 @@ def test_delete_keeps_metadata_when_storage_delete_fails(tmp_path):
             FileLifecycleService(database, storage).delete(file_id)
 
         assert database.get(StoredFile, file_id) is not None
+
+
+def test_repair_reports_consistency_before_and_after(tmp_path):
+    storage = LocalObjectStorage(tmp_path / "storage", tmp_path / "temp")
+
+    with SessionLocal() as database:
+        orphaned_key = "projects/COSMOS/orphan/root.usda"
+        storage.write_stream(BytesIO(b"orphan"), orphaned_key)
+        report = StorageReconciliationService(database, storage).reconcile(
+            repair=True,
+            delete_orphans=True
+        )
+
+        assert report.consistent_before is False
+        assert report.consistent_after is True

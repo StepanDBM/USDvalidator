@@ -5,7 +5,11 @@ from typing import BinaryIO
 from uuid import uuid4
 
 from s_usd_service.storage.base import ObjectStorage
-from s_usd_service.storage.errors import InvalidStorageKeyError, StorageObjectNotFoundError
+from s_usd_service.storage.errors import (
+    InvalidStorageKeyError,
+    StorageLimitExceededError,
+    StorageObjectNotFoundError
+)
 from s_usd_service.storage.models import StoredObject
 
 
@@ -20,7 +24,12 @@ class LocalObjectStorage(ObjectStorage):
         self.root.mkdir(parents=True, exist_ok=True)
         self.temporary_root.mkdir(parents=True, exist_ok=True)
 
-    def write_stream(self, source: BinaryIO, storage_key: str) -> StoredObject:
+    def write_stream(
+        self,
+        source: BinaryIO,
+        storage_key: str,
+        maximum_bytes: int | None = None
+    ) -> StoredObject:
         normalized_key = self._normalize_key(storage_key)
         destination = self._resolve(normalized_key)
         temporary_path = self.temporary_root / f"{uuid4().hex}.part"
@@ -30,9 +39,13 @@ class LocalObjectStorage(ObjectStorage):
         try:
             with temporary_path.open("xb") as output:
                 while chunk := source.read(self.chunk_size):
+                    size_bytes += len(chunk)
+
+                    if maximum_bytes is not None and size_bytes > maximum_bytes:
+                        raise StorageLimitExceededError(maximum_bytes)
+
                     output.write(chunk)
                     digest.update(chunk)
-                    size_bytes += len(chunk)
 
                 output.flush()
                 os.fsync(output.fileno())
