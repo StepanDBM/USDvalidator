@@ -1,7 +1,10 @@
+from s_usd_desktop.cache import CacheManager
 from s_usd_desktop.services.catalog_service import CatalogService
+from s_usd_desktop.services.download_service import DownloadService
 from s_usd_desktop.services.transfer_service import TransferService
 from s_usd_desktop.services.connection_service import ConnectionState
 from s_usd_desktop.ui.storage.workspace import StorageWorkspace
+from s_usd_desktop.ui.storage.dialogs.cache_settings import CacheSettings
 
 
 def install_storage_workspace(window):
@@ -12,6 +15,18 @@ def install_storage_workspace(window):
     window.storage_workspace = StorageWorkspace(window.catalog_service, parent=window)
     window.transfer_service = TransferService(window.connection_service, parent=window)
     window.storage_workspace.set_transfer_service(window.transfer_service)
+    window.cache_settings = CacheSettings()
+    window.cache_manager = CacheManager(window.cache_settings.configuration())
+    window.download_service = DownloadService(
+        window.connection_service,
+        cache_manager=window.cache_manager,
+        parent=window
+    )
+    window.storage_workspace.set_cache_services(
+        window.cache_manager,
+        window.download_service,
+        window.cache_settings
+    )
     window.tabs.addTab(window.storage_workspace, "Storage")
     window.tab_bar.addTab("Storage")
     window.connection_service.connected.connect(

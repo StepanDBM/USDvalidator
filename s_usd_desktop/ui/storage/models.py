@@ -104,11 +104,12 @@ class VersionTableModel(QAbstractTableModel):
 
 
 class StoredFileTableModel(QAbstractTableModel):
-    HEADERS = ("Role", "Path", "Size", "Status")
+    HEADERS = ("Role", "Path", "Size", "Remote", "Cache")
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.records = ()
+        self.cache_statuses = {}
 
     def rowCount(self, parent=QModelIndex()):
         return 0 if parent.isValid() else len(self.records)
@@ -132,21 +133,34 @@ class StoredFileTableModel(QAbstractTableModel):
         if role != Qt.DisplayRole:
             return None
 
+        status = self.cache_statuses.get(record.id, "Not cached")
         values = (
             record.role,
             record.relative_path,
             self.format_size(record.size_bytes),
-            record.status
+            record.status,
+            status
         )
         return values[index.column()]
 
     def set_records(self, records):
         self.beginResetModel()
         self.records = tuple(records)
+        self.cache_statuses = {}
         self.endResetModel()
+
+    def set_cache_status(self, file_id, status):
+        self.cache_statuses[file_id] = status
+        row = next((i for i, record in enumerate(self.records) if record.id == file_id), -1)
+        if row >= 0:
+            index = self.index(row, 4)
+            self.dataChanged.emit(index, index, [Qt.DisplayRole])
 
     def clear(self):
         self.set_records(())
+
+    def record_at(self, row):
+        return self.records[row] if 0 <= row < len(self.records) else None
 
     @staticmethod
     def format_size(size):
