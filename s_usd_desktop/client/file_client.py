@@ -17,13 +17,21 @@ class FileClient:
 
     def upload_file(self, version_id, source_path, role="other", relative_path=None):
         source_path = Path(source_path)
-        content_type = mimetypes.guess_type(source_path.name)[0] or "application/octet-stream"
-        data = {"role": role, "relative_path": relative_path or source_path.name}
 
         with source_path.open("rb") as source:
-            files = {"file": (source_path.name, source, content_type)}
-            result = self.api.post(f"/api/v1/versions/{version_id}/files", data=data, files=files)
+            return self.upload_stream(
+                version_id,
+                source,
+                source_path.name,
+                role,
+                relative_path or source_path.name
+            )
 
+    def upload_stream(self, version_id, source, filename, role="other", relative_path=None):
+        content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+        data = {"role": role, "relative_path": relative_path or filename}
+        files = {"file": (filename, source, content_type)}
+        result = self.api.post(f"/api/v1/versions/{version_id}/files", data=data, files=files)
         return StoredFileRecord.from_dict(result)
 
     def delete_file(self, file_id):

@@ -1,4 +1,5 @@
 from s_usd_desktop.services.catalog_service import CatalogService
+from s_usd_desktop.services.transfer_service import TransferService
 from s_usd_desktop.services.connection_service import ConnectionState
 from s_usd_desktop.ui.storage.workspace import StorageWorkspace
 
@@ -9,6 +10,8 @@ def install_storage_workspace(window):
 
     window.catalog_service = CatalogService(window.connection_service, parent=window)
     window.storage_workspace = StorageWorkspace(window.catalog_service, parent=window)
+    window.transfer_service = TransferService(window.connection_service, parent=window)
+    window.storage_workspace.set_transfer_service(window.transfer_service)
     window.tabs.addTab(window.storage_workspace, "Storage")
     window.tab_bar.addTab("Storage")
     window.connection_service.connected.connect(

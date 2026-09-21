@@ -7,6 +7,8 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QListView,
+    QMessageBox,
+    QProgressBar,
     QPushButton,
     QSplitter,
     QTableView,
@@ -14,6 +16,13 @@ from PySide6.QtWidgets import (
     QWidget
 )
 
+from s_usd_desktop.ui.storage.dialogs import (
+    CreateAssetDialog,
+    CreateProjectDialog,
+    CreateStreamDialog,
+    CreateVersionDialog,
+    UploadFileDialog
+)
 from s_usd_desktop.ui.storage.models import (
     AssetListModel,
     ProjectListModel,
@@ -27,6 +36,7 @@ class StorageWorkspace(QWidget):
     def __init__(self, catalog_service, parent=None):
         super().__init__(parent)
         self.catalog_service = catalog_service
+        self.transfer_service = None
         self.connected = False
         self.current_project_id = None
         self.current_asset_id = None
@@ -44,11 +54,21 @@ class StorageWorkspace(QWidget):
     def _build_ui(self):
         self.status_label = QLabel("Connect to S-USDv Service to browse storage.")
         self.status_label.setWordWrap(True)
+        self.create_project_button = QPushButton("New Project")
+        self.create_asset_button = QPushButton("New Asset")
+        self.create_stream_button = QPushButton("New Stream")
+        self.create_version_button = QPushButton("New Version")
+        self.upload_button = QPushButton("Upload File")
         self.refresh_button = QPushButton("Refresh")
         self.refresh_button.setEnabled(False)
         header = QHBoxLayout()
         header.addWidget(QLabel("S-USDv Storage"))
         header.addStretch()
+        header.addWidget(self.create_project_button)
+        header.addWidget(self.create_asset_button)
+        header.addWidget(self.create_stream_button)
+        header.addWidget(self.create_version_button)
+        header.addWidget(self.upload_button)
         header.addWidget(self.refresh_button)
 
         self.project_view = self._make_list(self.project_model)
@@ -83,6 +103,14 @@ class StorageWorkspace(QWidget):
         lower.addWidget(self._group("Version Details", details))
         lower.setSizes([800, 400])
 
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        self.cancel_upload_button = QPushButton("Cancel Upload")
+        self.cancel_upload_button.setVisible(False)
+        transfer_row = QHBoxLayout()
+        transfer_row.addWidget(self.progress_bar, 1)
+        transfer_row.addWidget(self.cancel_upload_button)
+
         main_splitter = QSplitter(Qt.Vertical)
         main_splitter.addWidget(browser)
         main_splitter.addWidget(lower)
@@ -90,6 +118,7 @@ class StorageWorkspace(QWidget):
         layout = QVBoxLayout(self)
         layout.addLayout(header)
         layout.addWidget(self.status_label)
+        layout.addLayout(transfer_row)
         layout.addWidget(main_splitter, 1)
 
     @staticmethod
@@ -119,6 +148,11 @@ class StorageWorkspace(QWidget):
 
     def _connect_signals(self):
         self.refresh_button.clicked.connect(self.refresh)
+        self.create_project_button.clicked.connect(self._create_project)
+        self.create_asset_button.clicked.connect(self._create_asset)
+        self.create_stream_button.clicked.connect(self._create_stream)
+        self.create_version_button.clicked.connect(self._create_version)
+        self.upload_button.clicked.connect(self._upload_file)
         self.project_view.selectionModel().currentChanged.connect(self._project_selected)
         self.asset_view.selectionModel().currentChanged.connect(self._asset_selected)
         self.stream_view.selectionModel().currentChanged.connect(self._stream_selected)
@@ -130,10 +164,16 @@ class StorageWorkspace(QWidget):
         self.catalog_service.files_loaded.connect(self._files_loaded)
         self.catalog_service.loading_changed.connect(self._loading_changed)
         self.catalog_service.request_failed.connect(self._request_failed)
+        self.catalog_service.project_created.connect(lambda _record: self.refresh())
+        self.catalog_service.asset_created.connect(lambda _record: self.catalog_service.load_assets(self.current_project_id))
+        self.catalog_service.stream_created.connect(lambda _record: self.catalog_service.load_streams(self.current_asset_id))
+        self.catalog_service.version_created.connect(lambda _record: self.catalog_service.load_versions(self.current_stream_id))
 
     def set_connected(self, connected):
         self.connected = connected
         self.refresh_button.setEnabled(connected)
+        self.create_project_button.setEnabled(connected)
+        self._update_action_states()
 
         if connected:
             self.status_label.setText("Connected. Loading projects...")
@@ -150,9 +190,77 @@ class StorageWorkspace(QWidget):
         self.status_label.setText("Loading projects...")
         self.catalog_service.load_projects()
 
+    def set_transfer_service(self, transfer_service):
+        self.transfer_service = transfer_service
+        self.cancel_upload_button.clicked.connect(transfer_service.cancel)
+        transfer_service.progress.connect(self._upload_progress)
+        transfer_service.upload_completed.connect(self._upload_completed)
+        transfer_service.upload_failed.connect(self._upload_failed)
+        transfer_service.upload_cancelled.connect(self._upload_cancelled)
+        transfer_service.active_changed.connect(self._transfer_active_changed)
+
+    def _update_action_states(self):
+        active = bool(self.transfer_service and self.transfer_service.active)
+        self.create_asset_button.setEnabled(self.connected and self.current_project_id is not None and not active)
+        self.create_stream_button.setEnabled(self.connected and self.current_asset_id is not None and not active)
+        self.create_version_button.setEnabled(self.connected and self.current_stream_id is not None and not active)
+        self.upload_button.setEnabled(self.connected and self.current_version_id is not None and not active)
+
+    def _create_project(self):
+        dialog = CreateProjectDialog(self)
+        if dialog.exec() and dialog.values():
+            self.catalog_service.create_project(*dialog.values())
+
+    def _create_asset(self):
+        dialog = CreateAssetDialog(self)
+        if dialog.exec() and dialog.values():
+            self.catalog_service.create_asset(self.current_project_id, *dialog.values())
+
+    def _create_stream(self):
+        dialog = CreateStreamDialog(self)
+        if dialog.exec() and dialog.values():
+            self.catalog_service.create_stream(self.current_asset_id, *dialog.values())
+
+    def _create_version(self):
+        dialog = CreateVersionDialog(self)
+        if dialog.exec():
+            self.catalog_service.create_version(self.current_stream_id, *dialog.values())
+
+    def _upload_file(self):
+        if not self.transfer_service:
+            return
+        dialog = UploadFileDialog(self)
+        if dialog.exec() and dialog.values():
+            self.transfer_service.upload(self.current_version_id, *dialog.values())
+
+    def _upload_progress(self, transferred, total):
+        self.progress_bar.setMaximum(max(total, 1))
+        self.progress_bar.setValue(transferred)
+        self.status_label.setText(f"Uploading {transferred:,} of {total:,} bytes...")
+
+    def _upload_completed(self, _stored_file):
+        self.status_label.setText("Upload completed.")
+        self.catalog_service.load_versions(self.current_stream_id)
+        self.catalog_service.load_files(self.current_version_id)
+
+    def _upload_failed(self, message):
+        self.status_label.setText(f"Upload failed: {message}")
+        QMessageBox.warning(self, "Upload Failed", message)
+
+    def _upload_cancelled(self):
+        self.status_label.setText("Upload cancelled.")
+
+    def _transfer_active_changed(self, active):
+        self.progress_bar.setVisible(active)
+        self.cancel_upload_button.setVisible(active)
+        if not active:
+            self.progress_bar.reset()
+        self._update_action_states()
+
     def _project_selected(self, current, _previous):
         project = self.project_model.record_at(current.row()) if current.isValid() else None
         self.current_project_id = project.id if project else None
+        self._update_action_states()
         self.current_asset_id = self.current_stream_id = self.current_version_id = None
         self.asset_model.clear()
         self.stream_model.clear()
@@ -168,6 +276,7 @@ class StorageWorkspace(QWidget):
     def _asset_selected(self, current, _previous):
         asset = self.asset_model.record_at(current.row()) if current.isValid() else None
         self.current_asset_id = asset.id if asset else None
+        self._update_action_states()
         self.current_stream_id = self.current_version_id = None
         self.stream_model.clear()
         self.version_model.clear()
@@ -182,6 +291,7 @@ class StorageWorkspace(QWidget):
     def _stream_selected(self, current, _previous):
         stream = self.stream_model.record_at(current.row()) if current.isValid() else None
         self.current_stream_id = stream.id if stream else None
+        self._update_action_states()
         self.current_version_id = None
         self.version_model.clear()
         self.file_model.clear()
@@ -195,6 +305,7 @@ class StorageWorkspace(QWidget):
     def _version_selected(self, current, _previous):
         version = self.version_model.record_at(current.row()) if current.isValid() else None
         self.current_version_id = version.id if version else None
+        self._update_action_states()
         self.file_model.clear()
         self._show_version(version)
 

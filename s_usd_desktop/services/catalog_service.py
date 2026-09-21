@@ -14,6 +14,10 @@ class CatalogService(QObject):
     files_loaded = Signal(object, object)
     loading_changed = Signal(str, bool)
     request_failed = Signal(str, str)
+    project_created = Signal(object)
+    asset_created = Signal(object)
+    stream_created = Signal(object)
+    version_created = Signal(object)
 
     def __init__(self, connection_service, thread_pool=None, parent=None):
         super().__init__(parent)
@@ -40,6 +44,28 @@ class CatalogService(QObject):
 
     def load_files(self, version_id):
         self._submit("files", self.files_loaded, self._file_call, "list_files", version_id, context=version_id)
+
+    def create_project(self, code, name, description=""):
+        self._submit("mutation", self.project_created, self._catalog_call, "create_project", code, name, description)
+
+    def create_asset(self, project_id, code, name, asset_type, description=""):
+        self._submit(
+            "mutation",
+            self.asset_created,
+            self._catalog_call,
+            "create_asset",
+            project_id,
+            code,
+            name,
+            asset_type,
+            description
+        )
+
+    def create_stream(self, asset_id, name, description=""):
+        self._submit("mutation", self.stream_created, self._catalog_call, "create_stream", asset_id, name, description)
+
+    def create_version(self, stream_id, comment=""):
+        self._submit("mutation", self.version_created, self._catalog_call, "create_version", stream_id, comment)
 
     def _submit(self, scope, result_signal, function, method_name, *args, context=None):
         self._generations[scope] += 1
