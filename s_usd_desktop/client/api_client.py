@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 import httpx
 
 from s_usd_desktop.client.configuration import ApiClientConfiguration
@@ -39,6 +41,25 @@ class SUsdvApiClient:
 
     def delete(self, path):
         return self.request("DELETE", path)
+
+    @contextmanager
+    def stream(self, method, path, **kwargs):
+        try:
+            with self._client.stream(method, path, **kwargs) as response:
+                if response.is_error:
+                    response.read()
+                    self._raise_service_error(response)
+                yield response
+        except httpx.TimeoutException as error:
+            raise RequestTimeoutError(
+                f"S-USDv Service request timed out: {method} {path}"
+            ) from error
+        except httpx.ConnectError as error:
+            raise ServiceUnavailableError(
+                f"Could not connect to S-USDv Service at {self.configuration.base_url}"
+            ) from error
+        except httpx.RequestError as error:
+            raise ServiceUnavailableError(f"S-USDv Service request failed: {error}") from error
 
     def request(self, method, path, **kwargs):
         try:

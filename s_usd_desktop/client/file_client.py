@@ -15,6 +15,9 @@ class FileClient:
     def get_file(self, file_id):
         return StoredFileRecord.from_dict(self.api.get(f"/api/v1/files/{file_id}"))
 
+    def stream_content(self, file_id):
+        return self.api.stream("GET", f"/api/v1/files/{file_id}/content")
+
     def upload_file(self, version_id, source_path, role="other", relative_path=None):
         source_path = Path(source_path)
 
