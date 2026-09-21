@@ -1,10 +1,9 @@
-# ui/app.py
-
 import sys
 
 from PySide6.QtWidgets import QApplication
 
 from .ui.main_window import MainWindow
+from .ui.storage import install_storage_workspace
 
 
 def main():
@@ -14,6 +13,7 @@ def main():
     application.setStyle("Fusion")
 
     window = MainWindow()
+    install_storage_workspace(window)
     window.show()
 
     return application.exec()
