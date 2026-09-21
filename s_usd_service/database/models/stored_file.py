@@ -26,3 +26,4 @@ class StoredFile(IdMixin, TimestampMixin, Base):
     sha256: Mapped[str] = mapped_column(String(64), index=True)
     status: Mapped[str] = mapped_column(String(32), default="available")
     version: Mapped["Version"] = relationship(back_populates="files")
+    validation_runs: Mapped[list["ValidationRun"]] = relationship(back_populates="stored_file")
