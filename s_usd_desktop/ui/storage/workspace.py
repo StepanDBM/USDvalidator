@@ -1,4 +1,4 @@
-from PySide6.QtCore import QUrl, Qt
+from PySide6.QtCore import QUrl, Signal, Qt
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QAbstractItemView,
@@ -35,6 +35,8 @@ from s_usd_desktop.ui.storage.models import (
 
 
 class StorageWorkspace(QWidget):
+    local_source_open_requested = Signal(str)
+    local_source_validation_requested = Signal(str)
     def __init__(self, catalog_service, parent=None):
         super().__init__(parent)
         self.catalog_service = catalog_service
@@ -42,6 +44,8 @@ class StorageWorkspace(QWidget):
         self.download_service = None
         self.cache_manager = None
         self.cache_settings = None
+        self.version_open_service = None
+        self.version_download_service = None
         self.connected = False
         self.current_project_id = None
         self.current_asset_id = None
@@ -64,7 +68,11 @@ class StorageWorkspace(QWidget):
         self.create_stream_button = QPushButton("New Stream")
         self.create_version_button = QPushButton("New Version")
         self.upload_button = QPushButton("Upload File")
-        self.download_button = QPushButton("Download")
+        self.download_button = QPushButton("Download File")
+        self.download_root_button = QPushButton("Download Root")
+        self.download_version_button = QPushButton("Download Version")
+        self.open_version_button = QPushButton("Open Version")
+        self.validate_version_button = QPushButton("Validate Version")
         self.reveal_button = QPushButton("Reveal")
         self.remove_cache_button = QPushButton("Remove Cache")
         self.clear_version_cache_button = QPushButton("Clear Version Cache")
@@ -80,6 +88,10 @@ class StorageWorkspace(QWidget):
         header.addWidget(self.create_version_button)
         header.addWidget(self.upload_button)
         header.addWidget(self.download_button)
+        header.addWidget(self.download_root_button)
+        header.addWidget(self.download_version_button)
+        header.addWidget(self.open_version_button)
+        header.addWidget(self.validate_version_button)
         header.addWidget(self.reveal_button)
         header.addWidget(self.remove_cache_button)
         header.addWidget(self.clear_version_cache_button)
@@ -106,12 +118,14 @@ class StorageWorkspace(QWidget):
         self.detail_comment = QLabel("Comment: —")
         self.detail_comment.setWordWrap(True)
         self.detail_files = QLabel("Files: 0")
+        self.detail_readiness = QLabel("Readiness: —")
         details = QFrame()
         details_layout = QVBoxLayout(details)
         details_layout.addWidget(self.detail_title)
         details_layout.addWidget(self.detail_status)
         details_layout.addWidget(self.detail_comment)
         details_layout.addWidget(self.detail_files)
+        details_layout.addWidget(self.detail_readiness)
         details_layout.addStretch()
         lower = QSplitter(Qt.Horizontal)
         lower.addWidget(self._group("Stored Files", self.file_view))
@@ -169,6 +183,10 @@ class StorageWorkspace(QWidget):
         self.create_version_button.clicked.connect(self._create_version)
         self.upload_button.clicked.connect(self._upload_file)
         self.download_button.clicked.connect(self._download_file)
+        self.download_root_button.clicked.connect(lambda: self._download_version(root_only=True))
+        self.download_version_button.clicked.connect(lambda: self._download_version(root_only=False))
+        self.open_version_button.clicked.connect(self._open_version)
+        self.validate_version_button.clicked.connect(self._validate_version)
         self.reveal_button.clicked.connect(self._reveal_cached_file)
         self.remove_cache_button.clicked.connect(self._remove_cached_file)
         self.clear_version_cache_button.clicked.connect(self._clear_version_cache)
@@ -211,6 +229,15 @@ class StorageWorkspace(QWidget):
         self.status_label.setText("Loading projects...")
         self.catalog_service.load_projects()
 
+    def set_version_services(self, version_open_service, version_download_service):
+        self.version_open_service = version_open_service
+        self.version_download_service = version_download_service
+        version_download_service.progress.connect(self._version_download_progress)
+        version_download_service.completed.connect(self._version_download_completed)
+        version_download_service.failed.connect(self._download_failed)
+        version_download_service.cancelled.connect(self._download_cancelled)
+        version_download_service.active_changed.connect(self._version_download_active_changed)
+
     def set_cache_services(self, cache_manager, download_service, cache_settings):
         self.cache_manager = cache_manager
         self.download_service = download_service
@@ -231,7 +258,7 @@ class StorageWorkspace(QWidget):
         transfer_service.active_changed.connect(self._transfer_active_changed)
 
     def _update_action_states(self):
-        active = bool((self.transfer_service and self.transfer_service.active) or (self.download_service and self.download_service.active))
+        active = bool((self.transfer_service and self.transfer_service.active) or (self.download_service and self.download_service.active) or (self.version_download_service and self.version_download_service.active))
         self.create_asset_button.setEnabled(self.connected and self.current_project_id is not None and not active)
         self.create_stream_button.setEnabled(self.connected and self.current_asset_id is not None and not active)
         self.create_version_button.setEnabled(self.connected and self.current_stream_id is not None and not active)
@@ -244,6 +271,13 @@ class StorageWorkspace(QWidget):
         self.remove_cache_button.setEnabled(available and not active)
         self.clear_version_cache_button.setEnabled(self.current_version_id is not None and not active)
         self.cache_settings_button.setEnabled(not active)
+        resolution = self._version_resolution()
+        has_version = self.current_version_id is not None and bool(self.file_model.records)
+        self.download_root_button.setEnabled(has_version and resolution is not None and resolution.root_file is not None and not active)
+        self.download_version_button.setEnabled(has_version and not active)
+        ready = bool(resolution and resolution.ready)
+        self.open_version_button.setEnabled(ready and not active)
+        self.validate_version_button.setEnabled(ready and not active)
 
     def _create_project(self):
         dialog = CreateProjectDialog(self)
@@ -385,6 +419,7 @@ class StorageWorkspace(QWidget):
             for stored_file in collection.items
         ) if self.cache_manager else 0
         self.detail_files.setText(f"Files: {collection.count} | Cached: {cached_count}")
+        self._update_version_readiness()
         self.status_label.setText("Version loaded.")
 
     def _file_selected(self, _current, _previous):
@@ -429,6 +464,76 @@ class StorageWorkspace(QWidget):
             labels.get(entry.status.value, entry.status.value) if entry else "Unavailable"
         )
 
+    def _version_resolution(self):
+        location = self._cache_location()
+        if not self.version_open_service or not location:
+            return None
+        return self.version_open_service.resolve(self.file_model.records, location)
+
+    def _update_version_readiness(self):
+        resolution = self._version_resolution()
+        labels = {
+            "no_root_layer": "Root layer missing",
+            "root_not_cached": "Root layer not cached",
+            "dependencies_not_cached": "Dependencies not cached",
+            "cache_invalid": "Cache stale or corrupt",
+            "ready": "Ready"
+        }
+        text = labels.get(resolution.readiness.value, "Unavailable") if resolution else "—"
+        self.detail_readiness.setText(f"Readiness: {text}")
+        self._update_action_states()
+
+    def _download_version(self, root_only):
+        location = self._cache_location()
+        if location and self.version_download_service:
+            self.version_download_service.download(
+                self.file_model.records,
+                location,
+                root_only=root_only
+            )
+
+    def _version_download_progress(self, transferred, total, relative_path):
+        self.progress_bar.setMaximum(max(total, 1))
+        self.progress_bar.setValue(transferred)
+        self.status_label.setText(
+            f"Downloading version: {relative_path} ({transferred:,} of {total:,} bytes)..."
+        )
+
+    def _version_download_completed(self, _entries):
+        for stored_file in self.file_model.records:
+            self._update_file_cache_status(stored_file)
+        self._update_version_readiness()
+        self.status_label.setText("Version download completed and verified.")
+
+    def _version_download_active_changed(self, active):
+        self.progress_bar.setVisible(active)
+        self.cancel_upload_button.setVisible(active)
+        self.cancel_upload_button.setText("Cancel Download" if active else "Cancel Upload")
+        if not active:
+            self.progress_bar.reset()
+        self._update_action_states()
+
+    def _open_version(self):
+        self._emit_ready_source(validate=False)
+
+    def _validate_version(self):
+        self._emit_ready_source(validate=True)
+
+    def _emit_ready_source(self, validate):
+        location = self._cache_location()
+        if not location or not self.version_open_service:
+            return
+        try:
+            root_path = self.version_open_service.open_path(self.file_model.records, location)
+        except Exception as error:
+            QMessageBox.warning(self, "Version Not Ready", str(error))
+            return
+        signal = self.local_source_validation_requested if validate else self.local_source_open_requested
+        signal.emit(str(root_path))
+        self.status_label.setText(
+            f"{'Validating' if validate else 'Opened'} cached version root: {root_path}"
+        )
+
     def _download_file(self):
         stored_file = self._selected_file()
         location = self._cache_location()
@@ -436,7 +541,9 @@ class StorageWorkspace(QWidget):
             self.download_service.download(stored_file, location)
 
     def _cancel_active_transfer(self):
-        if self.download_service and self.download_service.active:
+        if self.version_download_service and self.version_download_service.active:
+            self.version_download_service.cancel()
+        elif self.download_service and self.download_service.active:
             self.download_service.cancel()
         elif self.transfer_service and self.transfer_service.active:
             self.transfer_service.cancel()
@@ -451,7 +558,7 @@ class StorageWorkspace(QWidget):
         stored_file = self._selected_file()
         if stored_file:
             self._update_file_cache_status(stored_file)
-        self._update_action_states()
+        self._update_version_readiness()
 
     def _download_failed(self, message):
         self.status_label.setText(f"Download failed: {message}")
@@ -487,7 +594,7 @@ class StorageWorkspace(QWidget):
         )
         self._update_file_cache_status(stored_file)
         self.status_label.setText("Local cached file removed. Remote content was not changed.")
-        self._update_action_states()
+        self._update_version_readiness()
 
     def _clear_version_cache(self):
         location = self._cache_location()
@@ -509,7 +616,7 @@ class StorageWorkspace(QWidget):
         for stored_file in self.file_model.records:
             self._update_file_cache_status(stored_file)
         self.status_label.setText("Local version cache cleared. Remote content was not changed.")
-        self._update_action_states()
+        self._update_version_readiness()
 
     def _show_cache_settings(self):
         if not self.cache_settings:
@@ -521,6 +628,8 @@ class StorageWorkspace(QWidget):
             from s_usd_desktop.cache import CacheManager
             self.cache_manager = CacheManager(configuration)
             self.download_service.cache_manager = self.cache_manager
+            self.version_open_service.cache_manager = self.cache_manager
+            self.version_download_service.cache_manager = self.cache_manager
             for stored_file in self.file_model.records:
                 self._update_file_cache_status(stored_file)
             self.status_label.setText(f"Cache location changed to {configuration.root}")
@@ -546,12 +655,14 @@ class StorageWorkspace(QWidget):
             self.detail_status.setText("Status: —")
             self.detail_comment.setText("Comment: —")
             self.detail_files.setText("Files: 0")
+            self.detail_readiness.setText("Readiness: —")
             return
 
         self.detail_title.setText(version.display_name)
         self.detail_status.setText(f"Status: {version.status}")
         self.detail_comment.setText(f"Comment: {version.comment or '—'}")
         self.detail_files.setText("Files: loading...")
+        self.detail_readiness.setText("Readiness: loading...")
 
     def _clear_all(self):
         self.current_project_id = None
