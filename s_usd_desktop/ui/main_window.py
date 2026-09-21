@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QDialog,
     QTabBar,
     QTabWidget,
     QVBoxLayout,
@@ -12,6 +13,7 @@ from PySide6.QtWidgets import (
 
 from s_usd_core.validation.profile_loader import ProfileLoader
 from s_usd_core.rules import build_registry
+from s_usd_desktop.services import ConnectionService
 
 from .stylesheet import (
     dark_theme,
@@ -22,7 +24,9 @@ from .stylesheet import (
 from .widgets.validation_view import ValidationView
 from .widgets.profile_editor import ProfileEditor
 from .widgets.comparison_browser import ComparisonView
-from .widgets.usd_viewport import UsdViewportWidget
+from .widgets.usd_viewport import create_usd_viewport
+from .widgets.connection import ConnectionIndicator
+from .dialogs.connection_settings import ConnectionSettingsDialog
 
 def _change_theme(self, index):
     themes = (
@@ -40,16 +44,20 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("USDvalidator")
+        self.setWindowTitle("S-USDv")
         self.resize(1280, 800)
 
         self.profile_loader = ProfileLoader("s_usd_core/validation/profiles.json")
 
         self.registry = build_registry()
+        self.connection_service = ConnectionService(parent=self)
 
         self._build_ui()
         self._connect_signals()
         self._change_theme(self.theme_selector.currentIndex())
+
+        if self.connection_service.preferences.auto_connect:
+            self.connection_service.connect_to_service()
 
     def _build_ui(self):
         central_widget = QWidget()
@@ -76,6 +84,9 @@ class MainWindow(QMainWindow):
 
         # Push theme controls to the right
         top_layout.addStretch()
+        self.connection_indicator = ConnectionIndicator()
+        top_layout.addWidget(self.connection_indicator)
+        top_layout.addSpacing(10)
         top_layout.addWidget(QLabel("Theme"))
         self.theme_selector = QComboBox()
         self.theme_selector.addItems(
@@ -102,7 +113,7 @@ class MainWindow(QMainWindow):
             registry=self.registry,)
 
         self.comparison_view = ComparisonView(profile_loader=self.profile_loader)
-        self.viewport_view = UsdViewportWidget()
+        self.viewport_view = create_usd_viewport()
         self.tabs.addTab(self.validation_view, "Validation")
         self.tabs.addTab(self.profile_editor, "Profiles")
         self.tabs.addTab(self.comparison_view, "Comparison")
@@ -120,6 +131,43 @@ class MainWindow(QMainWindow):
         self.viewport_view.validation_requested.connect(self._validate_viewport_source)
         self.validation_view.report_ready.connect(self._handle_validation_report)
         self.validation_view.validation_finished.connect(self.viewport_view.retry_pending_validation)
+        self.connection_indicator.reconnect_requested.connect(
+            self.connection_service.connect_to_service
+        )
+        self.connection_indicator.settings_requested.connect(
+            self._show_connection_settings
+        )
+        self.connection_service.state_changed.connect(
+            self._update_connection_indicator
+        )
+        self.connection_service.connected.connect(
+            lambda health: self._update_connection_indicator(
+                self.connection_service.state,
+                health
+            )
+        )
+        self.connection_service.connection_failed.connect(
+            lambda error: self._update_connection_indicator(
+                self.connection_service.state,
+                error=error
+            )
+        )
+
+    def _update_connection_indicator(self, state, health=None, error=""):
+        self.connection_indicator.set_state(
+            state,
+            health or self.connection_service.health,
+            error or self.connection_service.last_error
+        )
+
+    def _show_connection_settings(self):
+        dialog = ConnectionSettingsDialog(
+            self.connection_service.preferences,
+            self
+        )
+
+        if dialog.exec() == QDialog.Accepted:
+            self.connection_service.apply_preferences(dialog.preferences())
 
     def _open_validation_result_in_viewport(self, report, result):
         index = self.tabs.indexOf(self.viewport_view)

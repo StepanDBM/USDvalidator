@@ -9,6 +9,8 @@ from .ui.main_window import MainWindow
 
 def main():
     application = QApplication(sys.argv)
+    application.setOrganizationName("Styopa")
+    application.setApplicationName("S-USDv")
     application.setStyle("Fusion")
 
     window = MainWindow()

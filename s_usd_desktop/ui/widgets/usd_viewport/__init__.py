@@ -1,4 +1,3 @@
-from .stage_view_adapter import StageViewAdapter, owning_prim_path
-from .viewport_widget import UsdViewportWidget
+from .factory import create_usd_viewport
 
-__all__ = ["StageViewAdapter", "UsdViewportWidget", "owning_prim_path"]
+__all__ = ["create_usd_viewport"]
