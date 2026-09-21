@@ -3,6 +3,7 @@ from s_usd_desktop.services.catalog_service import CatalogService
 from s_usd_desktop.services.download_service import DownloadService
 from s_usd_desktop.services.version_download_service import VersionDownloadService
 from s_usd_desktop.services.version_open_service import VersionOpenService
+from s_usd_desktop.services.validation_submission_service import ValidationSubmissionService
 from s_usd_desktop.services.transfer_service import TransferService
 from s_usd_desktop.services.connection_service import ConnectionState
 from s_usd_desktop.ui.storage.workspace import StorageWorkspace
@@ -42,8 +43,38 @@ def install_storage_workspace(window):
     window.storage_workspace.local_source_open_requested.connect(
         lambda path: _open_cached_source(window, path, validate=False)
     )
+    window.validation_submission_service = ValidationSubmissionService(
+        window.connection_service,
+        parent=window
+    )
     window.storage_workspace.local_source_validation_requested.connect(
-        lambda path: _open_cached_source(window, path, validate=True)
+        lambda path, version_id, stored_file_id: _validate_cached_source(
+            window,
+            path,
+            version_id,
+            stored_file_id
+        )
+    )
+    window.validation_view.report_ready.connect(
+        window.validation_submission_service.submit_matching_report
+    )
+    window.validation_submission_service.submission_started.connect(
+        lambda _target: window.storage_workspace.status_label.setText(
+            "Validation complete. Saving validation history..."
+        )
+    )
+    window.validation_submission_service.submission_completed.connect(
+        lambda record: window.storage_workspace.status_label.setText(
+            f"Validation history saved: {record.id}"
+        )
+    )
+    window.validation_submission_service.submission_failed.connect(
+        lambda message: window.storage_workspace.status_label.setText(
+            f"Validation completed, but history could not be saved: {message}"
+        )
+    )
+    window.validation_submission_service.submission_skipped.connect(
+        window.storage_workspace.status_label.setText
     )
     window.tabs.addTab(window.storage_workspace, "Storage")
     window.tab_bar.addTab("Storage")
@@ -63,10 +94,20 @@ def install_storage_workspace(window):
     return window.storage_workspace
 
 
-def _open_cached_source(window, path, validate):
+def _open_cached_source(window, path, validate=False):
     window.validation_view.source_selector.set_source(path)
-    if validate:
-        window.validation_view.validate_source(path)
     index = window.tabs.indexOf(window.validation_view)
     window.tabs.setCurrentIndex(index)
     window.tab_bar.setCurrentIndex(index)
+
+
+def _validate_cached_source(window, path, version_id, stored_file_id):
+    window.validation_submission_service.expect_report(
+        version_id,
+        stored_file_id,
+        path
+    )
+    _open_cached_source(window, path)
+
+    if not window.validation_view.validate_source(path):
+        window.validation_submission_service.clear_pending()

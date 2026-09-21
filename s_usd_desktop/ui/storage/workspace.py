@@ -36,7 +36,7 @@ from s_usd_desktop.ui.storage.models import (
 
 class StorageWorkspace(QWidget):
     local_source_open_requested = Signal(str)
-    local_source_validation_requested = Signal(str)
+    local_source_validation_requested = Signal(str, object, object)
     def __init__(self, catalog_service, parent=None):
         super().__init__(parent)
         self.catalog_service = catalog_service
@@ -528,8 +528,15 @@ class StorageWorkspace(QWidget):
         except Exception as error:
             QMessageBox.warning(self, "Version Not Ready", str(error))
             return
-        signal = self.local_source_validation_requested if validate else self.local_source_open_requested
-        signal.emit(str(root_path))
+        if validate:
+            resolution = self._version_resolution()
+            self.local_source_validation_requested.emit(
+                str(root_path),
+                self.current_version_id,
+                resolution.root_file.id
+            )
+        else:
+            self.local_source_open_requested.emit(str(root_path))
         self.status_label.setText(
             f"{'Validating' if validate else 'Opened'} cached version root: {root_path}"
         )

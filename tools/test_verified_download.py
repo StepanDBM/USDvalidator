@@ -2,7 +2,7 @@ from s_usd_desktop.cache import CacheLocation, CacheManager, VerifiedDownloader
 from s_usd_desktop.client import FileClient, SUsdvApiClient
 
 
-file_id = "599a77dc-6d89-4b79-a063-d70e1d730b1c"
+file_id = "PASTE-STORED-FILE-UUID" #ex: "599a77dc-6d89-4b79-a063-d70e1d730b1c"
 
 with SUsdvApiClient() as api:
     files = FileClient(api)

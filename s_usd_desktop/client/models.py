@@ -166,3 +166,55 @@ class StoredFileCollection:
             items=tuple(StoredFileRecord.from_dict(item) for item in data["items"]),
             count=data["count"]
         )
+
+@dataclass(frozen=True, slots=True)
+class ValidationRunRecord:
+    id: UUID
+    version_id: UUID
+    stored_file_id: UUID | None
+    profile_name: str
+    report_schema_version: str
+    tool_name: str
+    tool_version: str
+    configuration_fingerprint: str
+    check_catalog_fingerprint: str
+    started_at: datetime
+    completed_at: datetime
+    duration_seconds: float
+    publish_passed: bool
+    total_count: int
+    passed_count: int
+    failed_count: int
+    skipped_count: int
+    error_count: int
+    warning_count: int
+    created_at: datetime
+    updated_at: datetime
+    report: dict | None = None
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+            id=parse_uuid(data["id"]),
+            version_id=parse_uuid(data["version_id"]),
+            stored_file_id=parse_uuid(data["stored_file_id"]) if data.get("stored_file_id") else None,
+            profile_name=data["profile_name"],
+            report_schema_version=data["report_schema_version"],
+            tool_name=data["tool_name"],
+            tool_version=data["tool_version"],
+            configuration_fingerprint=data["configuration_fingerprint"],
+            check_catalog_fingerprint=data["check_catalog_fingerprint"],
+            started_at=parse_datetime(data["started_at"]),
+            completed_at=parse_datetime(data["completed_at"]),
+            duration_seconds=float(data["duration_seconds"]),
+            publish_passed=bool(data["publish_passed"]),
+            total_count=int(data["total_count"]),
+            passed_count=int(data["passed_count"]),
+            failed_count=int(data["failed_count"]),
+            skipped_count=int(data["skipped_count"]),
+            error_count=int(data["error_count"]),
+            warning_count=int(data["warning_count"]),
+            created_at=parse_datetime(data["created_at"]),
+            updated_at=parse_datetime(data["updated_at"]),
+            report=data.get("report")
+        )
