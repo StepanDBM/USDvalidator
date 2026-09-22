@@ -8,6 +8,7 @@ from pxr import Gf, Sdf, Usd, UsdGeom
 from pxr.Usdviewq.common import SelectionHighlightModes
 from pxr.Usdviewq.viewSettingsDataModel import RefinementComplexities
 from pxr.Usdviewq.stageView import StageView
+from pxr.Usdviewq.common import ClearColors
 
 
 class StageViewAdapter(StageView):
@@ -220,10 +221,22 @@ class StageViewAdapter(StageView):
         self._dataModel.viewSettings.domeLightTexturesVisible = bool(enabled)
 
     def set_background_color(self, color):
-        qcolor = QColor(color)
-        self._dataModel.viewSettings.clearColor = Gf.Vec4f(
-            qcolor.redF(), qcolor.greenF(), qcolor.blueF(), 1.0
-        )
+        clear_colors = {
+            "#000000": ClearColors.BLACK,
+            "#404040": ClearColors.DARK_GREY,
+            "#a0a0a0": ClearColors.LIGHT_GREY,
+            "#ffffff": ClearColors.WHITE,
+        }
+        color_key = str(color).lower()
+        clear_color = clear_colors.get(color_key)
+
+        if clear_color is None:
+            raise ValueError(f"Unsupported viewport background color: {color}")
+
+        self._dataModel.viewSettings.clearColorText = clear_color
+        self.SetForceRefresh(True)
+        self.updateView()
+        self.update()
 
     def set_selection_highlight(self, enabled):
         settings = self._dataModel.viewSettings

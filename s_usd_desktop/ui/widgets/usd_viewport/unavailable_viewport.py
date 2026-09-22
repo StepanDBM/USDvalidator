@@ -1,34 +1,56 @@
 from PySide6.QtCore import Signal
-from PySide6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QApplication,
+    QLabel,
+    QPlainTextEdit,
+    QPushButton,
+    QVBoxLayout,
+    QWidget
+)
 
 
 class UnavailableUsdViewportWidget(QWidget):
     validation_requested = Signal(str, bool)
 
-    def __init__(self, reason="", parent=None):
+    def __init__(self, capabilities, startup_error="", parent=None):
         super().__init__(parent)
+        self.capabilities = capabilities
+        self.startup_error = startup_error
 
         title = QLabel("USD Viewport Unavailable")
         title.setStyleSheet("font-size: 18px; font-weight: bold;")
 
         description = QLabel(
-            "The installed OpenUSD runtime does not include pxr.Usdviewq, "
-            "which S-USDv currently uses for the embedded viewport.\n\n"
-            "Validation, comparison, profiles, storage, and service "
-            "connectivity remain available."
+            "S-USDv started without the embedded viewport because the current "
+            "runtime does not satisfy every viewport capability. Validation, "
+            "comparison, profiles, storage, cache, and service workflows remain "
+            "available."
         )
         description.setWordWrap(True)
 
-        details = QLabel(reason)
+        reason = startup_error or "\n".join(capabilities.unavailable_reasons)
+        details = QLabel(reason or "Viewport initialization was unsuccessful.")
         details.setWordWrap(True)
-        details.setTextInteractionFlags(details.textInteractionFlags())
         details.setStyleSheet("color: #d69e2e;")
+
+        self.diagnostics = QPlainTextEdit(capabilities.diagnostic_text())
+        if startup_error:
+            self.diagnostics.appendPlainText(f"\nStartup error: {startup_error}")
+        self.diagnostics.setReadOnly(True)
+        self.diagnostics.setMinimumHeight(220)
+
+        copy_button = QPushButton("Copy Runtime Diagnostics")
+        copy_button.clicked.connect(
+            lambda: QApplication.clipboard().setText(self.diagnostics.toPlainText())
+        )
 
         layout = QVBoxLayout(self)
         layout.addStretch()
         layout.addWidget(title)
         layout.addWidget(description)
         layout.addWidget(details)
+        layout.addWidget(self.diagnostics)
+        layout.addWidget(copy_button)
         layout.addStretch()
 
     def shutdown(self):
