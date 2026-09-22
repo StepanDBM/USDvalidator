@@ -274,7 +274,12 @@ class StorageWorkspace(QWidget):
     def set_stored_comparison_service(self, service):
         self.stored_comparison_service = service
         service.pair_loaded.connect(self._comparison_pair_loaded)
+        service.pair_prepared.connect(self._comparison_pair_prepared)
         service.loading_changed.connect(self._comparison_pair_loading)
+        service.preparing_changed.connect(self._comparison_preparing_changed)
+        service.preparation_progress.connect(self._comparison_preparation_progress)
+        service.preparation_failed.connect(self._comparison_preparation_failed)
+        service.preparation_cancelled.connect(self._comparison_preparation_cancelled)
         service.request_failed.connect(self._comparison_pair_failed)
 
     def set_validation_history_service(self, service):
@@ -314,7 +319,12 @@ class StorageWorkspace(QWidget):
         transfer_service.active_changed.connect(self._transfer_active_changed)
 
     def _update_action_states(self):
-        active = bool((self.transfer_service and self.transfer_service.active) or (self.download_service and self.download_service.active) or (self.version_download_service and self.version_download_service.active))
+        active = bool(
+            (self.transfer_service and self.transfer_service.active) or
+            (self.download_service and self.download_service.active) or
+            (self.version_download_service and self.version_download_service.active) or
+            (self.stored_comparison_service and self.stored_comparison_service.preparing)
+        )
         self.create_asset_button.setEnabled(self.connected and self.current_project_id is not None and not active)
         self.create_stream_button.setEnabled(self.connected and self.current_asset_id is not None and not active)
         self.create_version_button.setEnabled(self.connected and self.current_stream_id is not None and not active)
@@ -408,8 +418,46 @@ class StorageWorkspace(QWidget):
             return
         if self.comparison_pair.ready:
             self.comparison_pair_ready.emit(self.comparison_pair)
-        else:
-            self.comparison_preparation_requested.emit(self.comparison_pair)
+        elif self.stored_comparison_service:
+            self.stored_comparison_service.prepare_pair(self.comparison_pair)
+
+    def _comparison_pair_prepared(self, pair):
+        self.comparison_pair = pair
+        self.comparison_selection_label.setText(
+            f"Comparison: v{pair.base.version_number:04d} Previous / Base → "
+            f"v{pair.target.version_number:04d} Current / Target | Ready"
+        )
+        self.status_label.setText("Comparison sources prepared and verified.")
+        self.comparison_pair_ready.emit(pair)
+
+    def _comparison_preparing_changed(self, preparing):
+        self.version_view.setEnabled(not preparing)
+        self.progress_bar.setVisible(preparing)
+        self.cancel_upload_button.setVisible(preparing)
+        self.cancel_upload_button.setText("Cancel Preparation" if preparing else "Cancel Upload")
+        self.compare_versions_button.setText(
+            "Preparing Comparison..." if preparing else
+            "Compare Versions" if self.comparison_pair and self.comparison_pair.ready else
+            "Prepare Comparison"
+        )
+        if not preparing:
+            self.progress_bar.reset()
+        self._update_action_states()
+
+    def _comparison_preparation_progress(self, transferred, total, relative_path):
+        self.progress_bar.setMaximum(max(total, 1))
+        self.progress_bar.setValue(transferred)
+        self.status_label.setText(
+            f"Preparing comparison: {relative_path} "
+            f"({transferred:,} of {total:,} bytes)..."
+        )
+
+    def _comparison_preparation_failed(self, message):
+        self.status_label.setText(f"Comparison preparation failed: {message}")
+        QMessageBox.warning(self, "Comparison Preparation Failed", message)
+
+    def _comparison_preparation_cancelled(self):
+        self.status_label.setText("Comparison preparation cancelled.")
 
     def _create_project(self):
         dialog = CreateProjectDialog(self)
@@ -687,7 +735,9 @@ class StorageWorkspace(QWidget):
             self.download_service.download(stored_file, location)
 
     def _cancel_active_transfer(self):
-        if self.version_download_service and self.version_download_service.active:
+        if self.stored_comparison_service and self.stored_comparison_service.preparing:
+            self.stored_comparison_service.cancel_preparation()
+        elif self.version_download_service and self.version_download_service.active:
             self.version_download_service.cancel()
         elif self.download_service and self.download_service.active:
             self.download_service.cancel()

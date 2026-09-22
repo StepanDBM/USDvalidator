@@ -202,6 +202,9 @@ class ComparisonView(QWidget):
         self.previous_edit.setText(str(previous_path))
         self.current_edit.setText(str(current_path))
 
+    def start_comparison(self):
+        self._compare()
+
     def _browse_previous(self):
         self._browse_into(
             self.previous_edit,

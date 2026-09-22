@@ -1,3 +1,5 @@
+from PySide6.QtCore import QTimer
+
 from s_usd_desktop.cache import CacheManager
 from s_usd_desktop.services.catalog_service import CatalogService
 from s_usd_desktop.services.download_service import DownloadService
@@ -163,3 +165,4 @@ def _open_stored_comparison(window, pair):
     index = window.tabs.indexOf(window.comparison_view)
     window.tabs.setCurrentIndex(index)
     window.tab_bar.setCurrentIndex(index)
+    QTimer.singleShot(0, window.comparison_view.start_comparison)
