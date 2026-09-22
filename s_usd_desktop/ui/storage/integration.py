@@ -5,6 +5,7 @@ from s_usd_desktop.services.version_download_service import VersionDownloadServi
 from s_usd_desktop.services.version_open_service import VersionOpenService
 from s_usd_desktop.services.validation_submission_service import ValidationSubmissionService
 from s_usd_desktop.services.validation_history_service import ValidationHistoryService
+from s_usd_desktop.services.stored_comparison_service import StoredComparisonService
 from s_usd_desktop.services.transfer_service import TransferService
 from s_usd_desktop.services.connection_service import ConnectionState
 from s_usd_desktop.ui.storage.workspace import StorageWorkspace
@@ -30,6 +31,22 @@ def install_storage_workspace(window):
         window.cache_manager,
         window.download_service,
         window.cache_settings
+    )
+    window.stored_comparison_service = StoredComparisonService(
+        window.connection_service,
+        window.cache_manager,
+        parent=window
+    )
+    window.storage_workspace.set_stored_comparison_service(
+        window.stored_comparison_service
+    )
+    window.storage_workspace.comparison_pair_ready.connect(
+        lambda pair: _open_stored_comparison(window, pair)
+    )
+    window.storage_workspace.comparison_preparation_requested.connect(
+        lambda _pair: window.storage_workspace.status_label.setText(
+            "Nope, not yet integrated, but this signal works :D"
+        )
     )
     window.version_open_service = VersionOpenService(window.cache_manager)
     window.version_download_service = VersionDownloadService(
@@ -137,5 +154,12 @@ def _show_historical_report(window, report):
     if Path(report.source_path).is_file():
         window.validation_view.source_selector.set_source(report.source_path)
     index = window.tabs.indexOf(window.validation_view)
+    window.tabs.setCurrentIndex(index)
+    window.tab_bar.setCurrentIndex(index)
+
+
+def _open_stored_comparison(window, pair):
+    window.comparison_view.set_sources(pair.base.root_path, pair.target.root_path)
+    index = window.tabs.indexOf(window.comparison_view)
     window.tabs.setCurrentIndex(index)
     window.tab_bar.setCurrentIndex(index)

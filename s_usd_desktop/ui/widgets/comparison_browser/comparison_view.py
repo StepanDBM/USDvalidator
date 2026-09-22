@@ -198,6 +198,10 @@ class ComparisonView(QWidget):
 
         return layout, edit, button
 
+    def set_sources(self, previous_path, current_path):
+        self.previous_edit.setText(str(previous_path))
+        self.current_edit.setText(str(current_path))
+
     def _browse_previous(self):
         self._browse_into(
             self.previous_edit,

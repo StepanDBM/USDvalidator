@@ -1,3 +1,9 @@
+from s_usd_desktop.services.stored_comparison_service import (
+    ComparisonPairReadiness,
+    StoredComparisonService,
+    StoredVersionComparisonPair,
+    StoredVersionComparisonSource
+)
 from s_usd_desktop.services.validation_history_service import ValidationHistoryService
 from s_usd_desktop.services.validation_submission_service import (
     StoredValidationTarget,
@@ -18,6 +24,10 @@ from s_usd_desktop.services.connection_service import ConnectionService, Connect
 from s_usd_desktop.services.desktop_settings import ConnectionPreferences, DesktopSettings
 
 __all__ = [
+    "ComparisonPairReadiness",
+    "StoredComparisonService",
+    "StoredVersionComparisonPair",
+    "StoredVersionComparisonSource",
     "ValidationHistoryService",
     "StoredValidationTarget",
     "ValidationSubmissionService",

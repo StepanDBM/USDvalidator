@@ -39,6 +39,8 @@ class StorageWorkspace(QWidget):
     local_source_open_requested = Signal(str)
     local_source_validation_requested = Signal(str, object, object)
     historical_report_ready = Signal(object)
+    comparison_pair_ready = Signal(object)
+    comparison_preparation_requested = Signal(object)
     def __init__(self, catalog_service, parent=None):
         super().__init__(parent)
         self.catalog_service = catalog_service
@@ -49,6 +51,8 @@ class StorageWorkspace(QWidget):
         self.version_open_service = None
         self.version_download_service = None
         self.validation_history_service = None
+        self.stored_comparison_service = None
+        self.comparison_pair = None
         self.connected = False
         self.current_project_id = None
         self.current_asset_id = None
@@ -77,6 +81,7 @@ class StorageWorkspace(QWidget):
         self.download_version_button = QPushButton("Download Version")
         self.open_version_button = QPushButton("Open Version")
         self.validate_version_button = QPushButton("Validate Version")
+        self.compare_versions_button = QPushButton("Compare Versions")
         self.reveal_button = QPushButton("Reveal")
         self.remove_cache_button = QPushButton("Remove Cache")
         self.clear_version_cache_button = QPushButton("Clear Version Cache")
@@ -96,6 +101,7 @@ class StorageWorkspace(QWidget):
         header.addWidget(self.download_version_button)
         header.addWidget(self.open_version_button)
         header.addWidget(self.validate_version_button)
+        header.addWidget(self.compare_versions_button)
         header.addWidget(self.reveal_button)
         header.addWidget(self.remove_cache_button)
         header.addWidget(self.clear_version_cache_button)
@@ -106,6 +112,7 @@ class StorageWorkspace(QWidget):
         self.asset_view = self._make_list(self.asset_model)
         self.stream_view = self._make_list(self.stream_model)
         self.version_view = self._make_table(self.version_model)
+        self.version_view.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.version_view.horizontalHeader().setStretchLastSection(True)
         browser = QSplitter(Qt.Horizontal)
         browser.addWidget(self._group("Projects", self.project_view))
@@ -166,6 +173,9 @@ class StorageWorkspace(QWidget):
         main_splitter.setSizes([380, 240, 220])
         layout = QVBoxLayout(self)
         layout.addLayout(header)
+        self.comparison_selection_label = QLabel("Comparison: select exactly two versions with Ctrl+Click.")
+        self.comparison_selection_label.setWordWrap(True)
+        layout.addWidget(self.comparison_selection_label)
         layout.addWidget(self.status_label)
         layout.addLayout(transfer_row)
         layout.addWidget(main_splitter, 1)
@@ -207,6 +217,7 @@ class StorageWorkspace(QWidget):
         self.download_version_button.clicked.connect(lambda: self._download_version(root_only=False))
         self.open_version_button.clicked.connect(self._open_version)
         self.validate_version_button.clicked.connect(self._validate_version)
+        self.compare_versions_button.clicked.connect(self._compare_selected_versions)
         self.reveal_button.clicked.connect(self._reveal_cached_file)
         self.remove_cache_button.clicked.connect(self._remove_cached_file)
         self.clear_version_cache_button.clicked.connect(self._clear_version_cache)
@@ -215,6 +226,9 @@ class StorageWorkspace(QWidget):
         self.asset_view.selectionModel().currentChanged.connect(self._asset_selected)
         self.stream_view.selectionModel().currentChanged.connect(self._stream_selected)
         self.version_view.selectionModel().currentChanged.connect(self._version_selected)
+        self.version_view.selectionModel().selectionChanged.connect(
+            lambda _selected, _deselected: self._version_comparison_selection_changed()
+        )
         self.file_view.selectionModel().currentChanged.connect(self._file_selected)
         self.validation_history_view.selectionModel().currentChanged.connect(
             lambda _current, _previous: self._update_history_actions()
@@ -256,6 +270,12 @@ class StorageWorkspace(QWidget):
         self._clear_all()
         self.status_label.setText("Loading projects...")
         self.catalog_service.load_projects()
+
+    def set_stored_comparison_service(self, service):
+        self.stored_comparison_service = service
+        service.pair_loaded.connect(self._comparison_pair_loaded)
+        service.loading_changed.connect(self._comparison_pair_loading)
+        service.request_failed.connect(self._comparison_pair_failed)
 
     def set_validation_history_service(self, service):
         self.validation_history_service = service
@@ -314,6 +334,82 @@ class StorageWorkspace(QWidget):
         ready = bool(resolution and resolution.ready)
         self.open_version_button.setEnabled(ready and not active)
         self.validate_version_button.setEnabled(ready and not active)
+        pair_ready = bool(self.comparison_pair and self.comparison_pair.ready)
+        pair_preparable = bool(
+            self.comparison_pair and
+            self.comparison_pair.readiness.value == "preparation_required"
+        )
+        self.compare_versions_button.setEnabled(
+            self.connected and (pair_ready or pair_preparable) and not active
+        )
+
+    def _selected_versions(self):
+        rows = sorted({index.row() for index in self.version_view.selectionModel().selectedRows()})
+        return tuple(
+            record for row in rows
+            if (record := self.version_model.record_at(row)) is not None
+        )
+
+    def _version_comparison_selection_changed(self):
+        versions = self._selected_versions()
+        self.comparison_pair = None
+        if self.stored_comparison_service:
+            self.stored_comparison_service.invalidate()
+        if len(versions) != 2:
+            self.comparison_selection_label.setText(
+                "Comparison: select exactly two versions with Ctrl+Click."
+                if len(versions) < 2 else
+                f"Comparison: {len(versions)} versions selected; select exactly two."
+            )
+            self.compare_versions_button.setText("Compare Versions")
+            self._update_action_states()
+            return
+        versions = tuple(sorted(versions, key=lambda item: item.number))
+        self.comparison_selection_label.setText(
+            f"Comparison: v{versions[0].number:04d} Previous / Base → "
+            f"v{versions[1].number:04d} Current / Target | Checking cache..."
+        )
+        self.compare_versions_button.setText("Checking Comparison...")
+        project = self.project_model.record_at(self.project_view.currentIndex().row())
+        asset = self.asset_model.record_at(self.asset_view.currentIndex().row())
+        stream = self.stream_model.record_at(self.stream_view.currentIndex().row())
+        if all((project, asset, stream, self.stored_comparison_service)):
+            self.stored_comparison_service.resolve_pair(
+                project.code, asset.code, stream.name, versions
+            )
+        self._update_action_states()
+
+    def _comparison_pair_loaded(self, pair):
+        self.comparison_pair = pair
+        self.comparison_selection_label.setText(
+            f"Comparison: v{pair.base.version_number:04d} Previous / Base → "
+            f"v{pair.target.version_number:04d} Current / Target | {pair.message}"
+        )
+        self.compare_versions_button.setText(
+            "Compare Versions" if pair.ready else
+            "Prepare Comparison" if pair.readiness.value == "preparation_required" else
+            "Comparison Unavailable"
+        )
+        self._update_action_states()
+
+    def _comparison_pair_loading(self, loading):
+        if loading:
+            self.compare_versions_button.setText("Checking Comparison...")
+        self._update_action_states()
+
+    def _comparison_pair_failed(self, message):
+        self.comparison_pair = None
+        self.comparison_selection_label.setText(f"Comparison unavailable: {message}")
+        self.compare_versions_button.setText("Compare Versions")
+        self._update_action_states()
+
+    def _compare_selected_versions(self):
+        if not self.comparison_pair:
+            return
+        if self.comparison_pair.ready:
+            self.comparison_pair_ready.emit(self.comparison_pair)
+        else:
+            self.comparison_preparation_requested.emit(self.comparison_pair)
 
     def _create_project(self):
         dialog = CreateProjectDialog(self)
@@ -680,6 +776,8 @@ class StorageWorkspace(QWidget):
             self.download_service.cache_manager = self.cache_manager
             self.version_open_service.cache_manager = self.cache_manager
             self.version_download_service.cache_manager = self.cache_manager
+            if self.stored_comparison_service:
+                self.stored_comparison_service.cache_manager = self.cache_manager
             for stored_file in self.file_model.records:
                 self._update_file_cache_status(stored_file)
             self.status_label.setText(f"Cache location changed to {configuration.root}")

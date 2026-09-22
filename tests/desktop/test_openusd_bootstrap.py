@@ -10,6 +10,10 @@ from s_usd_desktop.runtime.bootstrap import (
     discover_openusd_runtime
 )
 
+def isolate_pxr_modules(monkeypatch):
+    for name in tuple(sys.modules):
+        if name == "pxr" or name.startswith("pxr."):
+            monkeypatch.delitem(sys.modules, name)
 
 def make_runtime(root):
     for path in (
@@ -39,6 +43,7 @@ def test_discovers_sibling_setup_from_project(tmp_path):
 
 def test_bootstrap_prepends_runtime_paths(tmp_path, monkeypatch):
     setup = make_runtime(tmp_path / "Setup")
+    isolate_pxr_modules(monkeypatch)
     monkeypatch.setattr(sys, "path", list(sys.path))
     monkeypatch.setenv("PATH", "existing")
     monkeypatch.delenv("PXR_PLUGINPATH_NAME", raising=False)
@@ -50,9 +55,11 @@ def test_bootstrap_prepends_runtime_paths(tmp_path, monkeypatch):
     assert Path(sys.path[0]) == setup / "lib/python"
     assert os.environ["PATH"].split(os.pathsep)[:2] == [
         str(setup / "lib"),
-        str(setup / "bin")
+        str(setup / "bin"),
     ]
-    assert os.environ["PXR_PLUGINPATH_NAME"].split(os.pathsep)[0] == str(setup / "plugin/usd")
+    assert os.environ["PXR_PLUGINPATH_NAME"].split(os.pathsep)[0] == str(
+        setup / "plugin/usd"
+    )
     assert os.environ["S_USDV_OPENUSD_ROOT"] == str(setup.resolve())
 
 
