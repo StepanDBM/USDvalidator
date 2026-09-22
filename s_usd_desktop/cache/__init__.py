@@ -18,6 +18,7 @@ from s_usd_desktop.cache.errors import (
 )
 from s_usd_desktop.cache.index import CacheIndex, VersionCacheManifest
 from s_usd_desktop.cache.manager import CacheManager
+from s_usd_desktop.cache.recognizer import ManagedCacheRecognizer, ManagedCacheSource
 from s_usd_desktop.cache.paths import CachePaths, normalize_relative_path, safe_component
 
 __all__ = [
@@ -37,6 +38,8 @@ __all__ = [
     "CacheIndex",
     "CacheManager",
     "CacheManifestError",
+    "ManagedCacheRecognizer",
+    "ManagedCacheSource",
     "CachePaths",
     "InvalidCachePathError",
     "VersionCacheManifest",

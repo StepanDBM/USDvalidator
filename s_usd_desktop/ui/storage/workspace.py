@@ -41,6 +41,7 @@ class StorageWorkspace(QWidget):
     historical_report_ready = Signal(object)
     comparison_pair_ready = Signal(object)
     comparison_preparation_requested = Signal(object)
+    cache_root_changed = Signal(object)
     def __init__(self, catalog_service, parent=None):
         super().__init__(parent)
         self.catalog_service = catalog_service
@@ -830,6 +831,7 @@ class StorageWorkspace(QWidget):
                 self.stored_comparison_service.cache_manager = self.cache_manager
             for stored_file in self.file_model.records:
                 self._update_file_cache_status(stored_file)
+            self.cache_root_changed.emit(configuration.root)
             self.status_label.setText(f"Cache location changed to {configuration.root}")
             self._update_action_states()
 

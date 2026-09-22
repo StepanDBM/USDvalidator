@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from s_usd_core.comparison.source_preflight import DiffMode, DiffScale, inspect_source_diff
+from s_usd_desktop.cache import ManagedCacheRecognizer, default_cache_root
 from s_usd_desktop.ui.dialogs.large_diff_dialog import LargeDiffDialog
 from s_usd_desktop.ui.workers import ComparisonWorker
 
@@ -35,6 +36,9 @@ class ComparisonView(QWidget):
         self.comparison = None
         self.worker = None
         self.worker_thread = None
+        self.cache_recognizer = ManagedCacheRecognizer(default_cache_root())
+        self.previous_source = None
+        self.current_source = None
 
         self._build_ui()
         self._connect_signals()
@@ -66,13 +70,23 @@ class ComparisonView(QWidget):
 
         files_row.addWidget(self.profile_combo)
 
-        self.compare_button = QPushButton(
-            "Compare Versions"
-        )
+        self.swap_button = QPushButton("Swap")
+        self.compare_button = QPushButton("Compare Versions")
 
+        files_row.addWidget(self.swap_button)
         files_row.addWidget(self.compare_button)
 
         layout.addLayout(files_row)
+
+        source_context_row = QHBoxLayout()
+        self.previous_context_label = QLabel("Previous: local file")
+        self.current_context_label = QLabel("Current: local file")
+        self.previous_context_label.setWordWrap(True)
+        self.current_context_label.setWordWrap(True)
+        source_context_row.addWidget(self.previous_context_label, 1)
+        source_context_row.addSpacing(12)
+        source_context_row.addWidget(self.current_context_label, 1)
+        layout.addLayout(source_context_row)
 
         status_row = QHBoxLayout()
 
@@ -161,8 +175,13 @@ class ComparisonView(QWidget):
         )
 
     def _connect_signals(self):
-        self.compare_button.clicked.connect(
-            self._compare
+        self.compare_button.clicked.connect(self._compare)
+        self.swap_button.clicked.connect(self.swap_sources)
+        self.previous_edit.textChanged.connect(
+            lambda value: self._source_changed("previous", value)
+        )
+        self.current_edit.textChanged.connect(
+            lambda value: self._source_changed("current", value)
         )
 
         self.show_unchanged.toggled.connect(
@@ -198,9 +217,23 @@ class ComparisonView(QWidget):
 
         return layout, edit, button
 
+    def set_cache_root(self, cache_root):
+        self.cache_recognizer = ManagedCacheRecognizer(cache_root)
+        self._refresh_source_contexts()
+
     def set_sources(self, previous_path, current_path):
         self.previous_edit.setText(str(previous_path))
         self.current_edit.setText(str(current_path))
+        self._refresh_source_contexts()
+
+    def swap_sources(self):
+        if self.worker_thread is not None:
+            return
+        previous = self.previous_edit.text()
+        current = self.current_edit.text()
+        self.previous_edit.setText(current)
+        self.current_edit.setText(previous)
+        self._refresh_source_contexts()
 
     def start_comparison(self):
         self._compare()
@@ -229,6 +262,21 @@ class ComparisonView(QWidget):
 
         if path:
             edit.setText(path)
+
+    def _source_changed(self, side, value):
+        source = self.cache_recognizer.recognize(value) if value else None
+        if side == "previous":
+            self.previous_source = source
+            label = self.previous_context_label
+        else:
+            self.current_source = source
+            label = self.current_context_label
+        prefix = "Previous" if side == "previous" else "Current"
+        label.setText(f"{prefix}: {source.display_name}" if source else f"{prefix}: local file")
+
+    def _refresh_source_contexts(self):
+        self._source_changed("previous", self.previous_edit.text())
+        self._source_changed("current", self.current_edit.text())
 
     def _compare(self):
         if self.worker_thread is not None:
@@ -406,9 +454,8 @@ class ComparisonView(QWidget):
             not running
         )
 
-        self.compare_button.setEnabled(
-            not running
-        )
+        self.compare_button.setEnabled(not running)
+        self.swap_button.setEnabled(not running)
 
         self.show_unchanged.setEnabled(
             not running

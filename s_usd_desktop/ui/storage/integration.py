@@ -24,6 +24,9 @@ def install_storage_workspace(window):
     window.storage_workspace.set_transfer_service(window.transfer_service)
     window.cache_settings = CacheSettings()
     window.cache_manager = CacheManager(window.cache_settings.configuration())
+    window.comparison_view.set_cache_root(
+        window.cache_manager.configuration.root
+    )
     window.download_service = DownloadService(
         window.connection_service,
         cache_manager=window.cache_manager,
@@ -33,6 +36,9 @@ def install_storage_workspace(window):
         window.cache_manager,
         window.download_service,
         window.cache_settings
+    )
+    window.storage_workspace.cache_root_changed.connect(
+        window.comparison_view.set_cache_root
     )
     window.stored_comparison_service = StoredComparisonService(
         window.connection_service,
