@@ -30,13 +30,15 @@ from s_usd_desktop.ui.storage.models import (
     ProjectListModel,
     StoredFileTableModel,
     StreamListModel,
-    VersionTableModel
+    VersionTableModel,
+    ValidationHistoryTableModel
 )
 
 
 class StorageWorkspace(QWidget):
     local_source_open_requested = Signal(str)
     local_source_validation_requested = Signal(str, object, object)
+    historical_report_ready = Signal(object)
     def __init__(self, catalog_service, parent=None):
         super().__init__(parent)
         self.catalog_service = catalog_service
@@ -46,6 +48,7 @@ class StorageWorkspace(QWidget):
         self.cache_settings = None
         self.version_open_service = None
         self.version_download_service = None
+        self.validation_history_service = None
         self.connected = False
         self.current_project_id = None
         self.current_asset_id = None
@@ -56,6 +59,7 @@ class StorageWorkspace(QWidget):
         self.stream_model = StreamListModel(self)
         self.version_model = VersionTableModel(self)
         self.file_model = StoredFileTableModel(self)
+        self.validation_history_model = ValidationHistoryTableModel(self)
         self._build_ui()
         self._connect_signals()
         self.set_connected(False)
@@ -119,6 +123,7 @@ class StorageWorkspace(QWidget):
         self.detail_comment.setWordWrap(True)
         self.detail_files = QLabel("Files: 0")
         self.detail_readiness = QLabel("Readiness: —")
+        self.detail_validation = QLabel("Latest validation: —")
         details = QFrame()
         details_layout = QVBoxLayout(details)
         details_layout.addWidget(self.detail_title)
@@ -126,6 +131,7 @@ class StorageWorkspace(QWidget):
         details_layout.addWidget(self.detail_comment)
         details_layout.addWidget(self.detail_files)
         details_layout.addWidget(self.detail_readiness)
+        details_layout.addWidget(self.detail_validation)
         details_layout.addStretch()
         lower = QSplitter(Qt.Horizontal)
         lower.addWidget(self._group("Stored Files", self.file_view))
@@ -140,10 +146,24 @@ class StorageWorkspace(QWidget):
         transfer_row.addWidget(self.progress_bar, 1)
         transfer_row.addWidget(self.cancel_upload_button)
 
+        self.validation_history_view = self._make_table(self.validation_history_model)
+        self.validation_history_view.horizontalHeader().setStretchLastSection(True)
+        self.refresh_history_button = QPushButton("Refresh History")
+        self.open_history_button = QPushButton("Open Historical Report")
+        history_actions = QHBoxLayout()
+        history_actions.addStretch()
+        history_actions.addWidget(self.refresh_history_button)
+        history_actions.addWidget(self.open_history_button)
+        history_widget = QWidget()
+        history_layout = QVBoxLayout(history_widget)
+        history_layout.addLayout(history_actions)
+        history_layout.addWidget(self.validation_history_view)
+
         main_splitter = QSplitter(Qt.Vertical)
         main_splitter.addWidget(browser)
         main_splitter.addWidget(lower)
-        main_splitter.setSizes([420, 280])
+        main_splitter.addWidget(self._group("Validation History", history_widget))
+        main_splitter.setSizes([380, 240, 220])
         layout = QVBoxLayout(self)
         layout.addLayout(header)
         layout.addWidget(self.status_label)
@@ -196,6 +216,14 @@ class StorageWorkspace(QWidget):
         self.stream_view.selectionModel().currentChanged.connect(self._stream_selected)
         self.version_view.selectionModel().currentChanged.connect(self._version_selected)
         self.file_view.selectionModel().currentChanged.connect(self._file_selected)
+        self.validation_history_view.selectionModel().currentChanged.connect(
+            lambda _current, _previous: self._update_history_actions()
+        )
+        self.validation_history_view.doubleClicked.connect(
+            lambda _index: self._open_historical_report()
+        )
+        self.refresh_history_button.clicked.connect(self._refresh_validation_history)
+        self.open_history_button.clicked.connect(self._open_historical_report)
         self.catalog_service.projects_loaded.connect(self._projects_loaded)
         self.catalog_service.assets_loaded.connect(self._assets_loaded)
         self.catalog_service.streams_loaded.connect(self._streams_loaded)
@@ -228,6 +256,14 @@ class StorageWorkspace(QWidget):
         self._clear_all()
         self.status_label.setText("Loading projects...")
         self.catalog_service.load_projects()
+
+    def set_validation_history_service(self, service):
+        self.validation_history_service = service
+        service.history_loaded.connect(self._validation_history_loaded)
+        service.run_loaded.connect(self._historical_run_loaded)
+        service.loading_changed.connect(self._validation_history_loading)
+        service.request_failed.connect(self._validation_history_failed)
+        self._update_history_actions()
 
     def set_version_services(self, version_open_service, version_download_service):
         self.version_open_service = version_open_service
@@ -339,6 +375,7 @@ class StorageWorkspace(QWidget):
         self.stream_model.clear()
         self.version_model.clear()
         self.file_model.clear()
+        self.validation_history_model.clear()
         self._show_version(None)
         self.catalog_service.invalidate("streams", "versions", "files")
 
@@ -381,10 +418,16 @@ class StorageWorkspace(QWidget):
         self._update_action_states()
         self.file_model.clear()
         self._show_version(version)
+        self.validation_history_model.clear()
+        self._update_history_actions()
+        if self.validation_history_service:
+            self.validation_history_service.invalidate("history", "run")
 
         if version:
             self.status_label.setText(f"Loading files for {version.display_name}...")
             self.catalog_service.load_files(version.id)
+            if self.validation_history_service:
+                self.validation_history_service.load_history(version.id)
 
     def _projects_loaded(self, records):
         self.project_model.set_records(records)
@@ -642,6 +685,65 @@ class StorageWorkspace(QWidget):
             self.status_label.setText(f"Cache location changed to {configuration.root}")
             self._update_action_states()
 
+    def _refresh_validation_history(self):
+        if self.current_version_id and self.validation_history_service:
+            self.validation_history_service.load_history(self.current_version_id)
+
+    def _selected_validation_run(self):
+        index = self.validation_history_view.currentIndex()
+        return self.validation_history_model.record_at(index.row()) if index.isValid() else None
+
+    def _update_history_actions(self):
+        selected = self._selected_validation_run()
+        active = bool(self.validation_history_service and self.validation_history_service.active)
+        self.refresh_history_button.setEnabled(
+            self.connected and self.current_version_id is not None and not active
+        )
+        self.open_history_button.setEnabled(selected is not None and not active)
+
+    def _validation_history_loaded(self, version_id, records):
+        if version_id != self.current_version_id:
+            return
+
+        self.validation_history_model.set_records(records)
+        if records:
+            latest = records[0]
+            result = "Passed" if latest.publish_passed else "Failed"
+            self.detail_validation.setText(
+                f"Latest validation: {result} | {latest.profile_name} | "
+                f"{latest.completed_at:%Y-%m-%d %H:%M}"
+            )
+        else:
+            self.detail_validation.setText("Latest validation: Never")
+        self._update_history_actions()
+
+    def _open_historical_report(self):
+        record = self._selected_validation_run()
+        if record and self.validation_history_service:
+            self.validation_history_service.load_run(record.id)
+
+    def _historical_run_loaded(self, record):
+        if not record.report:
+            self.status_label.setText("Historical validation report contains no report data.")
+            return
+
+        from s_usd_core.validation import PublishReport
+        report = PublishReport.from_dict(record.report)
+        self.historical_report_ready.emit(report)
+        self.status_label.setText(f"Opened validation history: {record.id}")
+
+    def _validation_history_loading(self, scope, loading):
+        if loading:
+            self.status_label.setText(
+                "Loading validation history..." if scope == "history"
+                else "Loading historical report..."
+            )
+        self._update_history_actions()
+
+    def _validation_history_failed(self, scope, message):
+        self.status_label.setText(f"Could not load validation {scope}: {message}")
+        self._update_history_actions()
+
     def _loading_changed(self, scope, loading):
         if loading:
             self.status_label.setText(f"Loading {scope}...")
@@ -663,6 +765,7 @@ class StorageWorkspace(QWidget):
             self.detail_comment.setText("Comment: —")
             self.detail_files.setText("Files: 0")
             self.detail_readiness.setText("Readiness: —")
+            self.detail_validation.setText("Latest validation: —")
             return
 
         self.detail_title.setText(version.display_name)
@@ -670,6 +773,7 @@ class StorageWorkspace(QWidget):
         self.detail_comment.setText(f"Comment: {version.comment or '—'}")
         self.detail_files.setText("Files: loading...")
         self.detail_readiness.setText("Readiness: loading...")
+        self.detail_validation.setText("Latest validation: loading...")
 
     def _clear_all(self):
         self.current_project_id = None

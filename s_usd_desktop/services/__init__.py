@@ -1,3 +1,4 @@
+from s_usd_desktop.services.validation_history_service import ValidationHistoryService
 from s_usd_desktop.services.validation_submission_service import (
     StoredValidationTarget,
     ValidationSubmissionService
@@ -17,6 +18,7 @@ from s_usd_desktop.services.connection_service import ConnectionService, Connect
 from s_usd_desktop.services.desktop_settings import ConnectionPreferences, DesktopSettings
 
 __all__ = [
+    "ValidationHistoryService",
     "StoredValidationTarget",
     "ValidationSubmissionService",
     "RootLayerMissingError",

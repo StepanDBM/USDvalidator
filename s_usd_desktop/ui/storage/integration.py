@@ -4,6 +4,7 @@ from s_usd_desktop.services.download_service import DownloadService
 from s_usd_desktop.services.version_download_service import VersionDownloadService
 from s_usd_desktop.services.version_open_service import VersionOpenService
 from s_usd_desktop.services.validation_submission_service import ValidationSubmissionService
+from s_usd_desktop.services.validation_history_service import ValidationHistoryService
 from s_usd_desktop.services.transfer_service import TransferService
 from s_usd_desktop.services.connection_service import ConnectionState
 from s_usd_desktop.ui.storage.workspace import StorageWorkspace
@@ -43,6 +44,16 @@ def install_storage_workspace(window):
     window.storage_workspace.local_source_open_requested.connect(
         lambda path: _open_cached_source(window, path, validate=False)
     )
+    window.validation_history_service = ValidationHistoryService(
+        window.connection_service,
+        parent=window
+    )
+    window.storage_workspace.set_validation_history_service(
+        window.validation_history_service
+    )
+    window.storage_workspace.historical_report_ready.connect(
+        lambda report: _show_historical_report(window, report)
+    )
     window.validation_submission_service = ValidationSubmissionService(
         window.connection_service,
         parent=window
@@ -64,9 +75,7 @@ def install_storage_workspace(window):
         )
     )
     window.validation_submission_service.submission_completed.connect(
-        lambda record: window.storage_workspace.status_label.setText(
-            f"Validation history saved: {record.id}"
-        )
+        lambda record: _validation_history_saved(window, record)
     )
     window.validation_submission_service.submission_failed.connect(
         lambda message: window.storage_workspace.status_label.setText(
@@ -111,3 +120,22 @@ def _validate_cached_source(window, path, version_id, stored_file_id):
 
     if not window.validation_view.validate_source(path):
         window.validation_submission_service.clear_pending()
+
+
+def _validation_history_saved(window, record):
+    window.storage_workspace.status_label.setText(
+        f"Validation history saved: {record.id}"
+    )
+    if record.version_id == window.storage_workspace.current_version_id:
+        window.storage_workspace._refresh_validation_history()
+
+
+def _show_historical_report(window, report):
+    from pathlib import Path
+
+    window.validation_view.results_view.show_single_report(report)
+    if Path(report.source_path).is_file():
+        window.validation_view.source_selector.set_source(report.source_path)
+    index = window.tabs.indexOf(window.validation_view)
+    window.tabs.setCurrentIndex(index)
+    window.tab_bar.setCurrentIndex(index)

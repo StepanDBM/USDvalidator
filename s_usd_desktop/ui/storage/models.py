@@ -170,3 +170,54 @@ class StoredFileTableModel(QAbstractTableModel):
             if value < 1024 or unit == "TiB":
                 return f"{int(value)} {unit}" if unit == "B" else f"{value:.1f} {unit}"
             value /= 1024
+
+class ValidationHistoryTableModel(QAbstractTableModel):
+    HEADERS = ("Result", "Profile", "Checks", "Failed", "Warnings", "Tool", "Completed")
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.records = ()
+
+    def rowCount(self, parent=QModelIndex()):
+        return 0 if parent.isValid() else len(self.records)
+
+    def columnCount(self, parent=QModelIndex()):
+        return 0 if parent.isValid() else len(self.HEADERS)
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+            return self.HEADERS[section]
+        return None
+
+    def data(self, index, role=Qt.DisplayRole):
+        if not index.isValid() or not 0 <= index.row() < len(self.records):
+            return None
+
+        record = self.records[index.row()]
+
+        if role == Qt.UserRole:
+            return record
+        if role != Qt.DisplayRole:
+            return None
+
+        values = (
+            "Passed" if record.publish_passed else "Failed",
+            record.profile_name,
+            record.total_count,
+            record.failed_count + record.error_count,
+            record.warning_count,
+            f"{record.tool_name} {record.tool_version}",
+            record.completed_at.strftime("%Y-%m-%d %H:%M:%S")
+        )
+        return values[index.column()]
+
+    def set_records(self, records):
+        self.beginResetModel()
+        self.records = tuple(records)
+        self.endResetModel()
+
+    def clear(self):
+        self.set_records(())
+
+    def record_at(self, row):
+        return self.records[row] if 0 <= row < len(self.records) else None
