@@ -18,6 +18,8 @@ class CatalogService(QObject):
     asset_created = Signal(object)
     stream_created = Signal(object)
     version_created = Signal(object)
+    version_published = Signal(object)
+    version_deprecated = Signal(object)
 
     def __init__(self, connection_service, thread_pool=None, parent=None):
         super().__init__(parent)
@@ -66,6 +68,18 @@ class CatalogService(QObject):
 
     def create_version(self, stream_id, comment=""):
         self._submit("mutation", self.version_created, self._catalog_call, "create_version", stream_id, comment)
+
+    def publish_version(self, version_id):
+        self._submit(
+            "lifecycle", self.version_published,
+            self._catalog_call, "publish_version", version_id
+        )
+
+    def deprecate_version(self, version_id):
+        self._submit(
+            "lifecycle", self.version_deprecated,
+            self._catalog_call, "deprecate_version", version_id
+        )
 
     def _submit(self, scope, result_signal, function, method_name, *args, context=None):
         self._generations[scope] += 1

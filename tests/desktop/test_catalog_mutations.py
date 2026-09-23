@@ -37,3 +37,18 @@ def test_create_project_emits_result(monkeypatch):
     service.create_project("ORB", "Orbital Workshop", "Test")
 
     assert results == [("create_project", "ORB", "Orbital Workshop", "Test")]
+
+
+def test_publish_and_deprecate_emit_lifecycle_results(monkeypatch):
+    service = CatalogService(Connection(), ImmediatePool())
+    monkeypatch.setattr(service, "_catalog_call", lambda *args: args)
+    published = []
+    deprecated = []
+    service.version_published.connect(published.append)
+    service.version_deprecated.connect(deprecated.append)
+
+    service.publish_version("version-id")
+    service.deprecate_version("version-id")
+
+    assert published == [("publish_version", "version-id")]
+    assert deprecated == [("deprecate_version", "version-id")]

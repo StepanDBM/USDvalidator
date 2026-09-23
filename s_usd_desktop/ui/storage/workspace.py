@@ -59,6 +59,7 @@ class StorageWorkspace(QWidget):
         self.current_asset_id = None
         self.current_stream_id = None
         self.current_version_id = None
+        self.latest_validation_run = None
         self.project_model = ProjectListModel(self)
         self.asset_model = AssetListModel(self)
         self.stream_model = StreamListModel(self)
@@ -82,6 +83,9 @@ class StorageWorkspace(QWidget):
         self.download_version_button = QPushButton("Download Version")
         self.open_version_button = QPushButton("Open Version")
         self.validate_version_button = QPushButton("Validate Version")
+        self.lifecycle_button = QPushButton("Select a Version")
+        self.deprecate_button = QPushButton("Deprecate Version")
+        self.deprecate_button.setVisible(False)
         self.compare_versions_button = QPushButton("Compare Versions")
         self.reveal_button = QPushButton("Reveal")
         self.remove_cache_button = QPushButton("Remove Cache")
@@ -102,6 +106,8 @@ class StorageWorkspace(QWidget):
         header.addWidget(self.download_version_button)
         header.addWidget(self.open_version_button)
         header.addWidget(self.validate_version_button)
+        header.addWidget(self.lifecycle_button)
+        header.addWidget(self.deprecate_button)
         header.addWidget(self.compare_versions_button)
         header.addWidget(self.reveal_button)
         header.addWidget(self.remove_cache_button)
@@ -132,6 +138,9 @@ class StorageWorkspace(QWidget):
         self.detail_files = QLabel("Files: 0")
         self.detail_readiness = QLabel("Readiness: —")
         self.detail_validation = QLabel("Latest validation: —")
+        self.detail_publish_readiness = QLabel("Publish Readiness: —")
+        self.detail_fingerprint = QLabel("Content Identity: —")
+        self.detail_fingerprint.setWordWrap(True)
         details = QFrame()
         details_layout = QVBoxLayout(details)
         details_layout.addWidget(self.detail_title)
@@ -140,6 +149,8 @@ class StorageWorkspace(QWidget):
         details_layout.addWidget(self.detail_files)
         details_layout.addWidget(self.detail_readiness)
         details_layout.addWidget(self.detail_validation)
+        details_layout.addWidget(self.detail_publish_readiness)
+        details_layout.addWidget(self.detail_fingerprint)
         details_layout.addStretch()
         lower = QSplitter(Qt.Horizontal)
         lower.addWidget(self._group("Stored Files", self.file_view))
@@ -218,6 +229,8 @@ class StorageWorkspace(QWidget):
         self.download_version_button.clicked.connect(lambda: self._download_version(root_only=False))
         self.open_version_button.clicked.connect(self._open_version)
         self.validate_version_button.clicked.connect(self._validate_version)
+        self.lifecycle_button.clicked.connect(self._lifecycle_action)
+        self.deprecate_button.clicked.connect(self._deprecate_version)
         self.compare_versions_button.clicked.connect(self._compare_selected_versions)
         self.reveal_button.clicked.connect(self._reveal_cached_file)
         self.remove_cache_button.clicked.connect(self._remove_cached_file)
@@ -250,6 +263,8 @@ class StorageWorkspace(QWidget):
         self.catalog_service.asset_created.connect(lambda _record: self.catalog_service.load_assets(self.current_project_id))
         self.catalog_service.stream_created.connect(lambda _record: self.catalog_service.load_streams(self.current_asset_id))
         self.catalog_service.version_created.connect(lambda _record: self.catalog_service.load_versions(self.current_stream_id))
+        self.catalog_service.version_published.connect(self._lifecycle_completed)
+        self.catalog_service.version_deprecated.connect(self._lifecycle_completed)
 
     def set_connected(self, connected):
         self.connected = connected
@@ -290,6 +305,7 @@ class StorageWorkspace(QWidget):
         service.loading_changed.connect(self._validation_history_loading)
         service.request_failed.connect(self._validation_history_failed)
         self._update_history_actions()
+        self._update_action_states()
 
     def set_version_services(self, version_open_service, version_download_service):
         self.version_open_service = version_open_service
@@ -320,6 +336,10 @@ class StorageWorkspace(QWidget):
         transfer_service.active_changed.connect(self._transfer_active_changed)
 
     def _update_action_states(self):
+        version = self._current_version()
+        mutable = bool(
+            version and version.status not in {"published", "deprecated"}
+        )
         active = bool(
             (self.transfer_service and self.transfer_service.active) or
             (self.download_service and self.download_service.active) or
@@ -329,7 +349,9 @@ class StorageWorkspace(QWidget):
         self.create_asset_button.setEnabled(self.connected and self.current_project_id is not None and not active)
         self.create_stream_button.setEnabled(self.connected and self.current_asset_id is not None and not active)
         self.create_version_button.setEnabled(self.connected and self.current_stream_id is not None and not active)
-        self.upload_button.setEnabled(self.connected and self.current_version_id is not None and not active)
+        self.upload_button.setEnabled(
+            self.connected and self.current_version_id is not None and mutable and not active
+        )
         selected_file = self._selected_file()
         cache_entry = self._inspect_file(selected_file) if selected_file else None
         available = bool(cache_entry and cache_entry.status.value == "available")
@@ -344,7 +366,8 @@ class StorageWorkspace(QWidget):
         self.download_version_button.setEnabled(has_version and not active)
         ready = bool(resolution and resolution.ready)
         self.open_version_button.setEnabled(ready and not active)
-        self.validate_version_button.setEnabled(ready and not active)
+        self.validate_version_button.setEnabled(ready and mutable and not active)
+        self._update_lifecycle_action(version, active)
         pair_ready = bool(self.comparison_pair and self.comparison_pair.ready)
         pair_preparable = bool(
             self.comparison_pair and
@@ -602,9 +625,13 @@ class StorageWorkspace(QWidget):
         self.file_model.set_records(collection.items)
         for stored_file in collection.items:
             self._update_file_cache_status(stored_file)
-        cached_count = sum(
-            self._inspect_file(stored_file).status.value == "available"
+        cache_entries = (
+            self._inspect_file(stored_file)
             for stored_file in collection.items
+        )
+        cached_count = sum(
+            entry is not None and entry.status.value == "available"
+            for entry in cache_entries
         ) if self.cache_manager else 0
         self.detail_files.setText(f"Files: {collection.count} | Cached: {cached_count}")
         self._update_version_readiness()
@@ -916,14 +943,115 @@ class StorageWorkspace(QWidget):
             self.detail_files.setText("Files: 0")
             self.detail_readiness.setText("Readiness: —")
             self.detail_validation.setText("Latest validation: —")
+            self.detail_publish_readiness.setText("Publish Readiness: —")
+            self.detail_fingerprint.setText("Content Identity: —")
             return
 
         self.detail_title.setText(version.display_name)
-        self.detail_status.setText(f"Status: {version.status}")
+        lifecycle = version.status.replace("_", " ").title()
+        self.detail_status.setText(f"Lifecycle: {lifecycle}")
         self.detail_comment.setText(f"Comment: {version.comment or '—'}")
         self.detail_files.setText("Files: loading...")
         self.detail_readiness.setText("Readiness: loading...")
         self.detail_validation.setText("Latest validation: loading...")
+        readiness = {
+            "draft": "Root layer required",
+            "uploaded": "Validation required",
+            "validation_failed": "Validation required",
+            "validated": "Ready",
+            "published": "Published and immutable",
+            "deprecated": "Deprecated"
+        }.get(version.status, "Unknown")
+        fingerprint = version.published_content_fingerprint or "Not published"
+        self.detail_publish_readiness.setText(f"Publish Readiness: {readiness}")
+        self.detail_fingerprint.setText(f"Content Identity: {fingerprint}")
+
+    def _current_version(self):
+        return next(
+            (item for item in self.version_model.records if item.id == self.current_version_id),
+            None
+        )
+
+    def _update_lifecycle_action(self, version, active=False):
+        status = version.status if version else ""
+        labels = {
+            "draft": "Upload Root Layer",
+            "uploaded": "Validate Version",
+            "validation_failed": "Validate Again",
+            "validated": "Publish Version",
+            "published": "Published",
+            "deprecated": "Deprecated"
+        }
+        self.lifecycle_button.setText(labels.get(status, "Select a Version"))
+        self.lifecycle_button.setEnabled(bool(
+            version and not active and status in {
+                "draft", "uploaded", "validation_failed", "validated"
+            }
+        ))
+        self.deprecate_button.setVisible(status == "published")
+        self.deprecate_button.setEnabled(status == "published" and not active)
+
+    def _lifecycle_action(self):
+        version = self._current_version()
+        if not version:
+            return
+        if version.status == "draft":
+            self._upload_file()
+        elif version.status in {"uploaded", "validation_failed"}:
+            self._validate_version()
+        elif version.status == "validated":
+            self._publish_version()
+
+    def _publish_version(self):
+        version = self._current_version()
+        if not version:
+            return
+        fingerprint = (
+            self.latest_validation_run.content_fingerprint
+            if self.latest_validation_run else "Unavailable"
+        )
+        message = (
+            f"Publish v{version.number:04d}?\n\n"
+            "Publishing locks the version and prevents file additions, "
+            "replacements, and deletions.\n\n"
+            f"Files: {len(self.file_model.records)}\n"
+            f"Content fingerprint: {fingerprint}"
+        )
+        buttons = (
+            QMessageBox.StandardButton.Cancel |
+            QMessageBox.StandardButton.Yes
+        )
+        if QMessageBox.question(
+            self, "Publish Version", message, buttons,
+            QMessageBox.StandardButton.Cancel
+        ) == QMessageBox.StandardButton.Yes:
+            self.catalog_service.publish_version(version.id)
+
+    def _deprecate_version(self):
+        version = self._current_version()
+        if not version:
+            return
+        message = (
+            f"Deprecate v{version.number:04d}?\n\n"
+            "The version will remain available and immutable, but should no "
+            "longer be used for new work."
+        )
+        buttons = (
+            QMessageBox.StandardButton.Cancel |
+            QMessageBox.StandardButton.Yes
+        )
+        if QMessageBox.question(
+            self, "Deprecate Version", message, buttons,
+            QMessageBox.StandardButton.Cancel
+        ) == QMessageBox.StandardButton.Yes:
+            self.catalog_service.deprecate_version(version.id)
+
+    def _lifecycle_completed(self, record):
+        self.status_label.setText(
+            f"v{record.number:04d} lifecycle changed to {record.status}."
+        )
+        if self.current_stream_id:
+            self.catalog_service.load_versions(self.current_stream_id)
 
     def _clear_all(self):
         self.current_project_id = None
