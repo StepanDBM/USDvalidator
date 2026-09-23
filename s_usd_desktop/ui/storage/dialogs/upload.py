@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 class UploadFileDialog(QDialog):
     ROLES = ("root_layer", "dependency", "texture", "preview", "manifest", "report", "other")
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, initial_role=None):
         super().__init__(parent)
         self.setWindowTitle("Upload File")
         self.setMinimumWidth(520)
@@ -31,6 +31,8 @@ class UploadFileDialog(QDialog):
         row_layout.addWidget(browse)
         self.role = QComboBox()
         self.role.addItems(self.ROLES)
+        if initial_role in self.ROLES:
+            self.role.setCurrentText(initial_role)
         self.relative_path = QLineEdit()
         form = QFormLayout()
         form.addRow("Local file", row)

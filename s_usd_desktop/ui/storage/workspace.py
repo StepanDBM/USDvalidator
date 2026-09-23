@@ -1,5 +1,5 @@
 from PySide6.QtCore import QUrl, Signal, Qt
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QAction, QDesktopServices
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QFrame,
@@ -9,10 +9,12 @@ from PySide6.QtWidgets import (
     QLabel,
     QListView,
     QMessageBox,
+    QMenu,
     QProgressBar,
     QPushButton,
     QSplitter,
     QTableView,
+    QToolButton,
     QVBoxLayout,
     QWidget
 )
@@ -93,26 +95,36 @@ class StorageWorkspace(QWidget):
         self.cache_settings_button = QPushButton("Cache...")
         self.refresh_button = QPushButton("Refresh")
         self.refresh_button.setEnabled(False)
+        self.new_menu_button = self._menu_button("New", (
+            ("Project...", self._create_project),
+            ("Asset...", self._create_asset),
+            ("Stream...", self._create_stream),
+            ("Version...", self._create_version)
+        ))
+        self.transfer_menu_button = self._menu_button("Transfer", (
+            ("Upload File...", self._upload_file),
+            ("Download Selected File", self._download_file),
+            ("Download Root Layer", lambda: self._download_version(root_only=True)),
+            ("Download Complete Version", lambda: self._download_version(root_only=False))
+        ))
+        self.more_menu_button = self._menu_button("More", (
+            ("Validate Version", self._validate_version),
+            ("Reveal Cached File", self._reveal_cached_file),
+            ("Remove Cached File", self._remove_cached_file),
+            ("Clear Version Cache", self._clear_version_cache),
+            ("Cache Settings...", self._show_cache_settings)
+        ))
         header = QHBoxLayout()
+        header.setSpacing(6)
         header.addWidget(QLabel("S-USDv Storage"))
         header.addStretch()
-        header.addWidget(self.create_project_button)
-        header.addWidget(self.create_asset_button)
-        header.addWidget(self.create_stream_button)
-        header.addWidget(self.create_version_button)
-        header.addWidget(self.upload_button)
-        header.addWidget(self.download_button)
-        header.addWidget(self.download_root_button)
-        header.addWidget(self.download_version_button)
+        header.addWidget(self.new_menu_button)
+        header.addWidget(self.transfer_menu_button)
         header.addWidget(self.open_version_button)
-        header.addWidget(self.validate_version_button)
         header.addWidget(self.lifecycle_button)
         header.addWidget(self.deprecate_button)
         header.addWidget(self.compare_versions_button)
-        header.addWidget(self.reveal_button)
-        header.addWidget(self.remove_cache_button)
-        header.addWidget(self.clear_version_cache_button)
-        header.addWidget(self.cache_settings_button)
+        header.addWidget(self.more_menu_button)
         header.addWidget(self.refresh_button)
 
         self.project_view = self._make_list(self.project_model)
@@ -191,6 +203,19 @@ class StorageWorkspace(QWidget):
         layout.addWidget(self.status_label)
         layout.addLayout(transfer_row)
         layout.addWidget(main_splitter, 1)
+
+    @staticmethod
+    def _menu_button(text, entries):
+        button = QToolButton()
+        button.setText(text)
+        button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        menu = QMenu(button)
+        for label, callback in entries:
+            action = QAction(label, menu)
+            action.triggered.connect(callback)
+            menu.addAction(action)
+        button.setMenu(menu)
+        return button
 
     @staticmethod
     def _group(title, widget):
@@ -349,6 +374,11 @@ class StorageWorkspace(QWidget):
         self.create_asset_button.setEnabled(self.connected and self.current_project_id is not None and not active)
         self.create_stream_button.setEnabled(self.connected and self.current_asset_id is not None and not active)
         self.create_version_button.setEnabled(self.connected and self.current_stream_id is not None and not active)
+        self.new_menu_button.setEnabled(self.connected and not active)
+        self.transfer_menu_button.setEnabled(
+            self.connected and self.current_version_id is not None and not active
+        )
+        self.more_menu_button.setEnabled(self.connected and not active)
         self.upload_button.setEnabled(
             self.connected and self.current_version_id is not None and mutable and not active
         )
@@ -503,10 +533,11 @@ class StorageWorkspace(QWidget):
         if dialog.exec():
             self.catalog_service.create_version(self.current_stream_id, *dialog.values())
 
-    def _upload_file(self):
+    def _upload_file(self, root_layer=False):
         if not self.transfer_service:
             return
-        dialog = UploadFileDialog(self)
+        initial_role = "root_layer" if root_layer else None
+        dialog = UploadFileDialog(self, initial_role=initial_role)
         if dialog.exec() and dialog.values():
             self.transfer_service.upload(self.current_version_id, *dialog.values())
 
@@ -996,7 +1027,7 @@ class StorageWorkspace(QWidget):
         if not version:
             return
         if version.status == "draft":
-            self._upload_file()
+            self._upload_file(root_layer=True)
         elif version.status in {"uploaded", "validation_failed"}:
             self._validate_version()
         elif version.status == "validated":
