@@ -13,6 +13,9 @@ STATUS_COLORS = {
 }
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class ResultsTree(QTreeWidget):
     result_selected = Signal(object)
     open_in_viewport_requested = Signal(object)
@@ -20,6 +23,7 @@ class ResultsTree(QTreeWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.results = ()
+        self.setToolTip(TooltipText.RESULTS_TREE)
         self.setHeaderLabels(["Check", "Status", "Severity", "Location", "Message"])
         self.setColumnWidth(0, 260)
         self.setColumnWidth(1, 85)

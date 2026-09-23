@@ -16,6 +16,9 @@ from .results_tree import ResultsTree
 from .summary_header import SummaryHeader
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class ResultsBrowser(QWidget):
     open_in_viewport_requested = Signal(object, object)
     def __init__(self, parent=None):
@@ -31,6 +34,7 @@ class ResultsBrowser(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
 
         self.summary_header = SummaryHeader()
+        self.summary_header.setToolTip(TooltipText.RESULTS_SUMMARY)
         self.filter_bar = ResultsFilterBar()
         layout.addWidget(self.summary_header)
         layout.addWidget(self.filter_bar)
@@ -43,6 +47,7 @@ class ResultsBrowser(QWidget):
         file_layout.addWidget(QLabel("Batch Files"))
 
         self.file_tree = BatchFilesTree()
+        self.file_tree.setToolTip(TooltipText.BATCH_FILES_TREE)
         file_layout.addWidget(self.file_tree)
 
         self.file_panel.setMinimumWidth(240)
@@ -50,7 +55,9 @@ class ResultsBrowser(QWidget):
 
         results_splitter = QSplitter(Qt.Orientation.Vertical)
         self.results_tree = ResultsTree()
+        self.results_tree.setToolTip(TooltipText.RESULTS_TREE)
         self.result_details = ResultDetails()
+        self.result_details.setToolTip(TooltipText.RESULT_DETAILS)
 
         results_splitter.addWidget(self.results_tree)
         results_splitter.addWidget(self.result_details)

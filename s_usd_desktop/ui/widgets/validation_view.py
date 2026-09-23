@@ -27,6 +27,9 @@ from .source_selector import SourceSelector
 from .validate_button import ValidateButton
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class ValidationView(QWidget):
     open_in_viewport_requested = Signal(object, object)
     report_ready = Signal(object)
@@ -99,6 +102,11 @@ class ValidationView(QWidget):
         layout.addWidget(QLabel("Results"))
         self.results_view = ResultsBrowser()
 
+        self.validate_button.setToolTip(TooltipText.VALIDATE_BUTTON)
+        self.cancel_button.setToolTip(TooltipText.CANCEL_VALIDATION)
+        self.progress_bar.setToolTip(TooltipText.VALIDATION_PROGRESS)
+        self.current_file_label.setToolTip(TooltipText.VALIDATION_PROGRESS)
+
         layout.addWidget(self.results_view,1)
 
     def _build_options_widget(self):
@@ -142,6 +150,19 @@ class ValidationView(QWidget):
         self.per_file_checkbox = QCheckBox("Per-file reports")
 
         self.manifest_checkbox = QCheckBox("Manifests")
+
+        self.recursive_checkbox.setToolTip(TooltipText.SOURCE_RECURSIVE)
+        self.include_edit.setToolTip(TooltipText.SOURCE_INCLUDE_PATTERN)
+        self.exclude_edit.setToolTip(TooltipText.SOURCE_EXCLUDE_PATTERN)
+        self.worker_count_spin.setToolTip(
+            "Maximum number of USD files validated concurrently. Higher values "
+            "may improve batch speed but use more CPU and memory."
+        )
+        self.output_edit.setToolTip(TooltipText.EXPORT_DIRECTORY)
+        self.output_button.setToolTip(TooltipText.EXPORT_DIRECTORY)
+        self.batch_report_checkbox.setToolTip(TooltipText.EXPORT_BATCH_REPORT)
+        self.per_file_checkbox.setToolTip(TooltipText.EXPORT_PER_FILE_REPORTS)
+        self.manifest_checkbox.setToolTip(TooltipText.EXPORT_MANIFESTS)
         self.manifest_checkbox.setChecked(True)
 
         export_row_widget = QWidget()

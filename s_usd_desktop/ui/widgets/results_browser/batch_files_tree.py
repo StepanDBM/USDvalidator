@@ -7,11 +7,15 @@ from PySide6.QtWidgets import QAbstractItemView, QTreeWidget, QTreeWidgetItem
 from s_usd_core.batch.discovery_tree import build_report_tree
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class BatchFilesTree(QTreeWidget):
     report_selected = Signal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setToolTip(TooltipText.BATCH_FILES_TREE)
         self.setHeaderLabels(["Discovered Source", "Status", "Files"])
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.setAlternatingRowColors(True)

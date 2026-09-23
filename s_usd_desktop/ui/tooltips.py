@@ -50,7 +50,7 @@ class TooltipText(StrEnum):
 
     # VALIDATION_RESULTS
     RESULTS_SUMMARY = "Summarizes passed, failed, skipped, warning, error, and internal-error results for the current report or batch."
-    RESULTS_TREE = "Groups check results by file and category. Select a row for the message, location, observed values, expected values, and suggested repair."
+    RESULTS_TREE = "The Result Tree groups check results by file and category. Select a row for the message, location, observed values, expected values, and suggested repair."
     RESULT_ROW = "One validation check outcome. Hover for its meaning; select it for full details and affected USD targets."
     RESULT_TARGET_ROW = "One prim or property evaluated by a check. PASSED means this target satisfied the rule; FAILED identifies a specific repair location."
     RESULT_STATUS_PASSED = "The evaluated source or target satisfied this check under the active profile."

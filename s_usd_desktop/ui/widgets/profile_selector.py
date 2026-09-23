@@ -6,6 +6,9 @@ from PySide6.QtWidgets import (
 )
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class ProfileSelector(QWidget):
     def __init__(
         self,
@@ -28,6 +31,7 @@ class ProfileSelector(QWidget):
         )
 
         self.combo = QComboBox()
+        self.combo.setToolTip(TooltipText.PROFILE_SELECTOR)
         self.combo.setMinimumWidth(180)
 
         layout.addWidget(

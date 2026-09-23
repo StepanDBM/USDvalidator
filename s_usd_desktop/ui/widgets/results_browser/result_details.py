@@ -4,10 +4,14 @@ from html import escape
 from PySide6.QtWidgets import QTextBrowser
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class ResultDetails(QTextBrowser):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setOpenExternalLinks(False)
+        self.setToolTip(TooltipText.RESULT_DETAILS)
         self.show_result(None)
 
     def show_result(self, result):

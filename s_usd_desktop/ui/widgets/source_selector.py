@@ -11,6 +11,9 @@ from PySide6.QtWidgets import (
 )
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 USD_EXTENSIONS = {".usd", ".usda", ".usdc", ".usdz"}
 
 
@@ -40,6 +43,10 @@ class SourceSelector(QWidget):
 
         file_action = self.browse_menu.addAction("Select USD File...")
         folder_action = self.browse_menu.addAction("Select Folder...")
+        self.source_label.setToolTip(TooltipText.SOURCE_PATH)
+        self.browse_button.setToolTip(TooltipText.SOURCE_SELECTOR)
+        file_action.setToolTip(TooltipText.SOURCE_BROWSE_FILE)
+        folder_action.setToolTip(TooltipText.SOURCE_BROWSE_DIRECTORY)
         file_action.triggered.connect(self._browse_file)
 
         folder_action.triggered.connect(self._browse_folder)

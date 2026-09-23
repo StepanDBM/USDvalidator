@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 from s_usd_core.validation.profile_loader import ProfileLoader
 from s_usd_core.rules import build_registry
 from s_usd_desktop.services import ConnectionService
+from s_usd_desktop.ui.tooltips import TooltipText
 
 from .stylesheet import (
     dark_theme,
@@ -74,21 +75,34 @@ class MainWindow(QMainWindow):
 
         # Custom tab bar
         self.tab_bar = QTabBar()
+        self.tab_bar.setToolTip(
+            "Switch between validation, profile editing, comparison, viewport, "
+            "and shared storage workspaces. Switching tabs does not cancel work."
+        )
 
         self.tab_bar.addTab("Validation")
         self.tab_bar.addTab("Profiles")
         self.tab_bar.addTab("Comparison")
         self.tab_bar.addTab("Viewport")
+        for index, text in enumerate((
+            TooltipText.TAB_VALIDATION,
+            TooltipText.TAB_PROFILES,
+            TooltipText.TAB_COMPARISON,
+            TooltipText.TAB_VIEWPORT
+        )):
+            self.tab_bar.setTabToolTip(index, text)
 
         top_layout.addWidget(self.tab_bar)
 
         # Push theme controls to the right
         top_layout.addStretch()
         self.connection_indicator = ConnectionIndicator()
+        self.connection_indicator.setToolTip(TooltipText.SERVICE_INDICATOR)
         top_layout.addWidget(self.connection_indicator)
         top_layout.addSpacing(10)
         top_layout.addWidget(QLabel("Theme"))
         self.theme_selector = QComboBox()
+        self.theme_selector.setToolTip(TooltipText.THEME_SELECTOR)
         self.theme_selector.addItems(
             [
                 "Dark Blue / Orange",
@@ -118,6 +132,13 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.profile_editor, "Profiles")
         self.tabs.addTab(self.comparison_view, "Comparison")
         self.tabs.addTab(self.viewport_view, "Viewport")
+        for index, text in enumerate((
+            TooltipText.TAB_VALIDATION,
+            TooltipText.TAB_PROFILES,
+            TooltipText.TAB_COMPARISON,
+            TooltipText.TAB_VIEWPORT
+        )):
+            self.tabs.setTabToolTip(index, text)
         main_layout.addWidget(self.tabs, 1)
         self.setCentralWidget(central_widget)
 

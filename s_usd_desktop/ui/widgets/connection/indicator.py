@@ -4,6 +4,9 @@ from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QWidget
 from s_usd_desktop.services.connection_service import ConnectionState
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class ConnectionIndicator(QWidget):
     reconnect_requested = Signal()
     settings_requested = Signal()
@@ -24,6 +27,10 @@ class ConnectionIndicator(QWidget):
         self.label = QLabel("Disconnected")
         self.retry_button = QPushButton("Connect")
         self.settings_button = QPushButton("Service...")
+        self.dot.setToolTip(TooltipText.SERVICE_INDICATOR)
+        self.label.setToolTip(TooltipText.SERVICE_INDICATOR)
+        self.retry_button.setToolTip(TooltipText.SERVICE_CONNECT)
+        self.settings_button.setToolTip(TooltipText.SERVICE_BUTTON)
         self.retry_button.clicked.connect(lambda: self.reconnect_requested.emit())
         self.settings_button.clicked.connect(lambda: self.settings_requested.emit())
         layout.addWidget(self.dot)
@@ -45,7 +52,11 @@ class ConnectionIndicator(QWidget):
             text = "Disconnected"
 
         self.label.setText(text)
-        self.label.setToolTip(error)
+        self.label.setToolTip(
+            f"{TooltipText.SERVICE_INDICATOR}\n\nError: {error}"
+            if error
+            else TooltipText.SERVICE_INDICATOR
+        )
         self.retry_button.setText("Retry" if state == ConnectionState.ERROR else "Connect")
         self.retry_button.setVisible(state in {ConnectionState.DISCONNECTED, ConnectionState.ERROR})
         self.settings_button.setEnabled(state != ConnectionState.CONNECTING)

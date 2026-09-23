@@ -11,6 +11,9 @@ from PySide6.QtWidgets import (
 from s_usd_desktop.services.desktop_settings import ConnectionPreferences
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class ConnectionSettingsDialog(QDialog):
     def __init__(self, preferences, parent=None):
         super().__init__(parent)
@@ -20,6 +23,13 @@ class ConnectionSettingsDialog(QDialog):
         self.connect_timeout = self._make_timeout(preferences.connect_timeout)
         self.request_timeout = self._make_timeout(preferences.request_timeout)
         self.auto_connect = QCheckBox("Connect automatically when S-USDv starts")
+        self.base_url.setToolTip(TooltipText.SERVICE_BASE_URL)
+        self.connect_timeout.setToolTip(TooltipText.SERVICE_TIMEOUT)
+        self.request_timeout.setToolTip(TooltipText.SERVICE_TIMEOUT)
+        self.auto_connect.setToolTip(
+            "Attempt to connect to the configured service when S-USDv starts. "
+            "A failed attempt does not prevent local validation or comparison."
+        )
         self.auto_connect.setChecked(preferences.auto_connect)
         form = QFormLayout()
         form.addRow("Service URL", self.base_url)

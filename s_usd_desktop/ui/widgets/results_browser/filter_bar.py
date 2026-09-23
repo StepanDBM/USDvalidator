@@ -2,6 +2,9 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, QWidget
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class ResultsFilterBar(QWidget):
     filters_changed = Signal()
 
@@ -13,6 +16,10 @@ class ResultsFilterBar(QWidget):
         self.severity_combo = QComboBox()
         self.category_combo = QComboBox()
         self.search_edit = QLineEdit()
+        self.status_combo.setToolTip(TooltipText.RESULT_FILTER_STATUS)
+        self.severity_combo.setToolTip(TooltipText.RESULT_FILTER_SEVERITY)
+        self.category_combo.setToolTip(TooltipText.RESULT_FILTER_CATEGORY)
+        self.search_edit.setToolTip(TooltipText.RESULT_FILTER_SEARCH)
         self.search_edit.setPlaceholderText(
             "Search check IDs, labels, messages, locations or suggestions..."
         )
