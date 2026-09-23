@@ -5,6 +5,7 @@ from fastapi import APIRouter, status
 from s_usd_service.api.dependencies import DatabaseSession
 from s_usd_service.api.schemas.catalog import VersionCreate, VersionRead
 from s_usd_service.database.repositories.catalog import CatalogRepository
+from s_usd_service.services.version_lifecycle import VersionLifecycleService
 
 router = APIRouter(tags=["Versions"])
 
@@ -22,3 +23,13 @@ def list_versions(stream_id: UUID, database: DatabaseSession):
 @router.get("/versions/{version_id}", response_model=VersionRead)
 def get_version(version_id: UUID, database: DatabaseSession):
     return CatalogRepository(database).get_version(version_id)
+
+
+@router.post("/versions/{version_id}/publish", response_model=VersionRead)
+def publish_version(version_id: UUID, database: DatabaseSession):
+    return VersionLifecycleService(database).publish(version_id)
+
+
+@router.post("/versions/{version_id}/deprecate", response_model=VersionRead)
+def deprecate_version(version_id: UUID, database: DatabaseSession):
+    return VersionLifecycleService(database).deprecate(version_id)

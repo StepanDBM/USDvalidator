@@ -8,6 +8,7 @@ from s_usd_service.database.models import StoredFile
 from s_usd_service.database.repositories.catalog import CatalogRepository
 from s_usd_service.database.repositories.errors import ConflictError
 from s_usd_service.database.repositories.files import StoredFileRepository
+from s_usd_service.services.version_lifecycle import VersionLifecycleService
 
 
 class InvalidUploadError(ValueError):
@@ -40,6 +41,8 @@ class FileTransferService:
 
     def upload(self, version_id: UUID, source, original_name, relative_path, role, content_type):
         version = self.catalog.get_version(version_id)
+        lifecycle = VersionLifecycleService(self.database)
+        lifecycle.ensure_content_mutable(version)
         normalized_path = self.normalize_relative_path(relative_path or original_name)
         safe_name = Path(original_name or PurePosixPath(normalized_path).name).name
         normalized_role = role.strip().lower()
@@ -69,7 +72,7 @@ class FileTransferService:
 
         try:
             self.database.add(stored_file)
-            version.status = "uploaded"
+            lifecycle.mark_after_upload(version, stored_file)
             self.database.commit()
             self.database.refresh(stored_file)
             return stored_file

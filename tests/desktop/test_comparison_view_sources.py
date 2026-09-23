@@ -17,8 +17,13 @@ class FakeEdit:
 
 
 class FakeComparisonView:
-    previous_edit = FakeEdit()
-    current_edit = FakeEdit()
+    def __init__(self):
+        self.previous_edit = FakeEdit()
+        self.current_edit = FakeEdit()
+        self.contexts_refreshed = False
+
+    def _refresh_source_contexts(self):
+        self.contexts_refreshed = True
 
 
 def test_stored_sources_populate_existing_comparison_inputs():
@@ -32,6 +37,7 @@ def test_stored_sources_populate_existing_comparison_inputs():
 
     assert view.previous_edit.text() == "C:/cache/v0001/root.usda"
     assert view.current_edit.text() == "C:/cache/v0002/root.usda"
+    assert view.contexts_refreshed is True
 
 def test_start_comparison_delegates_to_existing_engine_entrypoint():
     called = []

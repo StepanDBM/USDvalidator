@@ -96,3 +96,33 @@ def test_create_project_sends_expected_payload():
         "description": "Lighting tests"
     }
     assert project.code == "LUM"
+
+
+
+def test_publish_and_deprecate_version_use_transition_endpoints():
+    captured = []
+
+    def transition_handler(request):
+        captured.append((request.method, request.url.path))
+        status = "published" if request.url.path.endswith("/publish") else "deprecated"
+        return httpx.Response(200, json={
+            "id": VERSION_ID,
+            "stream_id": STREAM_ID,
+            "number": 2,
+            "status": status,
+            "comment": "Ready",
+            "created_at": DATE,
+            "updated_at": DATE
+        })
+
+    with SUsdvApiClient(transport=httpx.MockTransport(transition_handler)) as api:
+        catalog = CatalogClient(api)
+        published = catalog.publish_version(VERSION_ID)
+        deprecated = catalog.deprecate_version(VERSION_ID)
+
+    assert published.status == "published"
+    assert deprecated.status == "deprecated"
+    assert captured == [
+        ("POST", f"/api/v1/versions/{VERSION_ID}/publish"),
+        ("POST", f"/api/v1/versions/{VERSION_ID}/deprecate")
+    ]

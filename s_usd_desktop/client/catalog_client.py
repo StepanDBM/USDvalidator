@@ -62,3 +62,11 @@ class CatalogClient:
 
     def get_version(self, version_id):
         return VersionRecord.from_dict(self.api.get(f"/api/v1/versions/{version_id}"))
+
+    def publish_version(self, version_id):
+        path = f"/api/v1/versions/{version_id}/publish"
+        return VersionRecord.from_dict(self.api.post(path))
+
+    def deprecate_version(self, version_id):
+        path = f"/api/v1/versions/{version_id}/deprecate"
+        return VersionRecord.from_dict(self.api.post(path))

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from s_usd_service.database.models import StoredFile, ValidationRun, Version
 from s_usd_service.database.repositories.errors import NotFoundError
+from s_usd_service.services.version_lifecycle import VersionLifecycleService
 
 
 class ValidationRunRepository:
@@ -34,6 +35,7 @@ class ValidationRunRepository:
             **data
         )
         self.database.add(run)
+        VersionLifecycleService(self.database).mark_after_validation(version, run)
         self.database.commit()
         self.database.refresh(run)
         return run
