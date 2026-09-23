@@ -12,6 +12,9 @@ from PySide6.QtWidgets import (
 )
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class CheckPickerDialog(QDialog):
     def __init__(self, definitions, excluded_ids=(), parent=None):
         super().__init__(parent)
@@ -50,10 +53,14 @@ class CheckPickerDialog(QDialog):
 
         filters = QHBoxLayout()
         self.search_edit = QLineEdit()
+        self.search_edit.setToolTip(TooltipText.CHECK_PICKER_SEARCH)
         self.search_edit.setPlaceholderText("Search checks, IDs or descriptions...")
         self.category_combo = QComboBox()
+        self.category_combo.setToolTip(TooltipText.CHECK_PICKER_CATEGORY)
         self.phase_combo = QComboBox()
+        self.phase_combo.setToolTip(TooltipText.CHECK_PICKER_PHASE)
         self.tag_combo = QComboBox()
+        self.tag_combo.setToolTip(TooltipText.CHECK_PICKER_TAG)
         filters.addWidget(QLabel("Category"))
         filters.addWidget(self.category_combo)
         filters.addWidget(QLabel("Phase"))
@@ -64,6 +71,7 @@ class CheckPickerDialog(QDialog):
         layout.addLayout(filters)
 
         self.check_tree = QTreeWidget()
+        self.check_tree.setToolTip(TooltipText.PROFILE_CHECK_LIST)
         self.check_tree.setHeaderLabels(
             ["Check", "ID", "Phase", "Target", "Severity", "Tags"]
         )
@@ -151,7 +159,15 @@ class CheckPickerDialog(QDialog):
                 item.setData(0, Qt.ItemDataRole.UserRole, definition.check_id)
                 item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
                 item.setCheckState(0, Qt.CheckState.Unchecked)
-                item.setToolTip(0, definition.description)
+                item.setToolTip(
+                    0,
+                    f"{TooltipText.PROFILE_CHECK_ROW}\n\n"
+                    f"Check: {definition.label}\n"
+                    f"ID: {definition.check_id}\n"
+                    f"Description: {definition.description}\n"
+                    f"Phase: {definition.phase}\n"
+                    f"Severity: {definition.default_severity.value}"
+                )
                 category_item.addChild(item)
 
             category_item.setExpanded(True)

@@ -27,6 +27,7 @@ from s_usd_desktop.ui.dialogs import CheckPickerDialog, OverridePickerDialog
 from s_usd_desktop.ui.menus.check_context_menu import CheckContextMenu
 from s_usd_desktop.ui.menus.override_context_menu import OverrideContextMenu
 from s_usd_desktop.ui.models.profile_draft import ProfileDraft
+from s_usd_desktop.ui.tooltips import TooltipText
 from s_usd_core.validation.config_fields import get_config_fields, get_fields_for_check
 from s_usd_core.validation.profiles import ValidationProfile
 from s_usd_core.validation.rule_config import ValidationRuleConfig
@@ -86,6 +87,9 @@ class ProfileEditor(QWidget):
         layout.addLayout(buttons)
 
         self.profile_list = QListWidget()
+        self.new_button.setToolTip(TooltipText.PROFILE_NEW)
+        self.delete_button.setToolTip(TooltipText.PROFILE_DELETE)
+        self.profile_list.setToolTip(TooltipText.PROFILE_LIST)
         layout.addWidget(self.profile_list, 1)
         return widget
 
@@ -139,6 +143,8 @@ class ProfileEditor(QWidget):
 
         self.reset_button = QPushButton("Reset")
         self.save_button = QPushButton("Save")
+        self.reset_button.setToolTip(TooltipText.PROFILE_RESET)
+        self.save_button.setToolTip(TooltipText.PROFILE_SAVE)
 
         actions.addWidget(self.reset_button)
         actions.addWidget(self.save_button)
@@ -153,6 +159,8 @@ class ProfileEditor(QWidget):
         layout.setContentsMargins(8, 4, 8, 8)
         self.name_edit = QLineEdit()
         self.description_edit = QTextEdit()
+        self.name_edit.setToolTip(TooltipText.PROFILE_NAME)
+        self.description_edit.setToolTip(TooltipText.PROFILE_DESCRIPTION)
         self.description_edit.setMaximumHeight(80)
         layout.addRow("Name:", self.name_edit)
         layout.addRow("Description:", self.description_edit)
@@ -165,6 +173,9 @@ class ProfileEditor(QWidget):
         self.category_combo = QComboBox()
         self.tag_combo = QComboBox()
         self.search_edit = QLineEdit()
+        self.category_combo.setToolTip(TooltipText.CHECK_PICKER_CATEGORY)
+        self.tag_combo.setToolTip(TooltipText.CHECK_PICKER_TAG)
+        self.search_edit.setToolTip(TooltipText.CHECK_PICKER_SEARCH)
         self.search_edit.setPlaceholderText("Search profile checks...")
         layout.addWidget(QLabel("Category"))
         layout.addWidget(self.category_combo)
@@ -198,6 +209,9 @@ class ProfileEditor(QWidget):
         layout.addLayout(actions)
 
         self.check_tree = QTreeWidget()
+        self.add_checks_button.setToolTip(TooltipText.PROFILE_ADD_CHECKS)
+        self.remove_checks_button.setToolTip(TooltipText.PROFILE_REMOVE_CHECKS)
+        self.check_tree.setToolTip(TooltipText.PROFILE_CHECK_LIST)
         self.check_tree.setHeaderLabels(
             [
                 "Check",
@@ -275,6 +289,11 @@ class ProfileEditor(QWidget):
         layout.addLayout(actions)
 
         self.override_tree = QTreeWidget()
+        self.create_override_button.setToolTip(TooltipText.PROFILE_CREATE_OVERRIDE)
+        self.edit_override_button.setToolTip(TooltipText.PROFILE_EDIT_OVERRIDE)
+        self.toggle_override_button.setToolTip(TooltipText.PROFILE_TOGGLE_OVERRIDE)
+        self.remove_override_button.setToolTip(TooltipText.PROFILE_REMOVE_OVERRIDE)
+        self.override_tree.setToolTip(TooltipText.PROFILE_OVERRIDE_LIST)
 
         self.override_tree.setHeaderLabels(
             [
@@ -360,6 +379,14 @@ class ProfileEditor(QWidget):
         self.profile_list.clear()
         names = list(self.profile_loader.get_profile_names())
         self.profile_list.addItems(names)
+        for row, name in enumerate(names):
+            item = self.profile_list.item(row)
+            profile = self.profile_loader.get_profile(name)
+            item.setToolTip(
+                f"{TooltipText.PROFILE_ROW}\n\n"
+                f"Profile: {name}\n"
+                f"Description: {profile.description or 'No description'}"
+            )
         self.profile_list.blockSignals(False)
 
         if not names:
@@ -493,6 +520,16 @@ class ProfileEditor(QWidget):
                     ", ".join(definition.tags),
                 ])
                 item.setData(0, Qt.ItemDataRole.UserRole, definition.check_id)
+                item.setToolTip(
+                    0,
+                    f"{TooltipText.PROFILE_CHECK_ROW}\n\n"
+                    f"Check: {definition.label}\n"
+                    f"ID: {definition.check_id}\n"
+                    f"Category: {definition.category}\n"
+                    f"Phase: {definition.phase}\n"
+                    f"Severity: {definition.default_severity.value}\n"
+                    f"Tags: {', '.join(definition.tags) or 'None'}"
+                )
                 item.setToolTip(0, definition.description)
                 category_item.addChild(item)
 
@@ -596,6 +633,13 @@ class ProfileEditor(QWidget):
                 ", ".join(related),
             ])
             item.setData(0, Qt.ItemDataRole.UserRole, override.path)
+            item.setToolTip(
+                0,
+                f"{TooltipText.PROFILE_OVERRIDE_ROW}\n\n"
+                f"Path: {override.path}\n"
+                f"Value: {override.value!r}\n"
+                f"Enabled: {override.enabled}"
+            )
             self.override_tree.addTopLevelItem(item)
 
             if override.path == selected_path:

@@ -45,6 +45,11 @@ class ResultsTree(QTreeWidget):
         self.clear()
         for category in sorted(grouped):
             category_item = QTreeWidgetItem([category])
+            category_item.setToolTip(
+                0,
+                f"Validation results in the {category} category. Expand this "
+                "group to inspect individual checks and affected targets."
+            )
             category_item.setFirstColumnSpanned(True)
             self.addTopLevelItem(category_item)
             for result in grouped[category]:
@@ -56,7 +61,17 @@ class ResultsTree(QTreeWidget):
                     result.message,
                 ])
                 item.setData(0, Qt.ItemDataRole.UserRole, result)
-                item.setToolTip(0, result.check_id)
+                result_tooltip = (
+                    f"{TooltipText.RESULT_ROW}\n\n"
+                    f"Check: {result.label}\n"
+                    f"ID: {result.check_id}\n"
+                    f"Status: {result.status.value}\n"
+                    f"Severity: {result.severity.value}\n"
+                    f"Location: {result.location or 'Not provided'}\n"
+                    f"Message: {result.message}"
+                )
+                for column in range(self.columnCount()):
+                    item.setToolTip(column, result_tooltip)
                 item.setForeground(1, QColor(STATUS_COLORS[result.status.value]))
                 category_item.addChild(item)
             category_item.setExpanded(True)

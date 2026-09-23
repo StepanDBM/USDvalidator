@@ -16,6 +16,9 @@ from PySide6.QtWidgets import (
 from s_usd_core.validation.attribute_override import AttributeOverride
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class OverridePickerDialog(QDialog):
     def __init__(
         self,
@@ -90,6 +93,14 @@ class OverridePickerDialog(QDialog):
         self.related_label.setWordWrap(True)
         self.enabled_checkbox = QCheckBox("Enabled")
         self.add_related_checkbox = QCheckBox("Also add missing related checks")
+        self.section_combo.setToolTip(TooltipText.OVERRIDE_PICKER_SEARCH)
+        self.attribute_combo.setToolTip(TooltipText.PROFILE_CREATE_OVERRIDE)
+        self.path_edit.setToolTip(TooltipText.PROFILE_OVERRIDE_ROW)
+        self.enabled_checkbox.setToolTip(TooltipText.PROFILE_TOGGLE_OVERRIDE)
+        self.add_related_checkbox.setToolTip(
+            "Add checks associated with this setting when those checks are not "
+            "already included in the profile. This can broaden validation scope."
+        )
         metadata_layout.addRow("Description:", self.description_label)
         metadata_layout.addRow("Default:", self.default_label)
         metadata_layout.addRow("Expected Type:", self.type_label)
@@ -207,6 +218,7 @@ class OverridePickerDialog(QDialog):
             editor = QLineEdit(str(value))
 
         self.value_editor = editor
+        self.value_editor.setToolTip(TooltipText.OVERRIDE_VALUE)
         self.value_row.addWidget(editor)
 
     def _editor_value(self):
