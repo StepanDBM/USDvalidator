@@ -70,5 +70,6 @@ class VersionRead(VersionCreate):
     stream_id: UUID
     number: int
     status: str
+    published_content_fingerprint: str | None = None
     created_at: datetime
     updated_at: datetime

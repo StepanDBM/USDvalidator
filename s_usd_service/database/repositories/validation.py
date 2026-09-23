@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from s_usd_service.database.models import StoredFile, ValidationRun, Version
 from s_usd_service.database.repositories.errors import NotFoundError
+from s_usd_service.services.content_fingerprint import VersionContentFingerprint
 from s_usd_service.services.version_lifecycle import VersionLifecycleService
 
 
@@ -24,6 +25,7 @@ class ValidationRunRepository:
                 raise NotFoundError("Stored file not found in version")
 
         summary = data.pop("summary")
+        content_fingerprint = VersionContentFingerprint.calculate(version.files)
         run = ValidationRun(
             version_id=version_id,
             total_count=summary["total"],
@@ -32,6 +34,7 @@ class ValidationRunRepository:
             skipped_count=summary["skipped"],
             error_count=summary["errors"],
             warning_count=summary["warnings"],
+            content_fingerprint=content_fingerprint,
             **data
         )
         self.database.add(run)

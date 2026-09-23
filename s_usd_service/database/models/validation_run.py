@@ -24,6 +24,7 @@ class ValidationRun(IdMixin, TimestampMixin, Base):
     tool_version: Mapped[str] = mapped_column(String(64))
     configuration_fingerprint: Mapped[str] = mapped_column(String(64), default="")
     check_catalog_fingerprint: Mapped[str] = mapped_column(String(64), default="")
+    content_fingerprint: Mapped[str] = mapped_column(String(64), default="")
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     duration_seconds: Mapped[float] = mapped_column(Float, default=0.0)

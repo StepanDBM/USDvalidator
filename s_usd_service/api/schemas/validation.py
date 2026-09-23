@@ -54,6 +54,7 @@ class ValidationRunRead(ApiModel):
     tool_version: str
     configuration_fingerprint: str
     check_catalog_fingerprint: str
+    content_fingerprint: str
     started_at: datetime
     completed_at: datetime
     duration_seconds: float

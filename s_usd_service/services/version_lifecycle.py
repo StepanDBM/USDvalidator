@@ -3,6 +3,7 @@ from sqlalchemy import select
 from s_usd_service.database.models import StoredFile, ValidationRun, Version
 from s_usd_service.database.repositories.errors import ConflictError, NotFoundError
 from s_usd_service.domain.version_lifecycle import VersionStatus
+from s_usd_service.services.content_fingerprint import VersionContentFingerprint
 
 
 SUPPORTED_REPORT_SCHEMA_VERSIONS = frozenset({"1.0.0"})
@@ -54,6 +55,12 @@ class VersionLifecycleService:
     def publish(self, version_id):
         version = self._version(version_id)
         if version.status == VersionStatus.PUBLISHED:
+            if not version.published_content_fingerprint:
+                version.published_content_fingerprint = VersionContentFingerprint.calculate(
+                    self._files(version_id)
+                )
+                self.database.commit()
+                self.database.refresh(version)
             return version
         if version.status == VersionStatus.DEPRECATED:
             raise ConflictError("Deprecated versions cannot be published again")
@@ -85,7 +92,18 @@ class VersionLifecycleService:
         if report_validation.get("cancelled", False):
             raise ConflictError("Cancelled validation runs cannot authorize publishing")
 
+        content_fingerprint = VersionContentFingerprint.calculate(files)
+        if not validation.content_fingerprint:
+            raise ConflictError(
+                "The latest validation predates content fingerprints; validate the version again"
+            )
+        if validation.content_fingerprint != content_fingerprint:
+            raise ConflictError(
+                "The latest validation does not match the current version contents"
+            )
+
         version.status = VersionStatus.PUBLISHED
+        version.published_content_fingerprint = content_fingerprint
         self.database.commit()
         self.database.refresh(version)
         return version

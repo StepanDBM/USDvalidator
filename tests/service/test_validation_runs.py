@@ -57,6 +57,7 @@ def test_create_list_and_get_validation_run(client):
     assert created["profile_name"] == "production/default"
     assert created["total_count"] == 4
     assert created["failed_count"] == 1
+    assert len(created["content_fingerprint"]) == 64
     assert created["report"]["results"][0]["check_id"] == "USD_STAGE_CAN_OPEN"
 
     listed = client.get(

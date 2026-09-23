@@ -102,6 +102,7 @@ class VersionRecord:
     comment: str
     created_at: datetime
     updated_at: datetime
+    published_content_fingerprint: str | None = None
 
     @property
     def display_name(self):
@@ -116,7 +117,8 @@ class VersionRecord:
             status=data["status"],
             comment=data["comment"],
             created_at=parse_datetime(data["created_at"]),
-            updated_at=parse_datetime(data["updated_at"])
+            updated_at=parse_datetime(data["updated_at"]),
+            published_content_fingerprint=data.get("published_content_fingerprint")
         )
 
 
@@ -178,6 +180,7 @@ class ValidationRunRecord:
     tool_version: str
     configuration_fingerprint: str
     check_catalog_fingerprint: str
+    content_fingerprint: str
     started_at: datetime
     completed_at: datetime
     duration_seconds: float
@@ -204,6 +207,7 @@ class ValidationRunRecord:
             tool_version=data["tool_version"],
             configuration_fingerprint=data["configuration_fingerprint"],
             check_catalog_fingerprint=data["check_catalog_fingerprint"],
+            content_fingerprint=data.get("content_fingerprint", ""),
             started_at=parse_datetime(data["started_at"]),
             completed_at=parse_datetime(data["completed_at"]),
             duration_seconds=float(data["duration_seconds"]),

@@ -15,6 +15,9 @@ class Version(IdMixin, TimestampMixin, Base):
     number: Mapped[int] = mapped_column(Integer)
     status: Mapped[str] = mapped_column(String(32), default="draft")
     comment: Mapped[str] = mapped_column(Text, default="")
+    published_content_fingerprint: Mapped[str | None] = mapped_column(
+        String(64), nullable=True
+    )
     stream: Mapped["Stream"] = relationship(back_populates="versions")
     files: Mapped[list["StoredFile"]] = relationship(back_populates="version", cascade="all, delete-orphan")
     validation_runs: Mapped[list["ValidationRun"]] = relationship(

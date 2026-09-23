@@ -234,3 +234,30 @@ def test_deleting_root_returns_version_to_draft(client):
 
     assert response.status_code == 200
     assert get_version(client, version["id"])["status"] == "draft"
+
+
+def test_validation_records_current_content_fingerprint(client):
+    version = create_version(client)
+    root = upload(client, version["id"]).json()
+
+    response = client.post(
+        f"/api/v1/versions/{version['id']}/validation-runs",
+        json=validation_payload(root["id"], passed=True)
+    )
+
+    assert response.status_code == 201
+    assert len(response.json()["content_fingerprint"]) == 64
+
+
+def test_publish_stores_validated_content_fingerprint(client):
+    version = create_version(client)
+    root = upload(client, version["id"]).json()
+    validation = client.post(
+        f"/api/v1/versions/{version['id']}/validation-runs",
+        json=validation_payload(root["id"], passed=True)
+    ).json()
+
+    published = client.post(f"/api/v1/versions/{version['id']}/publish")
+
+    assert published.status_code == 200
+    assert published.json()["published_content_fingerprint"] == validation["content_fingerprint"]
