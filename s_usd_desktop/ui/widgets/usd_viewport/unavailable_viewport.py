@@ -40,6 +40,9 @@ class UnavailableUsdViewportWidget(QWidget):
         self.diagnostics.setMinimumHeight(220)
 
         copy_button = QPushButton("Copy Runtime Diagnostics")
+        self.setToolTip(TooltipText.VIEWPORT_UNAVAILABLE)
+        self.diagnostics.setToolTip(TooltipText.VIEWPORT_RUNTIME_DIAGNOSTICS)
+        copy_button.setToolTip(TooltipText.VIEWPORT_RUNTIME_DIAGNOSTICS)
         copy_button.clicked.connect(
             lambda: QApplication.clipboard().setText(self.diagnostics.toPlainText())
         )

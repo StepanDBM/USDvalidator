@@ -16,6 +16,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
 from .outliner_model import PrimOutlinerModel
 from .outliner_proxy import PrimOutlinerProxy
 from .outliner_row import PrimRowDelegate
@@ -74,10 +76,34 @@ class StageOutliner(QWidget):
 
         self.findings_only = QCheckBox("Findings only")
         self.animated_only = QCheckBox("Animated only")
+        self.filter_edit.setToolTip(
+            "Filter the stage hierarchy by prim name, path, or type without modifying the stage."
+        )
+        self.tree.setToolTip(TooltipText.VIEWPORT_OUTLINER)
+        self.validation_toggle.setToolTip(TooltipText.VIEWPORT_VALIDATION_CONTEXT)
+        self.validation_refresh.setToolTip(
+            "Run validation again for the loaded source and refresh validation badges in the outliner."
+        )
+        self.type_filter.setToolTip(
+            "Show only prims whose USD type matches the selected type filters."
+        )
+        self.status_filter.setToolTip(
+            "Show only prims matching selected validation states, such as failures or warnings."
+        )
+        self.findings_only.setToolTip(
+            "Hide prims without validation or comparison findings while preserving their required ancestors."
+        )
+        self.animated_only.setToolTip(
+            "Show prims containing time-varying properties while preserving their hierarchy ancestors."
+        )
         self.display_mode = QComboBox()
         self.display_mode.addItems(("All", "Validation", "Comparison", "Animation"))
         self.display_mode.setToolTip("Choose visible outliner evidence layers")
         self.comparison_filter = QToolButton()
+        self.display_mode.setToolTip(
+            "Choose how outliner rows are labeled, such as prim name, full path, or type-aware display."
+        )
+        self.comparison_filter.setToolTip(TooltipText.VIEWPORT_COMPARISON_CONTEXT)
         self.comparison_filter.setText("Comparison: All")
         self.comparison_filter.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.comparison_menu = QMenu(self.comparison_filter)

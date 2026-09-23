@@ -2,6 +2,9 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QFileDialog, QHBoxLayout, QLineEdit, QPushButton, QWidget
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class ViewportToolbar(QWidget):
     source_requested = Signal(str)
 
@@ -13,6 +16,9 @@ class ViewportToolbar(QWidget):
         self.source_edit.setPlaceholderText("Select a USD file to open or reload...")
         self.browse_button = QPushButton("Browse...")
         self.open_button = QPushButton("Open / Reload")
+        self.source_edit.setToolTip(TooltipText.VIEWPORT_SOURCE)
+        self.browse_button.setToolTip(TooltipText.VIEWPORT_BROWSE)
+        self.open_button.setToolTip(TooltipText.VIEWPORT_LOAD)
         layout.addWidget(self.source_edit, 1)
         layout.addWidget(self.browse_button)
         layout.addWidget(self.open_button)

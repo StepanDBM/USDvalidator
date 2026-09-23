@@ -7,6 +7,9 @@ from pxr import Usd, UsdGeom
 from ..viewport_models import PropertyRow
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class PropertyTable(QWidget):
     property_selected = Signal(object)
 
@@ -18,6 +21,10 @@ class PropertyTable(QWidget):
         self.search = QLineEdit()
         self.search.setPlaceholderText("Search properties...")
         self.table = QTableWidget(0, 3)
+        self.search.setToolTip(
+            "Filter the selected prim's properties by name, type, or displayed value."
+        )
+        self.table.setToolTip(TooltipText.VIEWPORT_PRIM_INSPECTOR)
         self.table.setHorizontalHeaderLabels(["Type", "Property Name", "Value"])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.setColumnWidth(0, 48)
@@ -96,6 +103,12 @@ class PropertyTable(QWidget):
             for column, value in enumerate((row.kind, row.name, row.value)):
                 item = QTableWidgetItem(value)
                 item.setData(Qt.ItemDataRole.UserRole, row)
+                item.setToolTip(
+                    f"{TooltipText.VIEWPORT_PROPERTY_ROW}\n\n"
+                    f"Kind: {row.kind}\n"
+                    f"Property: {row.name}\n"
+                    f"Value: {row.value}"
+                )
                 self.table.setItem(row_index, column, item)
         if visible:
             self.table.selectRow(0)

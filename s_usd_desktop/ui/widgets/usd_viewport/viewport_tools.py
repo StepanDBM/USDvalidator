@@ -2,6 +2,9 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QCheckBox, QComboBox, QGridLayout, QGroupBox, QPushButton, QVBoxLayout, QWidget
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class ViewportTools(QWidget):
     action_requested = Signal(str, object)
 
@@ -21,14 +24,25 @@ class ViewportTools(QWidget):
         grid = QGridLayout(group)
         self.camera_combo = QComboBox()
         self.camera_combo.addItem("Free Camera", "")
+        self.camera_combo.setToolTip(TooltipText.VIEWPORT_CAMERA_MODE)
         buttons = (("Frame All", "frame_all"), ("Frame Selected", "frame_selected"), ("Reset", "reset_camera"), ("Copy Image", "copy_image"), ("Save Image", "save_image"))
         grid.addWidget(self.camera_combo, 0, 0, 1, 2)
         for index, (label, action) in enumerate(buttons, 1):
             button = QPushButton(label)
+            button.setToolTip({
+                "frame_all": TooltipText.VIEWPORT_FRAME_ALL,
+                "frame_selected": TooltipText.VIEWPORT_FRAME_SELECTION,
+                "reset_camera": "Reset the free camera to its default orientation and framing.",
+                "copy_image": "Copy the current viewport image to the operating-system clipboard.",
+                "save_image": TooltipText.VIEWPORT_SCREENSHOT
+            }[action])
             button.clicked.connect(lambda checked=False, name=action: self.action_requested.emit(name, None))
             grid.addWidget(button, (index + 1) // 2, (index - 1) % 2)
         self.auto_clip = QCheckBox("Auto clipping")
         self.auto_clip.setChecked(True)
+        self.auto_clip.setToolTip(
+            "Automatically derive near and far clipping planes from visible stage bounds."
+        )
         self.auto_clip.toggled.connect(lambda value: self.action_requested.emit("auto_clipping", value))
         grid.addWidget(self.auto_clip, 4, 0, 1, 2)
         self.camera_combo.currentIndexChanged.connect(lambda index: self.action_requested.emit("camera", self.camera_combo.itemData(index)))
@@ -39,7 +53,10 @@ class ViewportTools(QWidget):
         grid = QGridLayout(group)
         self.renderer_combo = QComboBox()
         self.aov_combo = QComboBox()
+        self.renderer_combo.setToolTip(TooltipText.VIEWPORT_RENDERER)
+        self.aov_combo.setToolTip(TooltipText.VIEWPORT_AOV)
         settings = QPushButton("Hydra Settings...")
+        settings.setToolTip(TooltipText.VIEWPORT_HYDRA_SETTINGS)
         settings.clicked.connect(lambda: self.action_requested.emit("renderer_settings", None))
         self.renderer_combo.currentIndexChanged.connect(lambda index: self.action_requested.emit("renderer", self.renderer_combo.itemData(index)))
         self.aov_combo.currentTextChanged.connect(lambda value: self.action_requested.emit("aov", value))
@@ -57,6 +74,15 @@ class ViewportTools(QWidget):
         for label, value in (("Low", "low"), ("Medium", "medium"), ("High", "high"), ("Very High", "very_high")):
             self.complexity_combo.addItem(label, value)
         self.background_combo = QComboBox()
+        self.draw_mode_combo.setToolTip(
+            "Choose the viewport draw style, such as smooth shaded, wireframe, or points."
+        )
+        self.complexity_combo.setToolTip(
+            "Choose Hydra refinement complexity. Higher values may improve subdivision display but cost performance."
+        )
+        self.background_combo.setToolTip(
+            "Choose the viewport background color used only for interactive display."
+        )
         for label, value in (("Black", "#000000"), ("Dark Grey", "#404040"), ("Light Grey", "#a0a0a0"), ("White", "#ffffff")):
             self.background_combo.addItem(label, value)
         grid.addWidget(self.draw_mode_combo, 0, 0, 1, 2)
@@ -87,11 +113,20 @@ class ViewportTools(QWidget):
         group = QGroupBox("Selection")
         grid = QGridLayout(group)
         clear = QPushButton("Clear")
+        clear.setToolTip(
+            "Clear the current prim selection without modifying the USD stage."
+        )
         clear.clicked.connect(lambda: self.action_requested.emit("clear_selection", None))
         self.highlight = QCheckBox("Highlight")
         self.highlight.setChecked(True)
+        self.highlight.setToolTip(
+            "Draw a viewport highlight around selected prims. This changes display only."
+        )
         self.highlight.toggled.connect(lambda value: self.action_requested.emit("selection_highlight", value))
         self.highlight_color = QComboBox()
+        self.highlight_color.setToolTip(
+            "Choose the viewport selection-highlight color. This changes display only."
+        )
         for label, value in (("Yellow", "#ffff00"), ("White", "#ffffff"), ("Cyan", "#00ffff")):
             self.highlight_color.addItem(label, value)
         self.highlight_color.currentIndexChanged.connect(lambda index: self.action_requested.emit("selection_color", self.highlight_color.itemData(index)))

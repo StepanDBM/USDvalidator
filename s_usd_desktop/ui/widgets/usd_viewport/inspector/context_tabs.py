@@ -6,6 +6,9 @@ from PySide6.QtWidgets import QAbstractItemView, QPlainTextEdit, QTableWidget, Q
 from pxr import UsdShade
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class ContextTabs(QTabWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -25,6 +28,19 @@ class ContextTabs(QTabWidget):
         self.addTab(self.validation, "Validation")
         self.addTab(self.semantic, "Semantic Change")
         self.addTab(self.clips, "Clips")
+        tooltips = (
+            "Resolved value of the selected property at the current timeline time.",
+            "Authored and composed metadata on the selected prim.",
+            "Prim specifications contributing to the selected prim across the layer stack.",
+            "Composition arcs and prim specifications that contribute to the selected prim.",
+            "Resolved material bindings for the selected prim and binding purposes.",
+            TooltipText.VIEWPORT_VALIDATION_CONTEXT,
+            TooltipText.VIEWPORT_COMPARISON_CONTEXT,
+            "Value-clip sets affecting the selected prim, including assets, manifests, activation, and time mapping."
+        )
+        for index, text in enumerate(tooltips):
+            self.setTabToolTip(index, text)
+        self.setToolTip(TooltipText.VIEWPORT_PRIM_INSPECTOR)
 
     def set_prim(self, prim):
         self.value.clear()

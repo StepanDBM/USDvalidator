@@ -4,6 +4,9 @@ from PySide6.QtCore import QTimer, Qt, Signal
 from PySide6.QtWidgets import QDoubleSpinBox, QHBoxLayout, QLabel, QPushButton, QSlider, QWidget
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class TimelineWidget(QWidget):
     time_changed = Signal(float)
 
@@ -42,6 +45,26 @@ class TimelineWidget(QWidget):
         self.time_box = self._time_box()
         self.end_box = self._time_box()
         self.range_label = QLabel("Stage 0 - 0 @ 24 fps")
+        self.to_start.setToolTip(TooltipText.VIEWPORT_FIRST_FRAME)
+        self.previous_sample.setToolTip(
+            "Jump to the previous authored time sample within the playback range."
+        )
+        self.previous_frame.setToolTip(TooltipText.VIEWPORT_STEP_PREVIOUS)
+        self.play.setToolTip(TooltipText.VIEWPORT_PLAY)
+        self.next_frame.setToolTip(TooltipText.VIEWPORT_STEP_NEXT)
+        self.next_sample.setToolTip(
+            "Jump to the next authored time sample within the playback range."
+        )
+        self.to_end.setToolTip(TooltipText.VIEWPORT_LAST_FRAME)
+        self.slider.setToolTip(TooltipText.VIEWPORT_TIMELINE)
+        self.start_box.setToolTip(
+            "Playback start time. Playback loops from the Out value back to this In value."
+        )
+        self.time_box.setToolTip(TooltipText.VIEWPORT_TIMELINE)
+        self.end_box.setToolTip(
+            "Playback end time. Values outside the authored stage range may show held or default values."
+        )
+        self.range_label.setToolTip(TooltipText.VIEWPORT_TIMELINE)
 
         for widget in (
             self.to_start, self.previous_sample, self.previous_frame,
