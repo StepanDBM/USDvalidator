@@ -3,8 +3,15 @@ from html import escape
 
 from PySide6.QtWidgets import QTextBrowser
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
 
 class ChangeDetails(QTextBrowser):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setToolTip(TooltipText.COMPARISON_CHANGE_DETAILS)
+        self.show_change(None)
+
     def show_change(self, change):
         if change is None:
             self.setHtml("<i>Select a semantic change to inspect it.</i>")

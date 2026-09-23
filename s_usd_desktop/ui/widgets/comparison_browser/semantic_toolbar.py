@@ -2,6 +2,9 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QCheckBox, QComboBox, QHBoxLayout, QLabel, QWidget
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class SemanticComparisonToolbar(QWidget):
     filters_changed = Signal()
 
@@ -13,6 +16,10 @@ class SemanticComparisonToolbar(QWidget):
         self.domain_combo = QComboBox()
         self.kind_combo = QComboBox()
         self.regressions_only = QCheckBox("Regressions only")
+        self.impact_combo.setToolTip(TooltipText.COMPARISON_FILTER_IMPACT)
+        self.domain_combo.setToolTip(TooltipText.COMPARISON_FILTER_DOMAIN)
+        self.kind_combo.setToolTip(TooltipText.COMPARISON_FILTER_KIND)
+        self.regressions_only.setToolTip(TooltipText.COMPARISON_ONLY_REGRESSIONS)
         self.impact_combo.addItem("All impacts")
         self.domain_combo.addItem("All domains")
         self.kind_combo.addItem("All kinds")

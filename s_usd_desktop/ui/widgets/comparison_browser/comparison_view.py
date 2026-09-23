@@ -20,6 +20,7 @@ from s_usd_core.comparison.source_preflight import DiffMode, DiffScale, inspect_
 from s_usd_desktop.cache import ManagedCacheRecognizer, default_cache_root
 from s_usd_desktop.ui.dialogs.large_diff_dialog import LargeDiffDialog
 from s_usd_desktop.ui.workers import ComparisonWorker
+from s_usd_desktop.ui.tooltips import TooltipText
 
 from .change_details import ChangeDetails
 from .diff_view import FileDiffView
@@ -72,6 +73,13 @@ class ComparisonView(QWidget):
 
         self.swap_button = QPushButton("Swap")
         self.compare_button = QPushButton("Compare Versions")
+        self.previous_edit.setToolTip(TooltipText.COMPARISON_PREVIOUS_SOURCE)
+        self.previous_button.setToolTip(TooltipText.COMPARISON_BROWSE_PREVIOUS)
+        self.current_edit.setToolTip(TooltipText.COMPARISON_CURRENT_SOURCE)
+        self.current_button.setToolTip(TooltipText.COMPARISON_BROWSE_CURRENT)
+        self.profile_combo.setToolTip(TooltipText.PROFILE_SELECTOR)
+        self.swap_button.setToolTip(TooltipText.COMPARISON_SWAP)
+        self.compare_button.setToolTip(TooltipText.COMPARISON_RUN)
 
         files_row.addWidget(self.swap_button)
         files_row.addWidget(self.compare_button)
@@ -110,6 +118,13 @@ class ComparisonView(QWidget):
         self.progress_bar.setMaximumHeight(18)
         self.progress_bar.hide()
         self.cancel_button = QPushButton("Cancel")
+        self.summary_label.setToolTip(TooltipText.SEMANTIC_COMPARISON_CONCEPT)
+        self.show_unchanged.setToolTip(
+            "Show semantic rows whose interpreted values are identical in both "
+            "sources. Enabling this can add many informational rows."
+        )
+        self.progress_bar.setToolTip(TooltipText.COMPARISON_RUN)
+        self.cancel_button.setToolTip(TooltipText.COMPARISON_CANCEL)
         self.cancel_button.hide()
         progress_row = QHBoxLayout()
         progress_row.addWidget(self.progress_bar, 1)

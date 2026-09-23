@@ -3,6 +3,9 @@ from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QAbstractItemView, QMenu, QTreeWidget, QTreeWidgetItem
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 KIND_COLORS = {
     "ADDED": "#3fb950",
     "REMOVED": "#f85149",
@@ -32,6 +35,7 @@ class SemanticChangesTree(QTreeWidget):
         self.comparison = None
         self.show_unchanged = False
         self.filters = {}
+        self.setToolTip(TooltipText.COMPARISON_SEMANTIC_TREE)
         self.setHeaderLabels([
             "Domain",
             "Path",
@@ -90,6 +94,19 @@ class SemanticChangesTree(QTreeWidget):
                 self._value(change.current),
             ])
             item.setData(0, Qt.ItemDataRole.UserRole, change)
+            change_tooltip = (
+                f"{TooltipText.COMPARISON_CHANGE_ROW}\n\n"
+                f"Domain: {domain}\n"
+                f"Subject: {change.path}\n"
+                f"Change: {change.label}\n"
+                f"Kind: {change.kind.value}\n"
+                f"Impact: {change.impact.value}\n"
+                f"Previous: {self._value(change.previous)}\n"
+                f"Current: {self._value(change.current)}\n"
+                f"Why it matters: {change.why_it_matters or 'Semantic stage content changed.'}"
+            )
+            for column in range(self.columnCount()):
+                item.setToolTip(column, change_tooltip)
             item.setForeground(3, QColor(KIND_COLORS[change.kind.value]))
             self.addTopLevelItem(item)
 
@@ -135,12 +152,18 @@ class SemanticChangesTree(QTreeWidget):
         menu = QMenu(self)
         automatic = "Previous" if change.kind.value == "REMOVED" else "Current"
         action = menu.addAction(f"Open and Frame in Viewport ({automatic})")
+        action.setToolTip(
+            "Open the automatically selected comparison side in Viewport and "
+            "frame the prim associated with this semantic change."
+        )
         action.triggered.connect(
             lambda checked=False, value=change: self.open_in_viewport_requested.emit(value, "auto")
         )
         menu.addSeparator()
         previous = menu.addAction("Open Previous in Viewport")
         current = menu.addAction("Open Current in Viewport")
+        previous.setToolTip(TooltipText.COMPARISON_PREVIOUS_SOURCE)
+        current.setToolTip(TooltipText.COMPARISON_CURRENT_SOURCE)
         previous.triggered.connect(
             lambda checked=False, value=change: self.open_in_viewport_requested.emit(value, "previous")
         )

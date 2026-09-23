@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 )
 
 from .diff_toolbar import DiffToolbar
+from s_usd_desktop.ui.tooltips import TooltipText
 
 
 CHANGED_COLLAPSE_THRESHOLD = 15
@@ -88,6 +89,20 @@ class SideBySideDiffModel(QAbstractTableModel):
             return self._foreground(row.kind, column)
         if role == Qt.ItemDataRole.TextAlignmentRole:
             return self._alignment(column)
+        if role == Qt.ItemDataRole.ToolTipRole:
+            descriptions = {
+                "ADDED": TooltipText.COMPARISON_DIFF_ROW_ADDED,
+                "REMOVED": TooltipText.COMPARISON_DIFF_ROW_REMOVED,
+                "CHANGED": TooltipText.COMPARISON_DIFF_ROW_CHANGED,
+                "UNCHANGED": TooltipText.COMPARISON_DIFF_ROW_UNCHANGED,
+                "OMITTED": TooltipText.COMPARISON_DIFF_ROW_OMITTED
+            }
+            return (
+                f"{descriptions.get(row.kind, TooltipText.COMPARISON_DIFF_TABLE)}\n\n"
+                f"Kind: {row.kind}\n"
+                f"Previous line: {row.old_number or 'None'}\n"
+                f"Current line: {row.new_number or 'None'}"
+            )
         if role == Qt.ItemDataRole.ToolTipRole:
             text = row.old_text if column == 1 else row.new_text if column == 3 else row.kind
             return self._truncate(text, MAX_TOOLTIP_LINE_LENGTH)
@@ -428,6 +443,7 @@ class FileDiffView(QWidget):
 
         self.toolbar = DiffToolbar()
         self.table = DiffTableView()
+        self.table.setToolTip(TooltipText.COMPARISON_DIFF_TABLE)
         self.table.setModel(self.model)
         self.table.setFont(QFontDatabase.systemFont(QFontDatabase.SystemFont.FixedFont))
         self.table.setAlternatingRowColors(False)

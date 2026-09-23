@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
 )
 
 from s_usd_core.comparison.source_preflight import DiffMode, DiffScale
+from s_usd_desktop.ui.tooltips import TooltipText
 
 
 class LargeDiffDialog(QDialog):
@@ -14,6 +15,7 @@ class LargeDiffDialog(QDialog):
         super().__init__(parent)
         self.preflight = preflight
         self.selected_mode = None
+        self.setToolTip(TooltipText.LARGE_DIFF_DIALOG)
         self.setWindowTitle("Large Source Comparison")
         self.setMinimumWidth(520)
         self._build_ui()
@@ -35,11 +37,11 @@ class LargeDiffDialog(QDialog):
         layout.addWidget(label)
 
         self.full_button = QPushButton("Full Diff")
-        self.full_button.setToolTip("Build every aligned source row. This may take considerable time and memory.")
+        self.full_button.setToolTip(TooltipText.COMPARISON_FULL_DIFF)
         self.summary_button = QPushButton("Summary Diff")
-        self.summary_button.setToolTip("Build changes with aggressively limited unchanged context.")
+        self.summary_button.setToolTip(TooltipText.COMPARISON_SUMMARY_DIFF)
         self.skip_button = QPushButton("Skip Source Diff")
-        self.skip_button.setToolTip("Run semantic comparison without source-level diffing.")
+        self.skip_button.setToolTip(TooltipText.COMPARISON_SKIP_DIFF)
         layout.addWidget(self.full_button)
         layout.addWidget(self.summary_button)
         layout.addWidget(self.skip_button)
