@@ -1,0 +1,4 @@
+-r requirements-service.txt
+
+# Desktop UI and offscreen Qt tests.
+PySide6>=6.8,<7

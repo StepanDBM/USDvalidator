@@ -27,6 +27,7 @@ from s_usd_desktop.ui.storage.dialogs import (
     UploadFileDialog,
     CacheSettingsDialog
 )
+from s_usd_desktop.ui.tooltips import TooltipText
 from s_usd_desktop.ui.storage.models import (
     AssetListModel,
     ProjectListModel,
@@ -95,6 +96,28 @@ class StorageWorkspace(QWidget):
         self.cache_settings_button = QPushButton("Cache...")
         self.refresh_button = QPushButton("Refresh")
         self.refresh_button.setEnabled(False)
+        tooltips = {
+            self.create_project_button: TooltipText.STORAGE_NEW_PROJECT,
+            self.create_asset_button: TooltipText.STORAGE_NEW_ASSET,
+            self.create_stream_button: TooltipText.STORAGE_NEW_STREAM,
+            self.create_version_button: TooltipText.STORAGE_NEW_VERSION,
+            self.upload_button: TooltipText.STORAGE_UPLOAD_FILE,
+            self.download_button: TooltipText.STORAGE_DOWNLOAD_FILE,
+            self.download_root_button: TooltipText.STORAGE_DOWNLOAD_ROOT,
+            self.download_version_button: TooltipText.STORAGE_DOWNLOAD_VERSION,
+            self.open_version_button: TooltipText.STORAGE_OPEN_VERSION,
+            self.validate_version_button: TooltipText.STORAGE_VALIDATE_VERSION,
+            self.lifecycle_button: TooltipText.VERSION_DETAIL_LIFECYCLE,
+            self.deprecate_button: TooltipText.STORAGE_DEPRECATE_VERSION,
+            self.compare_versions_button: TooltipText.STORAGE_COMPARE_VERSIONS,
+            self.reveal_button: TooltipText.STORAGE_REVEAL_CACHE,
+            self.remove_cache_button: TooltipText.STORAGE_REMOVE_CACHE,
+            self.clear_version_cache_button: TooltipText.STORAGE_CLEAR_VERSION_CACHE,
+            self.cache_settings_button: TooltipText.STORAGE_CACHE_SETTINGS,
+            self.refresh_button: TooltipText.STORAGE_REFRESH
+        }
+        for control, text in tooltips.items():
+            control.setToolTip(text)
         self.new_menu_button = self._menu_button("New", (
             ("Project...", self._create_project),
             ("Asset...", self._create_asset),
@@ -128,9 +151,13 @@ class StorageWorkspace(QWidget):
         header.addWidget(self.refresh_button)
 
         self.project_view = self._make_list(self.project_model)
+        self.project_view.setToolTip(TooltipText.PROJECT_LIST)
         self.asset_view = self._make_list(self.asset_model)
+        self.asset_view.setToolTip(TooltipText.ASSET_LIST)
         self.stream_view = self._make_list(self.stream_model)
+        self.stream_view.setToolTip(TooltipText.STREAM_LIST)
         self.version_view = self._make_table(self.version_model)
+        self.version_view.setToolTip(TooltipText.VERSION_TABLE)
         self.version_view.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.version_view.horizontalHeader().setStretchLastSection(True)
         browser = QSplitter(Qt.Horizontal)
@@ -141,17 +168,23 @@ class StorageWorkspace(QWidget):
         browser.setSizes([220, 240, 180, 500])
 
         self.file_view = self._make_table(self.file_model)
+        self.file_view.setToolTip(TooltipText.STORED_FILE_TABLE)
         self.file_view.horizontalHeader().setStretchLastSection(True)
         self.detail_title = QLabel("No version selected")
         self.detail_title.setStyleSheet("font-size: 16px; font-weight: 600;")
         self.detail_status = QLabel("Status: —")
+        self.detail_status.setToolTip(TooltipText.VERSION_DETAIL_LIFECYCLE)
         self.detail_comment = QLabel("Comment: —")
         self.detail_comment.setWordWrap(True)
         self.detail_files = QLabel("Files: 0")
         self.detail_readiness = QLabel("Readiness: —")
+        self.detail_readiness.setToolTip(TooltipText.VERSION_DETAIL_READINESS)
         self.detail_validation = QLabel("Latest validation: —")
+        self.detail_validation.setToolTip(TooltipText.VALIDATION_HISTORY_CONCEPT)
         self.detail_publish_readiness = QLabel("Publish Readiness: —")
+        self.detail_publish_readiness.setToolTip(TooltipText.VERSION_DETAIL_PUBLISH_READINESS)
         self.detail_fingerprint = QLabel("Content Identity: —")
+        self.detail_fingerprint.setToolTip(TooltipText.VERSION_DETAIL_CONTENT_IDENTITY)
         self.detail_fingerprint.setWordWrap(True)
         details = QFrame()
         details_layout = QVBoxLayout(details)
@@ -172,15 +205,21 @@ class StorageWorkspace(QWidget):
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
         self.cancel_upload_button = QPushButton("Cancel Upload")
+        self.progress_bar.setToolTip(TooltipText.TRANSFER_CONCEPT)
+        self.cancel_upload_button.setToolTip(TooltipText.STORAGE_CANCEL_TRANSFER)
         self.cancel_upload_button.setVisible(False)
         transfer_row = QHBoxLayout()
         transfer_row.addWidget(self.progress_bar, 1)
         transfer_row.addWidget(self.cancel_upload_button)
 
         self.validation_history_view = self._make_table(self.validation_history_model)
+        self.validation_history_view.setToolTip(TooltipText.VALIDATION_HISTORY_TABLE)
+        self.validation_history_view.horizontalHeader().setStretchLastSection(True)
         self.validation_history_view.horizontalHeader().setStretchLastSection(True)
         self.refresh_history_button = QPushButton("Refresh History")
+        self.refresh_history_button.setToolTip(TooltipText.STORAGE_REFRESH_HISTORY)
         self.open_history_button = QPushButton("Open Historical Report")
+        self.open_history_button.setToolTip(TooltipText.STORAGE_OPEN_HISTORY)
         history_actions = QHBoxLayout()
         history_actions.addStretch()
         history_actions.addWidget(self.refresh_history_button)

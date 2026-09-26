@@ -14,6 +14,9 @@ from PySide6.QtWidgets import (
 )
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class UploadFileDialog(QDialog):
     ROLES = ("root_layer", "dependency", "texture", "preview", "manifest", "report", "other")
 
@@ -23,6 +26,8 @@ class UploadFileDialog(QDialog):
         self.setMinimumWidth(520)
         self.path = QLineEdit()
         browse = QPushButton("Browse...")
+        self.path.setToolTip(TooltipText.UPLOAD_LOCAL_FILE)
+        browse.setToolTip(TooltipText.UPLOAD_LOCAL_FILE)
         browse.clicked.connect(self._browse)
         row = QWidget()
         row_layout = QHBoxLayout(row)
@@ -34,6 +39,8 @@ class UploadFileDialog(QDialog):
         if initial_role in self.ROLES:
             self.role.setCurrentText(initial_role)
         self.relative_path = QLineEdit()
+        self.role.setToolTip(TooltipText.UPLOAD_ROLE)
+        self.relative_path.setToolTip(TooltipText.UPLOAD_RELATIVE_PATH)
         form = QFormLayout()
         form.addRow("Local file", row)
         form.addRow("Role", self.role)

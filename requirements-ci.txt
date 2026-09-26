@@ -1,0 +1,5 @@
+-r requirements-desktop.txt
+
+# Portable OpenUSD core bindings for hosted Linux CI.
+# This package does not include UsdImagingGL or Usdviewq.
+usd-core==26.8; platform_system != "Windows"

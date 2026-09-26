@@ -9,6 +9,9 @@ from PySide6.QtWidgets import (
 )
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class FormDialog(QDialog):
     def __init__(self, title, parent=None):
         super().__init__(parent)
@@ -39,6 +42,7 @@ class CreateProjectDialog(FormDialog):
     def __init__(self, parent=None):
         super().__init__("Create Project", parent)
         self.code = QLineEdit()
+        self.code.setToolTip(TooltipText.CREATE_PROJECT_CODE)
         self.name = QLineEdit()
         self.description = QPlainTextEdit()
         self.description.setMaximumHeight(90)
@@ -62,9 +66,11 @@ class CreateAssetDialog(FormDialog):
     def __init__(self, parent=None):
         super().__init__("Create Asset", parent)
         self.code = QLineEdit()
+        self.code.setToolTip(TooltipText.CREATE_ASSET_CODE)
         self.name = QLineEdit()
         self.asset_type = QComboBox()
         self.asset_type.addItems(self.TYPES)
+        self.asset_type.setToolTip(TooltipText.CREATE_ASSET_TYPE)
         self.description = QPlainTextEdit()
         self.description.setMaximumHeight(90)
         self.form.addRow("Code", self.code)
@@ -91,6 +97,7 @@ class CreateStreamDialog(FormDialog):
     def __init__(self, parent=None):
         super().__init__("Create Stream", parent)
         self.name = QLineEdit()
+        self.name.setToolTip(TooltipText.CREATE_STREAM_NAME)
         self.description = QPlainTextEdit()
         self.description.setMaximumHeight(90)
         self.form.addRow("Name", self.name)
@@ -109,6 +116,7 @@ class CreateVersionDialog(FormDialog):
     def __init__(self, parent=None):
         super().__init__("Create Version", parent)
         self.comment = QPlainTextEdit()
+        self.comment.setToolTip(TooltipText.CREATE_VERSION_COMMENT)
         self.comment.setMaximumHeight(110)
         self.form.addRow("Comment", self.comment)
 

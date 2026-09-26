@@ -36,6 +36,9 @@ class CacheSettings:
         self.settings.sync()
 
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
+
 class CacheSettingsDialog(QDialog):
     def __init__(self, configuration, parent=None):
         super().__init__(parent)
@@ -43,6 +46,8 @@ class CacheSettingsDialog(QDialog):
         self.setMinimumWidth(540)
         self.root = QLineEdit(str(configuration.root))
         browse = QPushButton("Browse...")
+        self.root.setToolTip(TooltipText.CACHE_ROOT)
+        browse.setToolTip(TooltipText.CACHE_ROOT)
         browse.clicked.connect(self._browse)
         root_widget = QWidget()
         root_layout = QHBoxLayout(root_widget)
@@ -53,6 +58,8 @@ class CacheSettingsDialog(QDialog):
         self.maximum_gib.setRange(1, 4096)
         self.maximum_gib.setValue(max(1, configuration.maximum_bytes // 1024**3))
         self.verify = QCheckBox("Verify SHA-256 when cached files are inspected")
+        self.maximum_gib.setToolTip(TooltipText.CACHE_LIMIT)
+        self.verify.setToolTip(TooltipText.CACHE_VERIFY_ON_ACCESS)
         self.verify.setChecked(configuration.verify_on_access)
         form = QFormLayout()
         form.addRow("Cache location", root_widget)

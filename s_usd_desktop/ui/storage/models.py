@@ -1,3 +1,5 @@
+from s_usd_desktop.ui.tooltips import TooltipText
+
 from PySide6.QtCore import QAbstractListModel, QAbstractTableModel, QModelIndex, Qt
 
 
@@ -21,6 +23,21 @@ class RecordListModel(QAbstractListModel):
 
         if role == Qt.DisplayRole:
             return self.display_getter(record)
+        if role == Qt.ToolTipRole:
+            kind = type(self).__name__
+            explanation = {
+                "ProjectListModel": TooltipText.PROJECT_ROW,
+                "AssetListModel": TooltipText.ASSET_ROW,
+                "StreamListModel": TooltipText.STREAM_ROW
+            }.get(kind, TooltipText.STORAGE_WORKSPACE)
+            values = [f"{explanation}", "", f"Name: {getattr(record, 'name', '')}"]
+            code = getattr(record, "code", "")
+            description = getattr(record, "description", "")
+            if code:
+                values.append(f"Code: {code}")
+            if description:
+                values.append(f"Description: {description}")
+            return "\n".join(values)
         if role == self.IdRole:
             return record.id
         if role == self.RecordRole:
@@ -80,6 +97,10 @@ class VersionTableModel(QAbstractTableModel):
 
         if role == Qt.UserRole:
             return record
+        if role == Qt.ToolTipRole:
+            return (f"{TooltipText.VERSION_ROW}\n\n"
+                    f"Number: {getattr(record, 'number', '')}\n"
+                    f"Status: {getattr(record, 'status', '')}")
         if role != Qt.DisplayRole:
             return None
 
@@ -130,6 +151,10 @@ class StoredFileTableModel(QAbstractTableModel):
 
         if role == Qt.UserRole:
             return record
+        if role == Qt.ToolTipRole:
+            return (f"{TooltipText.STORED_FILE_ROW}\n\n"
+                    f"Relative Path: {getattr(record, 'relative_path', '')}\n"
+                    f"Role: {getattr(record, 'role', '')}")
         if role != Qt.DisplayRole:
             return None
 
@@ -197,6 +222,10 @@ class ValidationHistoryTableModel(QAbstractTableModel):
 
         if role == Qt.UserRole:
             return record
+        if role == Qt.ToolTipRole:
+            return (f"{TooltipText.VALIDATION_HISTORY_ROW}\n\n"
+                    f"Profile Name: {getattr(record, 'profile_name', '')}\n"
+                    f"Publish Passed: {getattr(record, 'publish_passed', '')}")
         if role != Qt.DisplayRole:
             return None
 

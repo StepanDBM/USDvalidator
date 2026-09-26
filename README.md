@@ -80,3 +80,29 @@ StageContext / StageHealthContext
 
 CheckResult
     What happened when one check evaluated the extracted facts?
+---
+
+## Reproducible Development and CI Environment
+
+S-USDv separates service, desktop and hosted-CI dependencies:
+
+```powershell
+python -m pip install -r requirements-service.txt
+python -m pip install -r requirements-desktop.txt
+python -m pip install -r requirements-ci.txt
+```
+
+Use `requirements-desktop.txt` on a workstation that already provides the full OpenUSD runtime. Set `S_USDV_OPENUSD_ROOT` when the runtime is not discoverable automatically.
+
+Use `requirements-ci.txt` in a clean hosted environment. It installs portable OpenUSD core bindings for validation and comparison tests; the embedded viewport remains an optional capability because `pxr.Usdviewq` is not part of that package.
+
+Verify a clean environment with:
+
+```powershell
+$env:QT_QPA_PLATFORM = "offscreen"
+python scripts/ci/check_environment.py
+python -m compileall -q s_usd_core s_usd_service s_usd_desktop
+python -m pytest tests/service tests/desktop -v
+```
+
+See `docs/ci_environment.md` for the environment contract, isolated test-state variables and the boundary between portable CI tests and full workstation viewport tests.
