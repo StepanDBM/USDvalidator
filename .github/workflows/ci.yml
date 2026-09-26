@@ -22,12 +22,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
-  env:
-    QT_QPA_PLATFORM: offscreen
-    S_USDV_DATA_ROOT: /tmp/s-usdv-ci
-    S_USDV_DATABASE_URL: sqlite:////tmp/s-usdv-ci/s_usdv.db
-    S_USDV_STORAGE_ROOT: /tmp/s-usdv-ci/storage
-    S_USDV_TEMPORARY_ROOT: /tmp/s-usdv-ci/temp
+    env:
+      QT_QPA_PLATFORM: offscreen
+      S_USDV_DATA_ROOT: /tmp/s-usdv-ci
+      S_USDV_DATABASE_URL: sqlite:////tmp/s-usdv-ci/s_usdv.db
+      S_USDV_STORAGE_ROOT: /tmp/s-usdv-ci/storage
+      S_USDV_TEMPORARY_ROOT: /tmp/s-usdv-ci/temp
 
     steps:
       - name: Check out repository
