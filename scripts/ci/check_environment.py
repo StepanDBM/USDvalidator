@@ -4,10 +4,12 @@ from pathlib import Path
 import platform
 import sys
 
+
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
+
 
 REQUIRED_MODULES = (
     "alembic",
@@ -22,18 +24,8 @@ REQUIRED_MODULES = (
     "sqlalchemy",
     "uvicorn"
 )
-
-OPENUSD_CORE_MODULES = (
-    "pxr.Sdf",
-    "pxr.Usd",
-    "pxr.UsdGeom",
-    "pxr.UsdShade"
-)
-
-OPTIONAL_VIEWPORT_MODULES = (
-    "pxr.UsdImagingGL",
-    "pxr.Usdviewq"
-)
+OPENUSD_CORE_MODULES = ("pxr.Sdf", "pxr.Usd", "pxr.UsdGeom", "pxr.UsdShade")
+OPTIONAL_VIEWPORT_MODULES = ("pxr.UsdImagingGL", "pxr.Usdviewq")
 
 
 def probe(name):
@@ -41,21 +33,21 @@ def probe(name):
         module = importlib.import_module(name)
     except Exception as error:
         return False, f"{type(error).__name__}: {error}"
-
     version = getattr(module, "__version__", "")
     return True, str(version or "available")
 
 
-def bootstrap_openusd():
+def prepare_openusd():
+    available, _ = probe("pxr.Usd")
+    if available:
+        print("[OK] OpenUSD core: available from the active Python environment")
+        return True
+
     try:
         from s_usd_desktop.runtime.bootstrap import bootstrap_openusd_runtime
-
         result = bootstrap_openusd_runtime(strict=False)
     except Exception as error:
-        print(
-            "[FAILED] OpenUSD runtime bootstrap: "
-            f"{type(error).__name__}: {error}"
-        )
+        print(f"[FAILED] OpenUSD runtime bootstrap: {type(error).__name__}: {error}")
         return False
 
     status = "OK" if result.applied else "FAILED"
@@ -67,48 +59,33 @@ def main():
     print(f"Python: {sys.version.split()[0]}")
     print(f"Platform: {platform.platform()}")
     print(f"Repository: {REPOSITORY_ROOT}")
-    print(
-        "QT_QPA_PLATFORM: "
-        f"{os.environ.get('QT_QPA_PLATFORM', '<not set>')}"
-    )
-    print(
-        "S_USDV_OPENUSD_ROOT: "
-        f"{os.environ.get('S_USDV_OPENUSD_ROOT', '<not set>')}"
-    )
+    print(f"QT_QPA_PLATFORM: {os.environ.get('QT_QPA_PLATFORM', '<not set>')}")
+    print(f"S_USDV_OPENUSD_ROOT: {os.environ.get('S_USDV_OPENUSD_ROOT', '<not set>')}")
 
     failures = []
-
     for name in REQUIRED_MODULES:
         available, detail = probe(name)
         print(f"[{'OK' if available else 'MISSING'}] {name}: {detail}")
-
         if not available:
             failures.append(name)
 
-    if not bootstrap_openusd():
-        failures.append("OpenUSD runtime bootstrap")
+    if not prepare_openusd():
+        failures.append("OpenUSD core or runtime bootstrap")
 
     for name in OPENUSD_CORE_MODULES:
         available, detail = probe(name)
         print(f"[{'OK' if available else 'MISSING'}] {name}: {detail}")
-
         if not available:
             failures.append(name)
 
     print("Optional embedded viewport modules:")
-
     for name in OPTIONAL_VIEWPORT_MODULES:
         available, detail = probe(name)
-        status = "OK" if available else "OPTIONAL"
-        print(f"[{status}] {name}: {detail}")
+        print(f"[{'OK' if available else 'OPTIONAL'}] {name}: {detail}")
 
     if failures:
-        print(
-            "Environment check failed. Missing required components: "
-            f"{', '.join(failures)}"
-        )
+        print(f"Environment check failed. Missing required components: {', '.join(failures)}")
         return 1
-
     print("Environment check passed.")
     return 0
 

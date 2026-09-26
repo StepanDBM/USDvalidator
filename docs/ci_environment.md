@@ -4,7 +4,7 @@ This document defines the clean environment that S-USDv CI must reproduce before
 
 ## Supported baseline
 
-- Windows Server 2022 (`windows-latest`) for the first hosted runner
+- Ubuntu (`ubuntu-latest`) for the hosted runner
 - Python 3.12
 - SQLite for the first CI pass
 - Qt in offscreen mode for desktop tests
@@ -60,10 +60,10 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements-ci.txt
 python scripts/ci/check_environment.py
 python -m compileall -q s_usd_core s_usd_service s_usd_desktop
-python -m pytest tests/service tests/desktop -v
+python scripts/ci/run_tests.py tests -v
 ```
 
-The first hosted workflow should use Windows because S-USDv is a Windows desktop application and PySide6 imports there without extra Linux graphics packages. A later Linux service-only job can install `libgl1` and `libegl1` explicitly.
+The hosted workflow uses Ubuntu because `usd-core` publishes Linux Python wheels. It installs `libgl1`, `libegl1`, and `libxkbcommon-x11-0` before importing Qt. Full `UsdImagingGL` and `Usdviewq` verification remains part of the clean Windows workstation check.
 
 The environment probe treats these as required:
 

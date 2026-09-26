@@ -106,3 +106,17 @@ python -m pytest tests/service tests/desktop -v
 ```
 
 See `docs/ci_environment.md` for the environment contract, isolated test-state variables and the boundary between portable CI tests and full workstation viewport tests.
+
+---
+
+## Continuous Integration
+
+The GitHub Actions workflow in `.github/workflows/ci.yml` runs on every pushed branch, pull requests targeting `main`, and manual dispatches.
+
+The hosted job uses Ubuntu and Python 3.12, installs the portable `usd-core` bindings, configures Qt for offscreen execution, verifies the environment, compiles the source packages, and runs the complete test suite:
+
+```bash
+python scripts/ci/run_tests.py tests -v
+```
+
+The hosted `usd-core` package provides the core OpenUSD APIs used by validation and comparison tests. `UsdImagingGL` and `Usdviewq` remain optional because the hosted job does not reproduce the complete workstation viewport runtime.
