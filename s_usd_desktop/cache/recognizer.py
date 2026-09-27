@@ -54,10 +54,7 @@ class ManagedCacheRecognizer:
         try:
             data = json.loads(manifest_path.read_text(encoding="utf-8"))
             relative_path = Path(*parts[9:]).as_posix()
-            entry = next(
-                item for item in data.get("files", ())
-                if item.get("relative_path") == relative_path
-            )
+            entry = next(item for item in data.get("files", ()) if item.get("relative_path") == relative_path)
             if path.stat().st_size != int(entry["size_bytes"]):
                 return None
             if self._sha256(path) != str(entry["sha256"]).lower():
@@ -70,7 +67,7 @@ class ManagedCacheRecognizer:
                 version_id=UUID(data["version_id"]),
                 file_id=UUID(entry["file_id"]),
                 relative_path=relative_path,
-                local_path=path
+                local_path=path,
             )
         except (OSError, ValueError, KeyError, StopIteration, TypeError):
             return None

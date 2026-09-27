@@ -238,11 +238,7 @@ class StageViewAdapter(StageView):
 
     def set_selection_highlight(self, enabled):
         settings = self._dataModel.viewSettings
-        settings.selHighlightMode = (
-            SelectionHighlightModes.ALWAYS
-            if enabled
-            else SelectionHighlightModes.NEVER
-        )
+        settings.selHighlightMode = SelectionHighlightModes.ALWAYS if enabled else SelectionHighlightModes.NEVER
 
         self.updateSelection()
         self.SetForceRefresh(True)
@@ -272,7 +268,7 @@ class StageViewAdapter(StageView):
         self.updateView()
         self.update()
         return True
-    
+
     def ensure_renderer(self):
         if self._renderer:
             return self._renderer
@@ -336,10 +332,7 @@ class StageViewAdapter(StageView):
     def stage_cameras(self):
         if not self._stage:
             return ()
-        return tuple(
-            prim.GetPath().pathString for prim in self._stage.TraverseAll()
-            if prim.GetTypeName() == "Camera"
-        )
+        return tuple(prim.GetPath().pathString for prim in self._stage.TraverseAll() if prim.GetTypeName() == "Camera")
 
     def set_camera_path(self, path):
         if not self._stage or not path:

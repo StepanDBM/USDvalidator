@@ -43,7 +43,7 @@ class DownloadWorker(QRunnable):
                     self.request.stored_file,
                     self.request.location,
                     progress=self.signals.progress.emit,
-                    token=self.token
+                    token=self.token,
                 )
         except DownloadCancelledError:
             self.signals.cancelled.emit()
@@ -84,7 +84,7 @@ class DownloadService(QObject):
             self.connection_service.preferences.to_api_configuration(),
             self.cache_manager,
             DownloadRequest(stored_file, location),
-            self.token
+            self.token,
         )
         self.worker.signals.progress.connect(self.progress)
         self.worker.signals.completed.connect(self.completed)

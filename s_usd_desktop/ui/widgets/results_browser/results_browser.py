@@ -1,4 +1,3 @@
-
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QLabel,
@@ -18,6 +17,7 @@ from .summary_header import SummaryHeader
 
 class ResultsBrowser(QWidget):
     open_in_viewport_requested = Signal(object, object)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.current_report = None
@@ -88,9 +88,7 @@ class ResultsBrowser(QWidget):
         self.message_label.hide()
         self.main_splitter.show()
         self.summary_header.show_report(report)
-        self.filter_bar.set_categories(
-            {result.category for result in report.results if result.category}
-        )
+        self.filter_bar.set_categories({result.category for result in report.results if result.category})
         self._refresh_results()
 
     def show_batch_report(self, batch):
@@ -125,9 +123,7 @@ class ResultsBrowser(QWidget):
         if report is None:
             return
         self.current_report = report
-        self.filter_bar.set_categories(
-            {result.category for result in report.results if result.category}
-        )
+        self.filter_bar.set_categories({result.category for result in report.results if result.category})
         self._refresh_results()
 
     def _refresh_results(self):

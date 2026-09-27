@@ -21,4 +21,5 @@ class ValidationProfile:
         if self.enabled_check_ids & self.disabled_check_ids:
             raise ValueError("A check cannot be both enabled and disabled.")
 
+
 DEFAULT_PROFILE = "layout_publish"

@@ -29,36 +29,24 @@ class RuntimeCapabilities:
 
     @property
     def viewport_available(self):
-        return all((
-            self.openusd_core.available,
-            self.usdviewq.available,
-            self.usd_imaging_gl.available,
-            self.pyside6.available,
-            self.opengl_context.available
-        ))
+        return all(
+            (
+                self.openusd_core.available,
+                self.usdviewq.available,
+                self.usd_imaging_gl.available,
+                self.pyside6.available,
+                self.opengl_context.available,
+            )
+        )
 
     @property
     def unavailable_reasons(self):
-        probes = (
-            self.openusd_core,
-            self.usdviewq,
-            self.usd_imaging_gl,
-            self.pyside6,
-            self.opengl_context
-        )
-        return tuple(
-            f"{probe.name}: {probe.error or 'unavailable'}"
-            for probe in probes
-            if not probe.available
-        )
+        probes = (self.openusd_core, self.usdviewq, self.usd_imaging_gl, self.pyside6, self.opengl_context)
+        return tuple(f"{probe.name}: {probe.error or 'unavailable'}" for probe in probes if not probe.available)
 
     def to_dict(self):
         return {
-            "python": {
-                "version": self.python_version,
-                "executable": self.python_executable,
-                "platform": self.platform
-            },
+            "python": {"version": self.python_version, "executable": self.python_executable, "platform": self.platform},
             "environment": {"PXR_PLUGINPATH_NAME": self.plugin_path},
             "viewport_available": self.viewport_available,
             "capabilities": {
@@ -67,16 +55,10 @@ class RuntimeCapabilities:
                     "module": probe.module,
                     "location": probe.location,
                     "version": probe.version,
-                    "error": probe.error
+                    "error": probe.error,
                 }
-                for probe in (
-                    self.openusd_core,
-                    self.usdviewq,
-                    self.usd_imaging_gl,
-                    self.pyside6,
-                    self.opengl_context
-                )
-            }
+                for probe in (self.openusd_core, self.usdviewq, self.usd_imaging_gl, self.pyside6, self.opengl_context)
+            },
         }
 
     def diagnostic_text(self):
@@ -87,16 +69,10 @@ class RuntimeCapabilities:
             f"Executable: {self.python_executable}",
             f"Platform: {self.platform}",
             f"PXR_PLUGINPATH_NAME: {self.plugin_path or '<not set>'}",
-            ""
+            "",
         ]
 
-        for probe in (
-            self.openusd_core,
-            self.usdviewq,
-            self.usd_imaging_gl,
-            self.pyside6,
-            self.opengl_context
-        ):
+        for probe in (self.openusd_core, self.usdviewq, self.usd_imaging_gl, self.pyside6, self.opengl_context):
             status = "available" if probe.available else "missing"
             lines.append(f"{probe.name}: {status}")
             if probe.version:
@@ -124,7 +100,7 @@ def detect_runtime_capabilities(importer=import_module):
         usd_imaging_gl=imaging,
         pyside6=pyside,
         opengl_context=opengl,
-        plugin_path=os.environ.get("PXR_PLUGINPATH_NAME", "")
+        plugin_path=os.environ.get("PXR_PLUGINPATH_NAME", ""),
     )
 
 
@@ -137,15 +113,10 @@ def _probe_module(name, module_name, importer, version_getter=None):
             available=True,
             module=module_name,
             location=getattr(module, "__file__", "") or "",
-            version=version
+            version=version,
         )
     except Exception as error:
-        return CapabilityProbe(
-            name=name,
-            available=False,
-            module=module_name,
-            error=f"{type(error).__name__}: {error}"
-        )
+        return CapabilityProbe(name=name, available=False, module=module_name, error=f"{type(error).__name__}: {error}")
 
 
 def _probe_opengl(importer):
@@ -155,10 +126,7 @@ def _probe_opengl(importer):
 
         if application is None:
             return CapabilityProbe(
-                "OpenGL Context",
-                False,
-                "PySide6.QtGui.QOpenGLContext",
-                error="QGuiApplication is not running"
+                "OpenGL Context", False, "PySide6.QtGui.QOpenGLContext", error="QGuiApplication is not running"
             )
 
         context = gui.QOpenGLContext()
@@ -167,23 +135,15 @@ def _probe_opengl(importer):
                 "OpenGL Context",
                 False,
                 "PySide6.QtGui.QOpenGLContext",
-                error="Qt could not create a valid OpenGL context"
+                error="Qt could not create a valid OpenGL context",
             )
 
         surface_format = context.format()
         version = f"{surface_format.majorVersion()}.{surface_format.minorVersion()}"
-        return CapabilityProbe(
-            "OpenGL Context",
-            True,
-            "PySide6.QtGui.QOpenGLContext",
-            version=version
-        )
+        return CapabilityProbe("OpenGL Context", True, "PySide6.QtGui.QOpenGLContext", version=version)
     except Exception as error:
         return CapabilityProbe(
-            "OpenGL Context",
-            False,
-            "PySide6.QtGui.QOpenGLContext",
-            error=f"{type(error).__name__}: {error}"
+            "OpenGL Context", False, "PySide6.QtGui.QOpenGLContext", error=f"{type(error).__name__}: {error}"
         )
 
 

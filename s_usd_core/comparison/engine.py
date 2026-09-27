@@ -91,8 +91,12 @@ class SemanticComparisonEngine:
     def _compare_mapping(result, category, root, previous, current):
         for key in sorted(set(previous) | set(current)):
             SemanticComparisonEngine._append_value(
-                result, category, f"{root}.{key}", key.replace("_", " ").title(),
-                previous.get(key), current.get(key),
+                result,
+                category,
+                f"{root}.{key}",
+                key.replace("_", " ").title(),
+                previous.get(key),
+                current.get(key),
             )
 
     @staticmethod
@@ -102,16 +106,28 @@ class SemanticComparisonEngine:
             new = current.get(path)
 
             if old is None:
-                result.changes.append(SemanticChange(
-                    "Hierarchy", path, f"Prim added ({new.type_name})",
-                    ChangeKind.ADDED, None, new.type_name,
-                ))
+                result.changes.append(
+                    SemanticChange(
+                        "Hierarchy",
+                        path,
+                        f"Prim added ({new.type_name})",
+                        ChangeKind.ADDED,
+                        None,
+                        new.type_name,
+                    )
+                )
                 continue
             if new is None:
-                result.changes.append(SemanticChange(
-                    "Hierarchy", path, f"Prim removed ({old.type_name})",
-                    ChangeKind.REMOVED, old.type_name, None,
-                ))
+                result.changes.append(
+                    SemanticChange(
+                        "Hierarchy",
+                        path,
+                        f"Prim removed ({old.type_name})",
+                        ChangeKind.REMOVED,
+                        old.type_name,
+                        None,
+                    )
+                )
                 continue
 
             for field, label in (
@@ -123,8 +139,12 @@ class SemanticComparisonEngine:
                 ("properties", "Property names"),
             ):
                 SemanticComparisonEngine._append_value(
-                    result, "Hierarchy", f"{path}.{field}", label,
-                    getattr(old, field), getattr(new, field),
+                    result,
+                    "Hierarchy",
+                    f"{path}.{field}",
+                    label,
+                    getattr(old, field),
+                    getattr(new, field),
                 )
 
     @staticmethod
@@ -146,8 +166,12 @@ class SemanticComparisonEngine:
                 ("orientation", "Orientation"),
             ):
                 SemanticComparisonEngine._append_value(
-                    result, "Geometry", f"{path}.{field}", label,
-                    getattr(old, field), getattr(new, field),
+                    result,
+                    "Geometry",
+                    f"{path}.{field}",
+                    label,
+                    getattr(old, field),
+                    getattr(new, field),
                 )
 
     @staticmethod
@@ -160,19 +184,35 @@ class SemanticComparisonEngine:
             path = f"{item.prim_path}.{item.arc_type}:{item.asset_path}"
 
             if key not in old:
-                result.changes.append(SemanticChange(
-                    "Composition", path, f"{item.arc_type.title()} added",
-                    ChangeKind.ADDED, None, item.asset_path,
-                ))
+                result.changes.append(
+                    SemanticChange(
+                        "Composition",
+                        path,
+                        f"{item.arc_type.title()} added",
+                        ChangeKind.ADDED,
+                        None,
+                        item.asset_path,
+                    )
+                )
             elif key not in new:
-                result.changes.append(SemanticChange(
-                    "Composition", path, f"{item.arc_type.title()} removed",
-                    ChangeKind.REMOVED, item.asset_path, None,
-                ))
+                result.changes.append(
+                    SemanticChange(
+                        "Composition",
+                        path,
+                        f"{item.arc_type.title()} removed",
+                        ChangeKind.REMOVED,
+                        item.asset_path,
+                        None,
+                    )
+                )
             else:
                 SemanticComparisonEngine._append_value(
-                    result, "Composition", f"{path}.resolved", "Resolution state",
-                    old[key].resolved, new[key].resolved,
+                    result,
+                    "Composition",
+                    f"{path}.resolved",
+                    "Resolution state",
+                    old[key].resolved,
+                    new[key].resolved,
                 )
 
     @staticmethod
@@ -182,16 +222,28 @@ class SemanticComparisonEngine:
             new = current.get(path)
 
             if old is None:
-                result.changes.append(SemanticChange(
-                    "Animation", path, "Animated attribute added",
-                    ChangeKind.ADDED, None, new.sample_count,
-                ))
+                result.changes.append(
+                    SemanticChange(
+                        "Animation",
+                        path,
+                        "Animated attribute added",
+                        ChangeKind.ADDED,
+                        None,
+                        new.sample_count,
+                    )
+                )
                 continue
             if new is None:
-                result.changes.append(SemanticChange(
-                    "Animation", path, "Animated attribute removed",
-                    ChangeKind.REMOVED, old.sample_count, None,
-                ))
+                result.changes.append(
+                    SemanticChange(
+                        "Animation",
+                        path,
+                        "Animated attribute removed",
+                        ChangeKind.REMOVED,
+                        old.sample_count,
+                        None,
+                    )
+                )
                 continue
 
             for field, label in (
@@ -202,8 +254,12 @@ class SemanticComparisonEngine:
                 ("values_hash", "Sample values"),
             ):
                 SemanticComparisonEngine._append_value(
-                    result, "Animation", f"{path}.{field}", label,
-                    getattr(old, field), getattr(new, field),
+                    result,
+                    "Animation",
+                    f"{path}.{field}",
+                    label,
+                    getattr(old, field),
+                    getattr(new, field),
                 )
 
     @staticmethod
@@ -232,17 +288,22 @@ class SemanticComparisonEngine:
             else:
                 kind = ChangeKind.CHANGED
 
-            result.changes.append(SemanticChange(
-                "Validation", check_id,
-                new_result.label if new_result else old_result.label,
-                kind, old_status, new_status,
-                {
-                    "previous_message": old_result.message if old_result else "",
-                    "current_message": new_result.message if new_result else "",
-                    "previous_version": old_result.check_version if old_result else None,
-                    "current_version": new_result.check_version if new_result else None,
-                },
-            ))
+            result.changes.append(
+                SemanticChange(
+                    "Validation",
+                    check_id,
+                    new_result.label if new_result else old_result.label,
+                    kind,
+                    old_status,
+                    new_status,
+                    {
+                        "previous_message": old_result.message if old_result else "",
+                        "current_message": new_result.message if new_result else "",
+                        "previous_version": old_result.check_version if old_result else None,
+                        "current_version": new_result.check_version if new_result else None,
+                    },
+                )
+            )
 
     @staticmethod
     def _append_value(result, category, path, label, previous, current):
@@ -257,9 +318,16 @@ class SemanticComparisonEngine:
         else:
             kind = ChangeKind.CHANGED
 
-        result.changes.append(SemanticChange(
-            category, path, label, kind, previous, current,
-        ))
+        result.changes.append(
+            SemanticChange(
+                category,
+                path,
+                label,
+                kind,
+                previous,
+                current,
+            )
+        )
 
     @staticmethod
     def _correlate_validation(result, previous, current):
@@ -282,27 +350,30 @@ class SemanticComparisonEngine:
                     old_location = getattr(old, "location", "") if old else ""
                     new_location = getattr(new, "location", "") if new else ""
 
-                    correlations.append({
-                        "check_id": check_id,
-                        "previous_status": old_status,
-                        "current_status": new_status,
-                        "previous_location": old_location,
-                        "current_location": new_location,
-                        "confidence": confidence.value,
-                        "consequence": consequence,
-                    })
+                    correlations.append(
+                        {
+                            "check_id": check_id,
+                            "previous_status": old_status,
+                            "current_status": new_status,
+                            "previous_location": old_location,
+                            "current_location": new_location,
+                            "confidence": confidence.value,
+                            "consequence": consequence,
+                        }
+                    )
             meaningful = [item for item in correlations if item["consequence"]]
             meaningful.sort(key=lambda item: _confidence_rank(item["confidence"]), reverse=True)
             consequence = "; ".join(
-                f'{item["check_id"]} {item["consequence"]} ({item["confidence"]})'
-                for item in meaningful
+                f"{item['check_id']} {item['consequence']} ({item['confidence']})" for item in meaningful
             )
             if correlations:
-                correlated.append(replace(
-                    change,
-                    validation_consequence=consequence,
-                    details={**change.details, "validation_correlation": correlations},
-                ))
+                correlated.append(
+                    replace(
+                        change,
+                        validation_consequence=consequence,
+                        details={**change.details, "validation_correlation": correlations},
+                    )
+                )
             else:
                 correlated.append(change)
         result.changes[:] = correlated
@@ -321,7 +392,8 @@ class SemanticComparisonEngine:
                 elif item["consequence"] == "resolved":
                     bucket["resolutions"] += 1
         result.validation_summary_by_domain = {
-            domain: counts for domain, counts in sorted(summary.items())
+            domain: counts
+            for domain, counts in sorted(summary.items())
             if counts["regressions"] or counts["resolutions"]
         }
 
@@ -351,9 +423,7 @@ def _consequence(previous, current):
 
 def _correlation_confidence(change, previous, current):
     locations = [
-        getattr(item, "location", "")
-        for item in (previous, current)
-        if item and getattr(item, "location", "")
+        getattr(item, "location", "") for item in (previous, current) if item and getattr(item, "location", "")
     ]
     if not locations:
         return CorrelationConfidence.CHECK_ONLY
@@ -372,7 +442,12 @@ def _normalize_path(value):
 
 
 def _paths_related(left, right):
-    return left.startswith(right + "/") or right.startswith(left + "/") or left.startswith(right + ".") or right.startswith(left + ".")
+    return (
+        left.startswith(right + "/")
+        or right.startswith(left + "/")
+        or left.startswith(right + ".")
+        or right.startswith(left + ".")
+    )
 
 
 def _confidence_rank(value):

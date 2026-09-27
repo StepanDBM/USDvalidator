@@ -68,20 +68,11 @@ class UploadWorker(QRunnable):
             total_bytes = self.source_path.stat().st_size
 
             with self.source_path.open("rb") as source:
-                progress_source = ProgressFile(
-                    source,
-                    total_bytes,
-                    self.signals.progress.emit,
-                    self.token
-                )
+                progress_source = ProgressFile(source, total_bytes, self.signals.progress.emit, self.token)
 
                 with SUsdvApiClient(self.configuration) as api:
                     result = FileClient(api).upload_stream(
-                        self.version_id,
-                        progress_source,
-                        self.source_path.name,
-                        self.role,
-                        self.relative_path
+                        self.version_id, progress_source, self.source_path.name, self.role, self.relative_path
                     )
         except TransferCancelledError:
             self.signals.cancelled.emit()
@@ -123,7 +114,7 @@ class TransferService(QObject):
             source_path,
             role,
             relative_path,
-            self.token
+            self.token,
         )
         self.worker.signals.progress.connect(self.progress)
         self.worker.signals.completed.connect(self.upload_completed)

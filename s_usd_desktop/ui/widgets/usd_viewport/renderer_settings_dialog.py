@@ -53,7 +53,9 @@ class RendererSettingsDialog(QDialog):
             editor.setRange(-1_000_000, 1_000_000)
             editor.setDecimals(5)
             editor.setValue(float(value))
-            editor.valueChanged.connect(lambda number, k=key, original=value: self.viewport.set_renderer_setting(k, type(original)(number)))
+            editor.valueChanged.connect(
+                lambda number, k=key, original=value: self.viewport.set_renderer_setting(k, type(original)(number))
+            )
             return editor
         editor = QLineEdit(str(value))
         editor.editingFinished.connect(lambda e=editor, k=key: self.viewport.set_renderer_setting(k, e.text()))

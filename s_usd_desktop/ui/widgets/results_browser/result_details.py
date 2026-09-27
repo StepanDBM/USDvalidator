@@ -17,9 +17,7 @@ class ResultDetails(QTextBrowser):
         if result is None:
             self.setHtml("<i>Select a validation result to inspect its details.</i>")
             return
-        details = escape(
-            json.dumps(result.details, indent=2, ensure_ascii=False, default=str)
-        )
+        details = escape(json.dumps(result.details, indent=2, ensure_ascii=False, default=str))
         rows = [
             ("Check ID", result.check_id),
             ("Label", result.label),
@@ -33,11 +31,7 @@ class ResultDetails(QTextBrowser):
             ("Suggestion", result.suggestion),
         ]
         body = "".join(
-            f"<tr><td><b>{escape(label)}</b></td>"
-            f"<td>{escape(str(value)) if value else '<i>Not provided</i>'}</td></tr>"
+            f"<tr><td><b>{escape(label)}</b></td><td>{escape(str(value)) if value else '<i>Not provided</i>'}</td></tr>"
             for label, value in rows
         )
-        self.setHtml(
-            f"<table cellspacing='5'>{body}</table>"
-            f"<h4>Details</h4><pre>{details}</pre>"
-        )
+        self.setHtml(f"<table cellspacing='5'>{body}</table><h4>Details</h4><pre>{details}</pre>")

@@ -24,7 +24,7 @@ class ServiceSettings(BaseSettings):
         "preview",
         "manifest",
         "report",
-        "other"
+        "other",
     )
 
     def prepare_directories(self):

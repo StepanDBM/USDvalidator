@@ -28,7 +28,7 @@ class RecordListModel(QAbstractListModel):
             explanation = {
                 "ProjectListModel": TooltipText.PROJECT_ROW,
                 "AssetListModel": TooltipText.ASSET_ROW,
-                "StreamListModel": TooltipText.STREAM_ROW
+                "StreamListModel": TooltipText.STREAM_ROW,
             }.get(kind, TooltipText.STORAGE_WORKSPACE)
             values = [f"{explanation}", "", f"Name: {getattr(record, 'name', '')}"]
             code = getattr(record, "code", "")
@@ -98,18 +98,15 @@ class VersionTableModel(QAbstractTableModel):
         if role == Qt.UserRole:
             return record
         if role == Qt.ToolTipRole:
-            return (f"{TooltipText.VERSION_ROW}\n\n"
-                    f"Number: {getattr(record, 'number', '')}\n"
-                    f"Status: {getattr(record, 'status', '')}")
+            return (
+                f"{TooltipText.VERSION_ROW}\n\n"
+                f"Number: {getattr(record, 'number', '')}\n"
+                f"Status: {getattr(record, 'status', '')}"
+            )
         if role != Qt.DisplayRole:
             return None
 
-        values = (
-            record.display_name,
-            record.status,
-            record.comment,
-            record.updated_at.strftime("%Y-%m-%d %H:%M")
-        )
+        values = (record.display_name, record.status, record.comment, record.updated_at.strftime("%Y-%m-%d %H:%M"))
         return values[index.column()]
 
     def set_records(self, records):
@@ -152,20 +149,16 @@ class StoredFileTableModel(QAbstractTableModel):
         if role == Qt.UserRole:
             return record
         if role == Qt.ToolTipRole:
-            return (f"{TooltipText.STORED_FILE_ROW}\n\n"
-                    f"Relative Path: {getattr(record, 'relative_path', '')}\n"
-                    f"Role: {getattr(record, 'role', '')}")
+            return (
+                f"{TooltipText.STORED_FILE_ROW}\n\n"
+                f"Relative Path: {getattr(record, 'relative_path', '')}\n"
+                f"Role: {getattr(record, 'role', '')}"
+            )
         if role != Qt.DisplayRole:
             return None
 
         status = self.cache_statuses.get(record.id, "Not cached")
-        values = (
-            record.role,
-            record.relative_path,
-            self.format_size(record.size_bytes),
-            record.status,
-            status
-        )
+        values = (record.role, record.relative_path, self.format_size(record.size_bytes), record.status, status)
         return values[index.column()]
 
     def set_records(self, records):
@@ -196,6 +189,7 @@ class StoredFileTableModel(QAbstractTableModel):
                 return f"{int(value)} {unit}" if unit == "B" else f"{value:.1f} {unit}"
             value /= 1024
 
+
 class ValidationHistoryTableModel(QAbstractTableModel):
     HEADERS = ("Result", "Profile", "Checks", "Failed", "Warnings", "Tool", "Completed")
 
@@ -223,9 +217,11 @@ class ValidationHistoryTableModel(QAbstractTableModel):
         if role == Qt.UserRole:
             return record
         if role == Qt.ToolTipRole:
-            return (f"{TooltipText.VALIDATION_HISTORY_ROW}\n\n"
-                    f"Profile Name: {getattr(record, 'profile_name', '')}\n"
-                    f"Publish Passed: {getattr(record, 'publish_passed', '')}")
+            return (
+                f"{TooltipText.VALIDATION_HISTORY_ROW}\n\n"
+                f"Profile Name: {getattr(record, 'profile_name', '')}\n"
+                f"Publish Passed: {getattr(record, 'publish_passed', '')}"
+            )
         if role != Qt.DisplayRole:
             return None
 
@@ -236,7 +232,7 @@ class ValidationHistoryTableModel(QAbstractTableModel):
             record.failed_count + record.error_count,
             record.warning_count,
             f"{record.tool_name} {record.tool_version}",
-            record.completed_at.strftime("%Y-%m-%d %H:%M:%S")
+            record.completed_at.strftime("%Y-%m-%d %H:%M:%S"),
         )
         return values[index.column()]
 

@@ -32,6 +32,7 @@ class ValidationView(QWidget):
     open_in_viewport_requested = Signal(object, object)
     report_ready = Signal(object)
     validation_finished = Signal()
+
     def __init__(
         self,
         profile_loader,
@@ -60,7 +61,7 @@ class ValidationView(QWidget):
         self.cancel_button = QPushButton("Cancel")
         self.cancel_button.setEnabled(False)
 
-        selector_row.addWidget(self.source_selector,1)
+        selector_row.addWidget(self.source_selector, 1)
         selector_row.addSpacing(16)
         selector_row.addWidget(self.profile_selector)
         selector_row.addSpacing(16)
@@ -91,8 +92,8 @@ class ValidationView(QWidget):
         self.progress_bar.setValue(0)
         self.progress_bar.setTextVisible(True)
 
-        progress_row.addWidget(self.current_file_label,1)
-        progress_row.addWidget(self.progress_bar,2)
+        progress_row.addWidget(self.current_file_label, 1)
+        progress_row.addWidget(self.progress_bar, 2)
 
         layout.addLayout(progress_row)
 
@@ -105,7 +106,7 @@ class ValidationView(QWidget):
         self.progress_bar.setToolTip(TooltipText.VALIDATION_PROGRESS)
         self.current_file_label.setToolTip(TooltipText.VALIDATION_PROGRESS)
 
-        layout.addWidget(self.results_view,1)
+        layout.addWidget(self.results_view, 1)
 
     def _build_options_widget(self):
         widget = QWidget()
@@ -117,14 +118,10 @@ class ValidationView(QWidget):
         self.recursive_checkbox.setChecked(True)
 
         self.include_edit = QLineEdit()
-        self.include_edit.setPlaceholderText(
-            "Optional comma-separated include patterns"
-        )
+        self.include_edit.setPlaceholderText("Optional comma-separated include patterns")
 
         self.exclude_edit = QLineEdit()
-        self.exclude_edit.setPlaceholderText(
-            "Optional comma-separated exclude patterns"
-        )
+        self.exclude_edit.setPlaceholderText("Optional comma-separated exclude patterns")
 
         self.worker_count_spin = QSpinBox()
         self.worker_count_spin.setRange(1, 32)
@@ -139,10 +136,10 @@ class ValidationView(QWidget):
         output_row = QHBoxLayout(output_row_widget)
         output_row.setContentsMargins(0, 0, 0, 0)
 
-        output_row.addWidget(self.output_edit,1)
+        output_row.addWidget(self.output_edit, 1)
         output_row.addWidget(self.output_button)
 
-        self.batch_report_checkbox = (QCheckBox("Batch report"))
+        self.batch_report_checkbox = QCheckBox("Batch report")
         self.batch_report_checkbox.setChecked(True)
 
         self.per_file_checkbox = QCheckBox("Per-file reports")
@@ -186,7 +183,6 @@ class ValidationView(QWidget):
         self.validate_button.validate_requested.connect(self._run_validation)
         self.cancel_button.clicked.connect(self._cancel_validation)
         self.output_button.clicked.connect(self._browse_output_directory)
-
 
     def validate_source(
         self,
@@ -241,9 +237,7 @@ class ValidationView(QWidget):
         source_path = self.source_selector.get_source()
 
         if source_path is None:
-            self.results_view.show_message(
-                "Select a USD file or directory first."
-            )
+            self.results_view.show_message("Select a USD file or directory first.")
             return
 
         self.validate_source(source_path)
@@ -274,24 +268,14 @@ class ValidationView(QWidget):
         for report in batch.reports:
             self.report_ready.emit(report)
 
-        if (
-            batch.total_files == 1
-            and batch.reports
-        ):
+        if batch.total_files == 1 and batch.reports:
             self.results_view.show_single_report(batch.reports[0])
         else:
             self.results_view.show_batch_report(batch)
 
-        state = ("Cancelled"
-            if batch.cancelled
-            else "Completed"
-        )
+        state = "Cancelled" if batch.cancelled else "Completed"
 
-        self.current_file_label.setText(
-            f"{state}: "
-            f"{batch.completed_files}/"
-            f"{batch.total_files} file(s)"
-        )
+        self.current_file_label.setText(f"{state}: {batch.completed_files}/{batch.total_files} file(s)")
 
     def _on_failed(self, message):
         self.results_view.show_message(message)
@@ -333,11 +317,7 @@ class ValidationView(QWidget):
 
     @staticmethod
     def _patterns(text):
-        return tuple(
-            value.strip()
-            for value in text.split(",")
-            if value.strip()
-        )
+        return tuple(value.strip() for value in text.split(",") if value.strip())
 
     def refresh_profiles(self):
         self.profile_selector.refresh()

@@ -13,7 +13,7 @@ class ConnectionIndicator(QWidget):
         ConnectionState.DISCONNECTED: "#8a8a8a",
         ConnectionState.CONNECTING: "#d69e2e",
         ConnectionState.CONNECTED: "#38a169",
-        ConnectionState.ERROR: "#e53e3e"
+        ConnectionState.ERROR: "#e53e3e",
     }
 
     def __init__(self, parent=None):
@@ -51,9 +51,7 @@ class ConnectionIndicator(QWidget):
 
         self.label.setText(text)
         self.label.setToolTip(
-            f"{TooltipText.SERVICE_INDICATOR}\n\nError: {error}"
-            if error
-            else TooltipText.SERVICE_INDICATOR
+            f"{TooltipText.SERVICE_INDICATOR}\n\nError: {error}" if error else TooltipText.SERVICE_INDICATOR
         )
         self.retry_button.setText("Retry" if state == ConnectionState.ERROR else "Connect")
         self.retry_button.setVisible(state in {ConnectionState.DISCONNECTED, ConnectionState.ERROR})

@@ -43,9 +43,7 @@ class CheckPickerDialog(QDialog):
     def _build_ui(self):
         layout = QVBoxLayout(self)
         title = QLabel("Add Registered Checks")
-        help_label = QLabel(
-            "Select checks implemented in Python and add them to this profile."
-        )
+        help_label = QLabel("Select checks implemented in Python and add them to this profile.")
         help_label.setWordWrap(True)
         layout.addWidget(title)
         layout.addWidget(help_label)
@@ -71,9 +69,7 @@ class CheckPickerDialog(QDialog):
 
         self.check_tree = QTreeWidget()
         self.check_tree.setToolTip(TooltipText.PROFILE_CHECK_LIST)
-        self.check_tree.setHeaderLabels(
-            ["Check", "ID", "Phase", "Target", "Severity", "Tags"]
-        )
+        self.check_tree.setHeaderLabels(["Check", "ID", "Phase", "Target", "Severity", "Tags"])
         self.check_tree.setColumnWidth(0, 260)
         self.check_tree.setColumnWidth(1, 250)
         self.check_tree.setColumnWidth(2, 100)
@@ -82,10 +78,7 @@ class CheckPickerDialog(QDialog):
 
         self.selection_label = QLabel("Selected: 0")
         layout.addWidget(self.selection_label)
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Cancel
-            | QDialogButtonBox.StandardButton.Ok
-        )
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Cancel | QDialogButtonBox.StandardButton.Ok)
         buttons.button(QDialogButtonBox.StandardButton.Ok).setText("Add Selected")
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
@@ -98,22 +91,12 @@ class CheckPickerDialog(QDialog):
         self.check_tree.itemChanged.connect(self._update_selection_count)
 
     def _populate_filters(self):
-        available = [
-            item for item in self.definitions
-            if item.check_id not in self.excluded_ids
-        ]
+        available = [item for item in self.definitions if item.check_id not in self.excluded_ids]
         self.category_combo.addItems(
-            ["All Categories"]
-            + sorted({item.category for item in available if item.category})
+            ["All Categories"] + sorted({item.category for item in available if item.category})
         )
-        self.phase_combo.addItems(
-            ["All Phases"]
-            + sorted({item.phase for item in available if item.phase})
-        )
-        self.tag_combo.addItems(
-            ["All Tags"]
-            + sorted({tag for item in available for tag in item.tags})
-        )
+        self.phase_combo.addItems(["All Phases"] + sorted({item.phase for item in available if item.phase}))
+        self.tag_combo.addItems(["All Tags"] + sorted({tag for item in available for tag in item.tags}))
 
     def _refresh_tree(self):
         search = self.search_edit.text().strip().lower()
@@ -147,14 +130,16 @@ class CheckPickerDialog(QDialog):
             self.check_tree.addTopLevelItem(category_item)
 
             for definition in sorted(grouped[category_name], key=lambda item: item.label.lower()):
-                item = QTreeWidgetItem([
-                    definition.label,
-                    definition.check_id,
-                    definition.phase,
-                    definition.target_type.__name__,
-                    definition.default_severity.value,
-                    ", ".join(definition.tags),
-                ])
+                item = QTreeWidgetItem(
+                    [
+                        definition.label,
+                        definition.check_id,
+                        definition.phase,
+                        definition.target_type.__name__,
+                        definition.default_severity.value,
+                        ", ".join(definition.tags),
+                    ]
+                )
                 item.setData(0, Qt.ItemDataRole.UserRole, definition.check_id)
                 item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
                 item.setCheckState(0, Qt.CheckState.Unchecked)
@@ -165,7 +150,7 @@ class CheckPickerDialog(QDialog):
                     f"ID: {definition.check_id}\n"
                     f"Description: {definition.description}\n"
                     f"Phase: {definition.phase}\n"
-                    f"Severity: {definition.default_severity.value}"
+                    f"Severity: {definition.default_severity.value}",
                 )
                 category_item.addChild(item)
 

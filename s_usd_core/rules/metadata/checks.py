@@ -34,11 +34,7 @@ def _result(
             check_id=check_id,
             label=label,
             category=category,
-            status=(
-                CheckStatus.PASSED
-                if passed
-                else CheckStatus.FAILED
-            ),
+            status=(CheckStatus.PASSED if passed else CheckStatus.FAILED),
             severity=runtime_context.default_severity,
             message=message,
             location=location,
@@ -57,11 +53,7 @@ def check_default_prim_authored(context, runtime_context):
             check_id=USD_DEFAULT_PRIM_AUTHORED,
             label="Default Prim Authored",
             category="Metadata",
-            status=(
-                CheckStatus.PASSED
-                if passed
-                else CheckStatus.FAILED
-            ),
+            status=(CheckStatus.PASSED if passed else CheckStatus.FAILED),
             severity=runtime_context.default_severity,
             message=(
                 f"The stage has an authored default prim: {default_prim}."
@@ -69,11 +61,7 @@ def check_default_prim_authored(context, runtime_context):
                 else "The stage does not have an authored default prim."
             ),
             location=default_prim,
-            suggestion=(
-                ""
-                if passed
-                else "Author defaultPrim metadata on the stage."
-            ),
+            suggestion=("" if passed else "Author defaultPrim metadata on the stage."),
             details={
                 "default_prim": default_prim,
             },
@@ -108,26 +96,15 @@ def check_default_prim_valid(context, runtime_context):
             check_id=USD_DEFAULT_PRIM_VALID,
             label="Default Prim Valid",
             category="Metadata",
-            status=(
-                CheckStatus.PASSED
-                if passed
-                else CheckStatus.FAILED
-            ),
+            status=(CheckStatus.PASSED if passed else CheckStatus.FAILED),
             severity=runtime_context.default_severity,
             message=(
                 f"The authored default prim resolves: {default_prim}."
                 if passed
-                else (
-                    "The authored default prim does not resolve: "
-                    f"{default_prim}."
-                )
+                else (f"The authored default prim does not resolve: {default_prim}.")
             ),
             location=default_prim,
-            suggestion=(
-                ""
-                if passed
-                else "Point defaultPrim at an existing root prim."
-            ),
+            suggestion=("" if passed else "Point defaultPrim at an existing root prim."),
             details={
                 "default_prim": default_prim,
                 "valid": valid,
@@ -147,18 +124,12 @@ def check_up_axis_valid(context, runtime_context):
         category="Metadata",
         runtime_context=runtime_context,
         passed=passed,
-        message=(
-            f"Up axis {value}; allowed values: {allowed}."
-        ),
+        message=(f"Up axis {value}; allowed values: {allowed}."),
         details={
             "up_axis": value,
             "allowed": list(allowed),
         },
-        suggestion=(
-            ""
-            if passed
-            else "Set an allowed stage up axis."
-        ),
+        suggestion=("" if passed else "Set an allowed stage up axis."),
     )
 
 
@@ -176,33 +147,16 @@ def check_meters_per_unit_authored(context, runtime_context):
         details={
             "meters_per_unit": value,
         },
-        suggestion=(
-            ""
-            if passed
-            else "Author a positive metersPerUnit value."
-        ),
+        suggestion=("" if passed else "Author a positive metersPerUnit value."),
     )
 
 
 def check_meters_per_unit_valid(context, runtime_context):
     value = context.stage.meters_per_unit
-    minimum = (
-        runtime_context
-        .config
-        .metadata
-        .minimum_meters_per_unit
-    )
-    maximum = (
-        runtime_context
-        .config
-        .metadata
-        .maximum_meters_per_unit
-    )
+    minimum = runtime_context.config.metadata.minimum_meters_per_unit
+    maximum = runtime_context.config.metadata.maximum_meters_per_unit
 
-    passed = (
-        value is not None
-        and minimum <= value <= maximum
-    )
+    passed = value is not None and minimum <= value <= maximum
 
     return _result(
         check_id=USD_METERS_PER_UNIT_VALID,
@@ -210,21 +164,15 @@ def check_meters_per_unit_valid(context, runtime_context):
         category="Metadata",
         runtime_context=runtime_context,
         passed=passed,
-        message=(
-            f"metersPerUnit {value}; allowed range "
-            f"{minimum} to {maximum}."
-        ),
+        message=(f"metersPerUnit {value}; allowed range {minimum} to {maximum}."),
         details={
             "value": value,
             "minimum": minimum,
             "maximum": maximum,
         },
-        suggestion=(
-            ""
-            if passed
-            else "Use a profile-approved world scale."
-        ),
+        suggestion=("" if passed else "Use a profile-approved world scale."),
     )
+
 
 def check_root_prim_name_valid(context, runtime_context):
     name = context.stage.root_prim_name
@@ -247,11 +195,7 @@ def check_root_prim_name_valid(context, runtime_context):
         category="Metadata",
         runtime_context=runtime_context,
         passed=passed,
-        message=(
-            f"Default prim name {name!r}; "
-            f"valid identifier: {name_valid}; "
-            f"root prim path: {path_valid}."
-        ),
+        message=(f"Default prim name {name!r}; valid identifier: {name_valid}; root prim path: {path_valid}."),
         location=path,
         details={
             "name": name,
@@ -265,14 +209,10 @@ def check_root_prim_name_valid(context, runtime_context):
         ),
     )
 
+
 def check_root_prim_type_valid(context, runtime_context):
     value = context.stage.root_prim_type
-    allowed = (
-        runtime_context
-        .config
-        .metadata
-        .allowed_root_prim_types
-    )
+    allowed = runtime_context.config.metadata.allowed_root_prim_types
     passed = value in allowed
 
     return _result(
@@ -281,20 +221,13 @@ def check_root_prim_type_valid(context, runtime_context):
         category="Metadata",
         runtime_context=runtime_context,
         passed=passed,
-        message=(
-            f"Root prim type {value!r}; "
-            f"allowed types: {allowed}."
-        ),
+        message=(f"Root prim type {value!r}; allowed types: {allowed}."),
         location=context.stage.default_prim,
         details={
             "value": value,
             "allowed": list(allowed),
         },
-        suggestion=(
-            ""
-            if passed
-            else "Use an allowed root prim type."
-        ),
+        suggestion=("" if passed else "Use an allowed root prim type."),
     )
 
 
@@ -302,11 +235,7 @@ def check_time_codes_valid(context, runtime_context):
     start = context.stage.start_time_code
     end = context.stage.end_time_code
 
-    passed = (
-        start is not None
-        and end is not None
-        and start <= end
-    )
+    passed = start is not None and end is not None and start <= end
 
     return _result(
         check_id=USD_TIME_CODES_VALID,
@@ -314,44 +243,23 @@ def check_time_codes_valid(context, runtime_context):
         category="Metadata",
         runtime_context=runtime_context,
         passed=passed,
-        message=(
-            f"Time codes range from {start} to {end}."
-        ),
+        message=(f"Time codes range from {start} to {end}."),
         details={
             "start_time_code": start,
             "end_time_code": end,
         },
-        suggestion=(
-            ""
-            if passed
-            else "Author an ordered time-code range."
-        ),
+        suggestion=("" if passed else "Author an ordered time-code range."),
     )
 
 
 def check_frame_rate_valid(context, runtime_context):
     fps = context.stage.frames_per_second
-    time_codes_per_second = (
-        context.stage.time_codes_per_second
-    )
-    allowed = (
-        runtime_context
-        .config
-        .animation
-        .allowed_frame_rates
-    )
+    time_codes_per_second = context.stage.time_codes_per_second
+    allowed = runtime_context.config.animation.allowed_frame_rates
 
-    rates_match = (
-        fps is not None
-        and time_codes_per_second is not None
-        and abs(fps - time_codes_per_second) < 0.0001
-    )
+    rates_match = fps is not None and time_codes_per_second is not None and abs(fps - time_codes_per_second) < 0.0001
 
-    passed = (
-        fps in allowed
-        and time_codes_per_second in allowed
-        and rates_match
-    )
+    passed = fps in allowed and time_codes_per_second in allowed and rates_match
 
     return _result(
         check_id=USD_FRAME_RATE_VALID,
@@ -360,9 +268,7 @@ def check_frame_rate_valid(context, runtime_context):
         runtime_context=runtime_context,
         passed=passed,
         message=(
-            f"Frames per second: {fps}; "
-            f"time codes per second: {time_codes_per_second}; "
-            f"allowed rates: {allowed}."
+            f"Frames per second: {fps}; time codes per second: {time_codes_per_second}; allowed rates: {allowed}."
         ),
         details={
             "frames_per_second": fps,
@@ -370,9 +276,5 @@ def check_frame_rate_valid(context, runtime_context):
             "rates_match": rates_match,
             "allowed": list(allowed),
         },
-        suggestion=(
-            ""
-            if passed
-            else "Use an allowed, matching frame rate."
-        ),
+        suggestion=("" if passed else "Use an allowed, matching frame rate."),
     )

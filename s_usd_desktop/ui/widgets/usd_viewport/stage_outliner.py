@@ -72,7 +72,15 @@ class StageOutliner(QWidget):
         self.status_menu = QMenu(self.status_filter)
         self.status_filter.setMenu(self.status_menu)
         self.status_actions = {}
-        for key, label in (("PASSED", "Passed"), ("FAILED", "Failed"), ("ERROR", "Errors"), ("WARNING", "Warnings"), ("INFO", "Information"), ("SKIPPED", "Skipped"), ("NONE", "No findings")):
+        for key, label in (
+            ("PASSED", "Passed"),
+            ("FAILED", "Failed"),
+            ("ERROR", "Errors"),
+            ("WARNING", "Warnings"),
+            ("INFO", "Information"),
+            ("SKIPPED", "Skipped"),
+            ("NONE", "No findings"),
+        ):
             action = self.status_menu.addAction(label)
             action.setCheckable(True)
             action.toggled.connect(self._status_filter_changed)
@@ -88,9 +96,7 @@ class StageOutliner(QWidget):
         self.validation_refresh.setToolTip(
             "Run validation again for the loaded source and refresh validation badges in the outliner."
         )
-        self.type_filter.setToolTip(
-            "Show only prims whose USD type matches the selected type filters."
-        )
+        self.type_filter.setToolTip("Show only prims whose USD type matches the selected type filters.")
         self.status_filter.setToolTip(
             "Show only prims matching selected validation states, such as failures or warnings."
         )
@@ -113,7 +119,10 @@ class StageOutliner(QWidget):
         self.comparison_menu = QMenu(self.comparison_filter)
         self.comparison_filter.setMenu(self.comparison_menu)
         self.comparison_actions = {}
-        for group, values in (("Impact", ("INFORMATIONAL", "LOW", "MEDIUM", "HIGH", "CRITICAL")), ("Kind", ("ADDED", "REMOVED", "CHANGED", "INCREASED", "DECREASED", "REGRESSION", "RESOLVED", "UNCHANGED"))):
+        for group, values in (
+            ("Impact", ("INFORMATIONAL", "LOW", "MEDIUM", "HIGH", "CRITICAL")),
+            ("Kind", ("ADDED", "REMOVED", "CHANGED", "INCREASED", "DECREASED", "REGRESSION", "RESOLVED", "UNCHANGED")),
+        ):
             submenu = self.comparison_menu.addMenu(group)
             for value in values:
                 action = submenu.addAction(value.title())
@@ -154,13 +163,17 @@ class StageOutliner(QWidget):
         self.validation_toggle.toggled.connect(self._validation_toggled)
         self.validation_refresh.clicked.connect(self.validation_refresh_requested.emit)
 
-        self.filter_edit.textChanged.connect(lambda value: self._apply_filter_change(lambda: self.proxy.set_query(value)))
-        self.findings_only.toggled.connect(lambda enabled: self._apply_filter_change(lambda: self.proxy.set_findings_only(enabled)))
-        self.animated_only.toggled.connect(lambda enabled: self._apply_filter_change(lambda: self.proxy.set_animated_only(enabled)))
-        self.display_mode.currentTextChanged.connect(self._set_display_mode)
-        self.model.visibility_requested.connect(
-            lambda path, visible: self.visibility_requested.emit([path], visible)
+        self.filter_edit.textChanged.connect(
+            lambda value: self._apply_filter_change(lambda: self.proxy.set_query(value))
         )
+        self.findings_only.toggled.connect(
+            lambda enabled: self._apply_filter_change(lambda: self.proxy.set_findings_only(enabled))
+        )
+        self.animated_only.toggled.connect(
+            lambda enabled: self._apply_filter_change(lambda: self.proxy.set_animated_only(enabled))
+        )
+        self.display_mode.currentTextChanged.connect(self._set_display_mode)
+        self.model.visibility_requested.connect(lambda path, visible: self.visibility_requested.emit([path], visible))
         self.tree.selectionModel().selectionChanged.connect(self._emit_selection)
         self.tree.clicked.connect(self._remember_primary)
         self._add_shortcuts()
@@ -183,8 +196,16 @@ class StageOutliner(QWidget):
         self.tree.viewport().update()
 
     def _comparison_filter_changed(self, *args):
-        impacts = {value for (group, value), action in self.comparison_actions.items() if group == "Impact" and action.isChecked()}
-        kinds = {value for (group, value), action in self.comparison_actions.items() if group == "Kind" and action.isChecked()}
+        impacts = {
+            value
+            for (group, value), action in self.comparison_actions.items()
+            if group == "Impact" and action.isChecked()
+        }
+        kinds = {
+            value
+            for (group, value), action in self.comparison_actions.items()
+            if group == "Kind" and action.isChecked()
+        }
         count = len(impacts) + len(kinds)
         self.comparison_filter.setText("Comparison: All" if not count else f"Comparison: {count}")
         self._apply_filter_change(lambda: self.proxy.set_comparison_filters(impacts, kinds))
@@ -199,14 +220,9 @@ class StageOutliner(QWidget):
 
     def set_validation_busy(self, busy):
         self.validation_toggle.setEnabled(not busy)
-        self.validation_refresh.setEnabled(
-            not busy and self.validation_toggle.isChecked()
-        )
+        self.validation_refresh.setEnabled(not busy and self.validation_toggle.isChecked())
 
-        self.validation_toggle.setText("Validating..."
-            if busy
-            else "Validation"
-        )
+        self.validation_toggle.setText("Validating..." if busy else "Validation")
 
     def set_validation_enabled(self, enabled):
         self.validation_toggle.blockSignals(True)
@@ -266,10 +282,7 @@ class StageOutliner(QWidget):
 
         if not was_active:
             self._expansion_before_filter = self._expanded_paths()
-            self._selection_before_filter = (
-                tuple(self.selected_paths()),
-                self.primary_path
-            )
+            self._selection_before_filter = (tuple(self.selected_paths()), self.primary_path)
 
         self._filter_change_in_progress = True
         try:
@@ -346,23 +359,13 @@ class StageOutliner(QWidget):
 
         if self.primary_path not in paths:
             current = self.tree.currentIndex()
-            self.primary_path = (
-                current.data(Qt.ItemDataRole.UserRole)
-                if current.isValid()
-                else ""
-            )
+            self.primary_path = current.data(Qt.ItemDataRole.UserRole) if current.isValid() else ""
 
         if self.proxy.filters_active:
-            self._selection_before_filter = (
-                tuple(paths),
-                self.primary_path
-            )
+            self._selection_before_filter = (tuple(paths), self.primary_path)
 
         if paths:
-            self.paths_selected.emit(
-                paths,
-                self.primary_path or paths[-1]
-            )
+            self.paths_selected.emit(paths, self.primary_path or paths[-1])
 
     def _add_shortcuts(self):
         shortcuts = (
@@ -380,7 +383,8 @@ class StageOutliner(QWidget):
 
     def _expanded_paths(self):
         return {
-            path for path in self.model.items
+            path
+            for path in self.model.items
             if self.tree.isExpanded(self.proxy.mapFromSource(self.model.index_for_path(path, 0)))
         }
 

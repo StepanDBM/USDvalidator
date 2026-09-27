@@ -26,19 +26,26 @@ def register_cameras_checks(registry):
         (USD_CAMERA_COUNT_LIMIT, "Camera Count Limit", check_camera_count_limit, Severity.WARNING),
         (USD_RENDER_CAMERA_EXISTS, "Render Camera Exists", check_render_camera_exists, Severity.ERROR),
         (USD_CAMERA_FOCAL_LENGTH_VALID, "Camera Focal Length Valid", check_camera_focal_length_valid, Severity.WARNING),
-        (USD_CAMERA_CLIPPING_RANGE_VALID, "Camera Clipping Range Valid", check_camera_clipping_range_valid, Severity.ERROR),
+        (
+            USD_CAMERA_CLIPPING_RANGE_VALID,
+            "Camera Clipping Range Valid",
+            check_camera_clipping_range_valid,
+            Severity.ERROR,
+        ),
         (USD_CAMERA_ANIMATION_ALLOWED, "Camera Animation Allowed", check_camera_animation_allowed, Severity.WARNING),
     )
 
     for check_id, label, func, severity in entries:
-        registry.register(CheckDefinition(
-            check_id=check_id,
-            label=label,
-            description=label,
-            func=func,
-            target_type=StageHealthContext,
-            category="Cameras",
-            phase="structure",
-            default_severity=severity,
-            tags=("cameras", "publish"),
-        ))
+        registry.register(
+            CheckDefinition(
+                check_id=check_id,
+                label=label,
+                description=label,
+                func=func,
+                target_type=StageHealthContext,
+                category="Cameras",
+                phase="structure",
+                default_severity=severity,
+                tags=("cameras", "publish"),
+            )
+        )

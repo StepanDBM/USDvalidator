@@ -30,11 +30,7 @@ class LookdevExtractor:
 
         session_layer = stage.GetSessionLayer()
 
-        result.layers = [
-            self._layer(layer)
-            for layer in stage.GetUsedLayers()
-            if layer != session_layer
-        ]
+        result.layers = [self._layer(layer) for layer in stage.GetUsedLayers() if layer != session_layer]
         result.layers.sort(key=lambda item: item.identifier)
         return result
 
@@ -66,9 +62,7 @@ class LookdevExtractor:
             implementation_source=shader.GetImplementationSource() or "",
             input_count=len(shader.GetInputs()),
             output_count=len(shader.GetOutputs()),
-            connected_input_count=sum(
-                shader_input.HasConnectedSource() for shader_input in shader.GetInputs()
-            ),
+            connected_input_count=sum(shader_input.HasConnectedSource() for shader_input in shader.GetInputs()),
             asset_inputs=tuple(asset_inputs),
         )
 
@@ -86,11 +80,7 @@ class LookdevExtractor:
         if not material and not direct_targets:
             return None
 
-        material_path = (
-            material.GetPath().pathString
-            if material
-            else direct_targets[0].pathString
-        )
+        material_path = material.GetPath().pathString if material else direct_targets[0].pathString
         return MaterialBindingInfo(
             prim_path=prim.GetPath().pathString,
             material_path=material_path,
@@ -124,10 +114,12 @@ class LookdevExtractor:
             uv_sets.append(name)
             uv_counts.append((name, len(values)))
             uv_interpolations.append((name, primvar.GetInterpolation() or ""))
-            uv_indices_valid.append((
-                name,
-                not indices or all(0 <= index < len(values) for index in indices),
-            ))
+            uv_indices_valid.append(
+                (
+                    name,
+                    not indices or all(0 <= index < len(values) for index in indices),
+                )
+            )
 
         return SurfaceInfo(
             mesh_path=prim.GetPath().pathString,
@@ -136,11 +128,7 @@ class LookdevExtractor:
             normals_authored=mesh.GetNormalsAttr().HasAuthoredValueOpinion(),
             normals_count=len(normals),
             normals_interpolation=normals_interpolation,
-            normals_finite=all(
-                math.isfinite(float(component))
-                for normal in normals
-                for component in normal
-            ),
+            normals_finite=all(math.isfinite(float(component)) for normal in normals for component in normal),
             uv_sets=tuple(sorted(uv_sets)),
             uv_counts=tuple(sorted(uv_counts)),
             uv_interpolations=tuple(sorted(uv_interpolations)),

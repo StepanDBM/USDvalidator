@@ -62,11 +62,13 @@ class BatchValidator:
                         report = future.result()
                         reports.append(report)
                     except Exception as exc:
-                        failures.append({
-                            "source_path": str(source_path).replace("\\", "/"),
-                            "error": str(exc),
-                            "traceback": traceback.format_exc(),
-                        })
+                        failures.append(
+                            {
+                                "source_path": str(source_path).replace("\\", "/"),
+                                "error": str(exc),
+                                "traceback": traceback.format_exc(),
+                            }
+                        )
                         report = None
                     completed += 1
                     if on_file_completed:
@@ -89,8 +91,10 @@ class BatchValidator:
         try:
             reports.append(self.checker.check(source_path))
         except Exception as exc:
-            failures.append({
-                "source_path": str(source_path).replace("\\", "/"),
-                "error": str(exc),
-                "traceback": traceback.format_exc(),
-            })
+            failures.append(
+                {
+                    "source_path": str(source_path).replace("\\", "/"),
+                    "error": str(exc),
+                    "traceback": traceback.format_exc(),
+                }
+            )

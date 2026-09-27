@@ -12,10 +12,7 @@ def build_validation_run_payload(report, stored_file_id=None):
     return {
         "stored_file_id": str(stored_file_id) if stored_file_id else None,
         "profile_name": report.profile_name or "default",
-        "report_schema_version": report_data.get("schema", {}).get(
-            "version",
-            REPORT_SCHEMA_VERSION
-        ),
+        "report_schema_version": report_data.get("schema", {}).get("version", REPORT_SCHEMA_VERSION),
         "tool_name": report_data.get("generator", {}).get("name", TOOL_NAME),
         "tool_version": report_data.get("generator", {}).get("version", TOOL_VERSION),
         "configuration_fingerprint": report.configuration_fingerprint,
@@ -30,9 +27,9 @@ def build_validation_run_payload(report, stored_file_id=None):
             "failed": summary.failed,
             "skipped": summary.skipped,
             "errors": summary.internal_errors,
-            "warnings": summary.warnings
+            "warnings": summary.warnings,
         },
-        "report": report_data
+        "report": report_data,
     }
 
 

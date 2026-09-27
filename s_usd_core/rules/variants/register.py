@@ -18,21 +18,33 @@ from .checks import (
 
 def register_variants_checks(registry):
     entries = (
-        (USD_REQUIRED_VARIANT_SETS_EXIST, "Required Variant Sets Exist", check_required_variant_sets_exist, Severity.ERROR),
-        (USD_VARIANT_SELECTIONS_AUTHORED, "Variant Selections Authored", check_variant_selections_authored, Severity.WARNING),
+        (
+            USD_REQUIRED_VARIANT_SETS_EXIST,
+            "Required Variant Sets Exist",
+            check_required_variant_sets_exist,
+            Severity.ERROR,
+        ),
+        (
+            USD_VARIANT_SELECTIONS_AUTHORED,
+            "Variant Selections Authored",
+            check_variant_selections_authored,
+            Severity.WARNING,
+        ),
         (USD_VARIANT_SELECTIONS_VALID, "Variant Selections Valid", check_variant_selections_valid, Severity.ERROR),
         (USD_VARIANT_SET_COUNT_LIMIT, "Variant Set Count Limit", check_variant_set_count_limit, Severity.WARNING),
     )
 
     for check_id, label, func, severity in entries:
-        registry.register(CheckDefinition(
-            check_id=check_id,
-            label=label,
-            description=label,
-            func=func,
-            target_type=StageHealthContext,
-            category="Variants",
-            phase="composition",
-            default_severity=severity,
-            tags=("variants", "publish"),
-        ))
+        registry.register(
+            CheckDefinition(
+                check_id=check_id,
+                label=label,
+                description=label,
+                func=func,
+                target_type=StageHealthContext,
+                category="Variants",
+                phase="composition",
+                default_severity=severity,
+                tags=("variants", "publish"),
+            )
+        )

@@ -19,24 +19,16 @@ class StoredFileRepository:
 
     def get_by_relative_path(self, version_id: UUID, relative_path: str):
         statement = select(StoredFile).where(
-            StoredFile.version_id == version_id,
-            StoredFile.relative_path == relative_path
+            StoredFile.version_id == version_id, StoredFile.relative_path == relative_path
         )
         return self.database.scalar(statement)
 
     def get_by_role(self, version_id: UUID, role: str):
-        statement = select(StoredFile).where(
-            StoredFile.version_id == version_id,
-            StoredFile.role == role
-        )
+        statement = select(StoredFile).where(StoredFile.version_id == version_id, StoredFile.role == role)
         return self.database.scalar(statement)
 
     def list_for_version(self, version_id: UUID):
-        statement = (
-            select(StoredFile)
-            .where(StoredFile.version_id == version_id)
-            .order_by(StoredFile.relative_path)
-        )
+        statement = select(StoredFile).where(StoredFile.version_id == version_id).order_by(StoredFile.relative_path)
         return list(self.database.scalars(statement).all())
 
     def list_all(self):

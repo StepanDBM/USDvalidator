@@ -35,7 +35,7 @@ class ContextTabs(QTabWidget):
             "Resolved material bindings for the selected prim and binding purposes.",
             TooltipText.VIEWPORT_VALIDATION_CONTEXT,
             TooltipText.VIEWPORT_COMPARISON_CONTEXT,
-            "Value-clip sets affecting the selected prim, including assets, manifests, activation, and time mapping."
+            "Value-clip sets affecting the selected prim, including assets, manifests, activation, and time mapping.",
         )
         for index, text in enumerate(tooltips):
             self.setTabToolTip(index, text)
@@ -43,7 +43,15 @@ class ContextTabs(QTabWidget):
 
     def set_prim(self, prim):
         self.value.clear()
-        for table in (self.metadata, self.layers, self.composition, self.materials, self.validation, self.semantic, self.clips):
+        for table in (
+            self.metadata,
+            self.layers,
+            self.composition,
+            self.materials,
+            self.validation,
+            self.semantic,
+            self.clips,
+        ):
             table.setRowCount(0)
         if not prim or not prim.IsValid():
             return

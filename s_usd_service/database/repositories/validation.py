@@ -35,7 +35,7 @@ class ValidationRunRepository:
             error_count=summary["errors"],
             warning_count=summary["warnings"],
             content_fingerprint=content_fingerprint,
-            **data
+            **data,
         )
         self.database.add(run)
         VersionLifecycleService(self.database).mark_after_validation(version, run)

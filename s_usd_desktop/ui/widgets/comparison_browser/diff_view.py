@@ -95,7 +95,7 @@ class SideBySideDiffModel(QAbstractTableModel):
                 "REMOVED": TooltipText.COMPARISON_DIFF_ROW_REMOVED,
                 "CHANGED": TooltipText.COMPARISON_DIFF_ROW_CHANGED,
                 "UNCHANGED": TooltipText.COMPARISON_DIFF_ROW_UNCHANGED,
-                "OMITTED": TooltipText.COMPARISON_DIFF_ROW_OMITTED
+                "OMITTED": TooltipText.COMPARISON_DIFF_ROW_OMITTED,
             }
             return (
                 f"{descriptions.get(row.kind, TooltipText.COMPARISON_DIFF_TABLE)}\n\n"
@@ -192,7 +192,11 @@ class SideBySideDiffModel(QAbstractTableModel):
                 continue
             unchanged = self.rows[index].kind == "UNCHANGED"
             kinds = []
-            while index < len(self.rows) and self.rows[index].kind != "OMITTED" and (self.rows[index].kind == "UNCHANGED") == unchanged:
+            while (
+                index < len(self.rows)
+                and self.rows[index].kind != "OMITTED"
+                and (self.rows[index].kind == "UNCHANGED") == unchanged
+            ):
                 kinds.append(self.rows[index].kind)
                 index += 1
 
@@ -355,13 +359,15 @@ class DiffTableView(QTableView):
             if not -SEPARATOR_HIT_RADIUS <= y <= self.viewport().height() + SEPARATOR_HIT_RADIUS:
                 continue
             identity = section_id, position
-            boundaries.append({
-                "section_id": section_id,
-                "position": position,
-                "kind": kind,
-                "y": y,
-                "hovered": identity == self.hovered_boundary,
-            })
+            boundaries.append(
+                {
+                    "section_id": section_id,
+                    "position": position,
+                    "kind": kind,
+                    "y": y,
+                    "hovered": identity == self.hovered_boundary,
+                }
+            )
         return tuple(boundaries)
 
     def boundary_at(self, position):

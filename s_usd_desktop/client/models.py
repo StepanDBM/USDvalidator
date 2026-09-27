@@ -41,7 +41,7 @@ class ProjectRecord:
             description=data["description"],
             status=data["status"],
             created_at=parse_datetime(data["created_at"]),
-            updated_at=parse_datetime(data["updated_at"])
+            updated_at=parse_datetime(data["updated_at"]),
         )
 
 
@@ -68,7 +68,7 @@ class AssetRecord:
             description=data["description"],
             status=data["status"],
             created_at=parse_datetime(data["created_at"]),
-            updated_at=parse_datetime(data["updated_at"])
+            updated_at=parse_datetime(data["updated_at"]),
         )
 
 
@@ -89,7 +89,7 @@ class StreamRecord:
             name=data["name"],
             description=data["description"],
             created_at=parse_datetime(data["created_at"]),
-            updated_at=parse_datetime(data["updated_at"])
+            updated_at=parse_datetime(data["updated_at"]),
         )
 
 
@@ -118,7 +118,7 @@ class VersionRecord:
             comment=data["comment"],
             created_at=parse_datetime(data["created_at"]),
             updated_at=parse_datetime(data["updated_at"]),
-            published_content_fingerprint=data.get("published_content_fingerprint")
+            published_content_fingerprint=data.get("published_content_fingerprint"),
         )
 
 
@@ -153,7 +153,7 @@ class StoredFileRecord:
             status=data["status"],
             created_at=parse_datetime(data["created_at"]),
             updated_at=parse_datetime(data["updated_at"]),
-            content_url=data["content_url"]
+            content_url=data["content_url"],
         )
 
 
@@ -164,10 +164,8 @@ class StoredFileCollection:
 
     @classmethod
     def from_dict(cls, data):
-        return cls(
-            items=tuple(StoredFileRecord.from_dict(item) for item in data["items"]),
-            count=data["count"]
-        )
+        return cls(items=tuple(StoredFileRecord.from_dict(item) for item in data["items"]), count=data["count"])
+
 
 @dataclass(frozen=True, slots=True)
 class ValidationRunRecord:
@@ -220,5 +218,5 @@ class ValidationRunRecord:
             warning_count=int(data["warning_count"]),
             created_at=parse_datetime(data["created_at"]),
             updated_at=parse_datetime(data["updated_at"]),
-            report=data.get("report")
+            report=data.get("report"),
         )

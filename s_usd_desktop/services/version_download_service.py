@@ -33,7 +33,7 @@ class VersionDownloadWorker(QRunnable):
                 self.location.asset_code,
                 self.location.stream_name,
                 self.location.version_number,
-                item
+                item,
             )
             if entry.status == CacheEntryStatus.AVAILABLE:
                 completed.append(entry)
@@ -54,7 +54,7 @@ class VersionDownloadWorker(QRunnable):
                         token=self.token,
                         progress=lambda sent, _total, base=base_bytes, name=item.relative_path: (
                             self.signals.progress.emit(base + sent, total_bytes, name)
-                        )
+                        ),
                     )
                     completed.append(entry)
                     base_bytes += item.size_bytes
@@ -102,11 +102,7 @@ class VersionDownloadService(QObject):
 
         self.token = DownloadCancellationToken()
         self.worker = VersionDownloadWorker(
-            self.connection_service.preferences.to_api_configuration(),
-            self.cache_manager,
-            files,
-            location,
-            self.token
+            self.connection_service.preferences.to_api_configuration(), self.cache_manager, files, location, self.token
         )
         self.worker.signals.progress.connect(self.progress)
         self.worker.signals.completed.connect(self.completed)

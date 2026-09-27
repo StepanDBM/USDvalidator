@@ -18,7 +18,7 @@ class ConnectionPreferences:
             connect_timeout=self.connect_timeout,
             read_timeout=self.request_timeout,
             write_timeout=self.request_timeout,
-            pool_timeout=self.connect_timeout
+            pool_timeout=self.connect_timeout,
         )
 
 
@@ -34,7 +34,7 @@ class DesktopSettings:
             base_url=self.settings.value("service/base_url", "http://127.0.0.1:8000", str),
             connect_timeout=self.settings.value("service/connect_timeout", 3.0, float),
             request_timeout=self.settings.value("service/request_timeout", 30.0, float),
-            auto_connect=self.settings.value("service/auto_connect", True, bool)
+            auto_connect=self.settings.value("service/auto_connect", True, bool),
         )
 
     def set_connection_preferences(self, preferences):

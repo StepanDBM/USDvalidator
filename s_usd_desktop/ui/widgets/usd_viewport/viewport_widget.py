@@ -86,7 +86,9 @@ class UsdViewportWidget(QWidget):
         self.outliner.validation_refresh_requested.connect(lambda: self._request_validation(force=True))
         self.outliner.visibility_requested.connect(self._set_session_visibility)
         self.outliner.frame_requested.connect(self._frame_selected)
-        self.outliner.hide_requested.connect(lambda: self._set_session_visibility(self.outliner.selected_paths(), False))
+        self.outliner.hide_requested.connect(
+            lambda: self._set_session_visibility(self.outliner.selected_paths(), False)
+        )
         self.outliner.show_requested.connect(lambda: self._set_session_visibility(self.outliner.selected_paths(), True))
         self.outliner.show_all_requested.connect(self._show_all)
         self.viewport.prim_picked.connect(self._select_from_viewport)
@@ -102,15 +104,19 @@ class UsdViewportWidget(QWidget):
         except Exception as error:
             self.state.error_message = str(error)
             self.status_label.setText(self.state.error_message)
-            QMessageBox.critical(self,
-                "Viewport", self.state.error_message
-            )
+            QMessageBox.critical(self, "Viewport", self.state.error_message)
             return False
 
         self.state.source_path = self.viewport.source_path
         self.state.selected_path = ""
-        comparison_sources = () if not self._comparison_result else (self._comparison_result.previous_source, self._comparison_result.current_source)
-        if self._comparison_result and any(self._same_source(self.state.source_path, source) for source in comparison_sources):
+        comparison_sources = (
+            ()
+            if not self._comparison_result
+            else (self._comparison_result.previous_source, self._comparison_result.current_source)
+        )
+        if self._comparison_result and any(
+            self._same_source(self.state.source_path, source) for source in comparison_sources
+        ):
             self.outliner.set_comparison_changes(self._comparison_result.changes)
         else:
             self._comparison_result = None
@@ -137,8 +143,8 @@ class UsdViewportWidget(QWidget):
         self.statistics = _stage_statistics(stage)
         self.tools.set_cameras(self.viewport.stage_cameras())
 
-        QTimer.singleShot(0,self._refresh_renderer_controls)
-        QTimer.singleShot(100,self._refresh_renderer_controls)
+        QTimer.singleShot(0, self._refresh_renderer_controls)
+        QTimer.singleShot(100, self._refresh_renderer_controls)
 
         self._set_status("Opened stage")
         self.source_changed.emit(self.state.source_path)
@@ -170,10 +176,7 @@ class UsdViewportWidget(QWidget):
     def show_validation_result(self, report, result):
         target = resolve_validation_target(report, result)
 
-        if (
-            self.state.source_path != target.source_path
-            and not self.set_source(target.source_path)
-        ):
+        if self.state.source_path != target.source_path and not self.set_source(target.source_path):
             return False
 
         self.set_validation_report(report)
@@ -201,7 +204,10 @@ class UsdViewportWidget(QWidget):
     def _set_current_time(self, value):
         self.viewport.set_current_time(value)
         self.inspector.set_current_time(value)
-        self.inspector.context.set_clips(self.viewport.stage, self.viewport.stage.GetPrimAtPath(self.state.selected_path) if self.state.selected_path else None)
+        self.inspector.context.set_clips(
+            self.viewport.stage,
+            self.viewport.stage.GetPrimAtPath(self.state.selected_path) if self.state.selected_path else None,
+        )
         self._set_status(f"Time {value:g}")
 
     def _select_from_outliner(self, paths, primary_path):
@@ -220,25 +226,18 @@ class UsdViewportWidget(QWidget):
         update_outliner,
     ):
         stage = self.viewport.stage
-        prim = (
-            stage.GetPrimAtPath(path)
-            if stage
-            else None
-        )
+        prim = stage.GetPrimAtPath(path) if stage else None
 
         if update_outliner:
             self.outliner.select_path(path)
 
         self.inspector.set_prim(prim)
         self.inspector.set_current_time(self.timeline.current_time)
-        self.inspector.context.set_clips(stage,prim)
+        self.inspector.context.set_clips(stage, prim)
 
         self.state.selected_path = path
 
-        if (
-            self.outliner.validation_toggle.isChecked()
-            and self._validation_report
-        ):
+        if self.outliner.validation_toggle.isChecked() and self._validation_report:
             self._show_selected_validation()
 
         self._set_status(f"Selected {path}")
@@ -285,9 +284,7 @@ class UsdViewportWidget(QWidget):
 
         if not self.state.source_path:
             self.outliner.set_validation_enabled(False)
-            self.status_label.setText(
-                "Open a USD source before enabling validation."
-            )
+            self.status_label.setText("Open a USD source before enabling validation.")
             return
 
         cached = self._cached_validation_report()
@@ -299,29 +296,20 @@ class UsdViewportWidget(QWidget):
 
         self._request_validation(force=False)
 
-
     def _request_validation(self, force=False):
         if not self.state.source_path:
             return
 
-        if (
-            not force
-            and self._cached_validation_report()
-        ):
-            self.set_validation_report(
-                self._cached_validation_report()
-            )
+        if not force and self._cached_validation_report():
+            self.set_validation_report(self._cached_validation_report())
             return
 
         self.outliner.set_validation_busy(True)
-        self.status_label.setText(
-            "Validating viewport source..."
-        )
+        self.status_label.setText("Validating viewport source...")
         self.validation_requested.emit(
             self.state.source_path,
             bool(force),
         )
-
 
     def set_validation_report(self, report):
         self.outliner.set_validation_busy(False)
@@ -349,7 +337,6 @@ class UsdViewportWidget(QWidget):
         if self.state.selected_path:
             self._show_selected_validation()
 
-
     def defer_validation(self, source_path, force=False):
         self._pending_validation = (str(source_path), bool(force))
         self.outliner.set_validation_busy(True)
@@ -369,7 +356,6 @@ class UsdViewportWidget(QWidget):
         self.outliner.set_validation_enabled(False)
         self.status_label.setText(f"Viewport validation failed: {message}")
 
-
     def _show_selected_validation(self):
         if not self._validation_report:
             return
@@ -379,40 +365,26 @@ class UsdViewportWidget(QWidget):
         if not paths and self.state.selected_path:
             paths = [self.state.selected_path]
 
-        results = (
-            self.outliner.model
-            .validation_results_for_paths(
-                paths,
-                include_descendants=False,
-            )
+        results = self.outliner.model.validation_results_for_paths(
+            paths,
+            include_descendants=False,
         )
 
-        self.inspector.show_validation_results(
-            results
-        )
-
+        self.inspector.show_validation_results(results)
 
     def _cached_validation_report(self):
-        key = self._validation_cache_key(
-            self.state.source_path
-        )
+        key = self._validation_cache_key(self.state.source_path)
         return self._validation_cache.get(key)
-
 
     def _validation_cache_key(self, source_path):
         path = Path(source_path).expanduser()
 
         try:
             resolved = path.resolve()
-            modified = (
-                resolved.stat().st_mtime_ns
-                if resolved.is_file()
-                else 0
-            )
+            modified = resolved.stat().st_mtime_ns if resolved.is_file() else 0
             return str(resolved), modified
         except OSError:
             return str(path), 0
-
 
     @staticmethod
     def _same_source(first, second):
@@ -420,10 +392,7 @@ class UsdViewportWidget(QWidget):
             return False
 
         try:
-            return (
-                Path(first).resolve()
-                == Path(second).resolve()
-            )
+            return Path(first).resolve() == Path(second).resolve()
         except OSError:
             return str(first) == str(second)
 
@@ -452,7 +421,9 @@ class UsdViewportWidget(QWidget):
         self.state.selected_path = ""
 
     def _refresh_renderer_controls(self):
-        renderers = [(plugin, self.viewport.renderer_display_name(plugin)) for plugin in self.viewport.renderer_plugins()]
+        renderers = [
+            (plugin, self.viewport.renderer_display_name(plugin)) for plugin in self.viewport.renderer_plugins()
+        ]
         self.tools.set_renderers(renderers)
         self.tools.set_aovs(self.viewport.renderer_aovs())
 
@@ -463,7 +434,9 @@ class UsdViewportWidget(QWidget):
         QGuiApplication.clipboard().setPixmap(self.viewport.grab_image())
 
     def _save_image(self):
-        path, _ = QFileDialog.getSaveFileName(self, "Save Viewer Image", "viewport.png", "PNG Image (*.png);;JPEG Image (*.jpg)")
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Save Viewer Image", "viewport.png", "PNG Image (*.png);;JPEG Image (*.jpg)"
+        )
         if path:
             self.viewport.grab_image().save(path)
 
@@ -479,6 +452,7 @@ class UsdViewportWidget(QWidget):
     def shutdown(self):
         self.timeline.stop()
         self.viewport.shutdown()
+
 
 def _stage_statistics(stage):
     counts = {"prims": 0, "meshes": 0, "points": 0, "materials": 0, "shaders": 0, "cameras": 0, "lights": 0}

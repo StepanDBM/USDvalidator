@@ -10,7 +10,4 @@ class VersionStatus(StrEnum):
     DEPRECATED = "deprecated"
 
 
-TERMINAL_VERSION_STATUSES = frozenset({
-    VersionStatus.PUBLISHED,
-    VersionStatus.DEPRECATED
-})
+TERMINAL_VERSION_STATUSES = frozenset({VersionStatus.PUBLISHED, VersionStatus.DEPRECATED})

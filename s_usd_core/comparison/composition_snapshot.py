@@ -35,13 +35,15 @@ def _sublayers(stage):
             continue
         for index, path in enumerate(layer.subLayerPaths):
             offset = layer.subLayerOffsets[index]
-            result.append(SublayerSnapshot(
-                layer.identifier,
-                index,
-                path,
-                float(offset.offset),
-                float(offset.scale),
-            ))
+            result.append(
+                SublayerSnapshot(
+                    layer.identifier,
+                    index,
+                    path,
+                    float(offset.offset),
+                    float(offset.scale),
+                )
+            )
     return tuple(sorted(result, key=lambda item: (item.layer_identifier, item.index)))
 
 

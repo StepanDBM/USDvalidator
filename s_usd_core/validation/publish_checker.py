@@ -18,9 +18,7 @@ from .runner import execute_checks
 class PublishChecker:
     def __init__(self, profile=None, rule_config=None):
         self.profile = profile
-        self.rule_config = (
-            rule_config if rule_config is not None else ValidationRuleConfig()
-        )
+        self.rule_config = rule_config if rule_config is not None else ValidationRuleConfig()
         self.registry = build_registry()
 
     def check(self, source_path):
@@ -28,22 +26,12 @@ class PublishChecker:
         timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         session = UsdInspectionSession(source_path)
         targets = session.extract()
-        definitions = (
-            self.registry.resolve()
-            if self.profile is None
-            else self.registry.resolve_profile(self.profile)
-        )
+        definitions = self.registry.resolve() if self.profile is None else self.registry.resolve_profile(self.profile)
         effective_config = build_effective_config(self.profile, self.rule_config)
         results = execute_checks(definitions, targets, effective_config)
-        stage_context = next(
-            target for target in targets if isinstance(target, StageContext)
-        )
+        stage_context = next(target for target in targets if isinstance(target, StageContext))
         stage_health = next(
-            (
-                target
-                for target in targets
-                if isinstance(target, StageHealthContext)
-            ),
+            (target for target in targets if isinstance(target, StageHealthContext)),
             None,
         )
         return PublishReport(

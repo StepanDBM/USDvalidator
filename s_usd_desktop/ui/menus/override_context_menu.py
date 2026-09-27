@@ -12,8 +12,6 @@ class OverrideContextMenu(QMenu):
 
     def _build(self):
         self.addAction("Edit Override...").triggered.connect(self.edit_callback)
-        toggle_label = (
-            "Disable Override" if self.override.enabled else "Enable Override"
-        )
+        toggle_label = "Disable Override" if self.override.enabled else "Enable Override"
         self.addAction(toggle_label).triggered.connect(self.toggle_callback)
         self.addAction("Remove Override").triggered.connect(self.remove_callback)

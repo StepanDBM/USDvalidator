@@ -23,12 +23,8 @@ class GeometryExtractor:
                 face_count=face_count,
                 polygon_count=face_count,
                 points_valid=self._points_are_valid(points),
-                face_vertex_counts_valid=self._face_counts_are_valid(
-                    counts, points_count
-                ),
-                topology_valid=self._topology_is_valid(
-                    counts, indices, points_count
-                ),
+                face_vertex_counts_valid=self._face_counts_are_valid(counts, points_count),
+                topology_valid=self._topology_is_valid(counts, indices, points_count),
                 extent_authored=mesh.GetExtentAttr().HasAuthoredValueOpinion(),
                 subdivision_scheme=mesh.GetSubdivisionSchemeAttr().Get() or "none",
                 orientation=mesh.GetOrientationAttr().Get() or "rightHanded",

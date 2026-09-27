@@ -28,14 +28,10 @@ class SummaryMetric(QWidget):
         layout.setSpacing(2)
 
         self.value_label = QLabel("0")
-        self.value_label.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
-        )
+        self.value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.title_label = QLabel(title)
-        self.title_label.setAlignment(
-            Qt.AlignmentFlag.AlignCenter
-        )
+        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         layout.addWidget(self.value_label)
         layout.addWidget(self.title_label)
@@ -48,9 +44,7 @@ class SummaryHeader(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.setFrameShape(
-            QFrame.Shape.StyledPanel
-        )
+        self.setFrameShape(QFrame.Shape.StyledPanel)
 
         self.setFixedHeight(SUMMARY_HEIGHT)
         self.setSizePolicy(
@@ -63,17 +57,11 @@ class SummaryHeader(QFrame):
         layout.setSpacing(6)
 
         self.status_label = QLabel("NO RESULTS")
-        self.status_label.setAlignment(
-            Qt.AlignmentFlag.AlignLeft
-            | Qt.AlignmentFlag.AlignVCenter
-        )
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
         self.source_label = QLabel("")
         self.source_label.setWordWrap(False)
-        self.source_label.setAlignment(
-            Qt.AlignmentFlag.AlignLeft
-            | Qt.AlignmentFlag.AlignVCenter
-        )
+        self.source_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
         identity_layout = QVBoxLayout()
         identity_layout.setContentsMargins(0, 0, 0, 0)
@@ -99,84 +87,41 @@ class SummaryHeader(QFrame):
             )
 
     def show_report(self, report):
-        status = (
-            "PASSED"
-            if report.publish_passed
-            else "FAILED"
-        )
+        status = "PASSED" if report.publish_passed else "FAILED"
 
-        color = (
-            "#4CAF50"
-            if report.publish_passed
-            else "#F44336"
-        )
+        color = "#4CAF50" if report.publish_passed else "#F44336"
 
         self.status_label.setText(status)
-        self.status_label.setStyleSheet(
-            f"color: {color}; font-weight: 700;"
-        )
+        self.status_label.setStyleSheet(f"color: {color}; font-weight: 700;")
 
-        self.source_label.setText(
-            str(report.source_path)
-        )
+        self.source_label.setText(str(report.source_path))
 
-        self.source_label.setToolTip(
-            str(report.source_path)
-        )
+        self.source_label.setToolTip(str(report.source_path))
 
         summary = report.summary
 
         for name, metric in self.metrics.items():
-            metric.set_value(
-                getattr(summary, name)
-            )
+            metric.set_value(getattr(summary, name))
 
     def show_batch(self, batch):
         passed = batch.failed_files == 0
 
-        color = (
-            "#4CAF50"
-            if passed
-            else "#F44336"
-        )
+        color = "#4CAF50" if passed else "#F44336"
 
-        self.status_label.setText(
-            "BATCH PASSED"
-            if passed
-            else "BATCH FAILED"
-        )
+        self.status_label.setText("BATCH PASSED" if passed else "BATCH FAILED")
 
-        self.status_label.setStyleSheet(
-            f"color: {color}; font-weight: 700;"
-        )
+        self.status_label.setStyleSheet(f"color: {color}; font-weight: 700;")
 
         self.source_label.setText(
-            f"{batch.total_files} files, "
-            f"{batch.passed_files} passed, "
-            f"{batch.failed_files} failed"
+            f"{batch.total_files} files, {batch.passed_files} passed, {batch.failed_files} failed"
         )
 
         totals = {
-            "total": sum(
-                report.summary.total
-                for report in batch.reports
-            ),
-            "passed": sum(
-                report.summary.passed
-                for report in batch.reports
-            ),
-            "failed": sum(
-                report.summary.failed
-                for report in batch.reports
-            ),
-            "skipped": sum(
-                report.summary.skipped
-                for report in batch.reports
-            ),
-            "internal_errors": sum(
-                report.summary.internal_errors
-                for report in batch.reports
-            ),
+            "total": sum(report.summary.total for report in batch.reports),
+            "passed": sum(report.summary.passed for report in batch.reports),
+            "failed": sum(report.summary.failed for report in batch.reports),
+            "skipped": sum(report.summary.skipped for report in batch.reports),
+            "internal_errors": sum(report.summary.internal_errors for report in batch.reports),
         }
 
         for name, metric in self.metrics.items():

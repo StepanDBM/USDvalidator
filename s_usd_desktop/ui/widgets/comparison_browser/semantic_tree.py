@@ -34,15 +34,17 @@ class SemanticChangesTree(QTreeWidget):
         self.show_unchanged = False
         self.filters = {}
         self.setToolTip(TooltipText.COMPARISON_SEMANTIC_TREE)
-        self.setHeaderLabels([
-            "Domain",
-            "Path",
-            "Change",
-            "Kind",
-            "Impact",
-            "Previous",
-            "Current",
-        ])
+        self.setHeaderLabels(
+            [
+                "Domain",
+                "Path",
+                "Change",
+                "Kind",
+                "Impact",
+                "Previous",
+                "Current",
+            ]
+        )
         self.setRootIsDecorated(False)
         self.setItemsExpandable(False)
         self.setIndentation(0)
@@ -82,15 +84,17 @@ class SemanticChangesTree(QTreeWidget):
         )
         for change in changes:
             domain = change.domain or change.category
-            item = QTreeWidgetItem([
-                domain,
-                change.path,
-                change.label,
-                change.kind.value,
-                change.impact.value,
-                self._value(change.previous),
-                self._value(change.current),
-            ])
+            item = QTreeWidgetItem(
+                [
+                    domain,
+                    change.path,
+                    change.label,
+                    change.kind.value,
+                    change.impact.value,
+                    self._value(change.previous),
+                    self._value(change.current),
+                ]
+            )
             item.setData(0, Qt.ItemDataRole.UserRole, change)
             change_tooltip = (
                 f"{TooltipText.COMPARISON_CHANGE_ROW}\n\n"

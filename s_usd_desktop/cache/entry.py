@@ -32,7 +32,7 @@ class CacheEntry:
             "size_bytes": self.size_bytes,
             "sha256": self.sha256,
             "downloaded_at": self.downloaded_at.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
-            "last_accessed_at": self.last_accessed_at.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+            "last_accessed_at": self.last_accessed_at.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
         }
 
     @classmethod
@@ -46,7 +46,7 @@ class CacheEntry:
             sha256=data["sha256"],
             downloaded_at=_parse_datetime(data["downloaded_at"]),
             last_accessed_at=_parse_datetime(data.get("last_accessed_at", data["downloaded_at"])),
-            status=status
+            status=status,
         )
 
 

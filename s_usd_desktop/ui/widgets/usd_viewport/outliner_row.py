@@ -15,23 +15,25 @@ class PrimRowDelegate(QStyledItemDelegate):
             return
 
         hidden = bool(index.data(Qt.ItemDataRole.UserRole + 2))
-        effectively_hidden = bool(
-            index.data(Qt.ItemDataRole.UserRole + 3)
-        )
-        ancestor_hidden = bool(
-            index.data(Qt.ItemDataRole.UserRole + 4)
-        )
+        effectively_hidden = bool(index.data(Qt.ItemDataRole.UserRole + 3))
+        ancestor_hidden = bool(index.data(Qt.ItemDataRole.UserRole + 4))
         summary = index.data(Qt.ItemDataRole.UserRole + 5)
-        validation_visible = bool(
-            index.data(Qt.ItemDataRole.UserRole + 6)
-        )
+        validation_visible = bool(index.data(Qt.ItemDataRole.UserRole + 6))
         context_only = index.data(Qt.ItemDataRole.UserRole + 20) == 2
         animated_properties = int(index.data(Qt.ItemDataRole.UserRole + 8) or 0)
         animation_samples = int(index.data(Qt.ItemDataRole.UserRole + 9) or 0)
         comparison = index.data(Qt.ItemDataRole.UserRole + 10)
         display_mode = index.data(Qt.ItemDataRole.UserRole + 11) or "All"
-        validation_width = self.badge_width if display_mode in {"All", "Validation"} and validation_visible and summary and summary.total_count else 0
-        comparison_width = self.comparison_width if display_mode in {"All", "Comparison"} and comparison and comparison.total_count else 0
+        validation_width = (
+            self.badge_width
+            if display_mode in {"All", "Validation"} and validation_visible and summary and summary.total_count
+            else 0
+        )
+        comparison_width = (
+            self.comparison_width
+            if display_mode in {"All", "Comparison"} and comparison and comparison.total_count
+            else 0
+        )
         animation_width = self.animation_width if display_mode in {"All", "Animation"} and animated_properties else 0
 
         text_option = type(option)(option)
@@ -71,10 +73,7 @@ class PrimRowDelegate(QStyledItemDelegate):
         painter.restore()
 
     def editorEvent(self, event, model, option, index):
-        if (
-            index.column() != 0
-            or event.type() != QEvent.Type.MouseButtonRelease
-        ):
+        if index.column() != 0 or event.type() != QEvent.Type.MouseButtonRelease:
             return super().editorEvent(
                 event,
                 model,
@@ -82,22 +81,9 @@ class PrimRowDelegate(QStyledItemDelegate):
                 index,
             )
 
-        if (
-            event.button() == Qt.MouseButton.LeftButton
-            and self.eye_rect(option.rect).contains(
-                event.position()
-            )
-        ):
-            source_model = (
-                model.sourceModel()
-                if hasattr(model, "sourceModel")
-                else model
-            )
-            source_index = (
-                model.mapToSource(index)
-                if hasattr(model, "mapToSource")
-                else index
-            )
+        if event.button() == Qt.MouseButton.LeftButton and self.eye_rect(option.rect).contains(event.position()):
+            source_model = model.sourceModel() if hasattr(model, "sourceModel") else model
+            source_index = model.mapToSource(index) if hasattr(model, "mapToSource") else index
             path = source_index.data(Qt.ItemDataRole.UserRole)
             source_model.request_visibility(path)
             return True
@@ -116,23 +102,23 @@ class PrimRowDelegate(QStyledItemDelegate):
             return size
 
         summary = index.data(Qt.ItemDataRole.UserRole + 5)
-        validation_visible = bool(
-            index.data(Qt.ItemDataRole.UserRole + 6)
-        )
+        validation_visible = bool(index.data(Qt.ItemDataRole.UserRole + 6))
         display_mode = index.data(Qt.ItemDataRole.UserRole + 11) or "All"
         comparison = index.data(Qt.ItemDataRole.UserRole + 10)
         animated = int(index.data(Qt.ItemDataRole.UserRole + 8) or 0)
-        validation_width = self.badge_width if display_mode in {"All", "Validation"} and validation_visible and summary and summary.total_count else 0
-        comparison_width = self.comparison_width if display_mode in {"All", "Comparison"} and comparison and comparison.total_count else 0
+        validation_width = (
+            self.badge_width
+            if display_mode in {"All", "Validation"} and validation_visible and summary and summary.total_count
+            else 0
+        )
+        comparison_width = (
+            self.comparison_width
+            if display_mode in {"All", "Comparison"} and comparison and comparison.total_count
+            else 0
+        )
         animation_width = self.animation_width if display_mode in {"All", "Animation"} and animated else 0
 
-        size.setWidth(
-            size.width()
-            + self.eye_width
-            + validation_width
-            + comparison_width
-            + animation_width
-        )
+        size.setWidth(size.width() + self.eye_width + validation_width + comparison_width + animation_width)
         return size
 
     def eye_rect(self, row_rect):
@@ -179,11 +165,7 @@ class PrimRowDelegate(QStyledItemDelegate):
         painter.setFont(font)
         painter.setPen(QColor("#ffffff"))
 
-        count = (
-            "99+"
-            if summary.total_count > 99
-            else str(summary.total_count)
-        )
+        count = "99+" if summary.total_count > 99 else str(summary.total_count)
 
         painter.drawText(
             rect,
@@ -195,7 +177,13 @@ class PrimRowDelegate(QStyledItemDelegate):
     def _draw_comparison_badge(painter, row_rect, offset, summary):
         size = min(17, row_rect.height() - 3)
         rect = QRectF(row_rect.left() + offset + 2, row_rect.center().y() - size / 2, size, size)
-        colors = {"INFORMATIONAL": "#3f83bd", "LOW": "#6f8fba", "MEDIUM": "#d1a637", "HIGH": "#dc7136", "CRITICAL": "#d94848"}
+        colors = {
+            "INFORMATIONAL": "#3f83bd",
+            "LOW": "#6f8fba",
+            "MEDIUM": "#d1a637",
+            "HIGH": "#dc7136",
+            "CRITICAL": "#d94848",
+        }
         painter.setBrush(QColor(colors.get(summary.highest_impact, "#75808d")))
         painter.setPen(QPen(QColor("#e5e9ef"), 1.2))
         painter.drawRoundedRect(rect, 4, 4)
@@ -204,7 +192,9 @@ class PrimRowDelegate(QStyledItemDelegate):
         font.setBold(True)
         font.setPixelSize(8)
         painter.setFont(font)
-        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, "99+" if summary.total_count > 99 else str(summary.total_count))
+        painter.drawText(
+            rect, Qt.AlignmentFlag.AlignCenter, "99+" if summary.total_count > 99 else str(summary.total_count)
+        )
 
     @staticmethod
     def _draw_animation_marker(painter, row_rect, offset, properties, samples):
@@ -218,11 +208,7 @@ class PrimRowDelegate(QStyledItemDelegate):
 
     @staticmethod
     def _draw_eye(painter, rect, open_eye, dimmed):
-        color = QColor(
-            "#7f8790"
-            if dimmed
-            else "#d7dce2"
-        )
+        color = QColor("#7f8790" if dimmed else "#d7dce2")
 
         painter.setRenderHint(
             painter.RenderHint.Antialiasing,
@@ -318,16 +304,7 @@ def _mix(first, second, amount):
     amount = max(0.0, min(1.0, amount))
 
     return QColor(
-        round(
-            first.red()
-            + (second.red() - first.red()) * amount
-        ),
-        round(
-            first.green()
-            + (second.green() - first.green()) * amount
-        ),
-        round(
-            first.blue()
-            + (second.blue() - first.blue()) * amount
-        ),
+        round(first.red() + (second.red() - first.red()) * amount),
+        round(first.green() + (second.green() - first.green()) * amount),
+        round(first.blue() + (second.blue() - first.blue()) * amount),
     )

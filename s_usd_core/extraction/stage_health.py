@@ -19,17 +19,9 @@ class StageHealthExtractor:
         )
 
         default_prim_path = self._get_default_prim_path(stage)
-        default_prim = (
-            stage.GetPrimAtPath(default_prim_path)
-            if default_prim_path
-            else None
-        )
-        default_prim_valid = (
-            default_prim.IsValid()
-            if default_prim is not None
-            else None
-        )
-        
+        default_prim = stage.GetPrimAtPath(default_prim_path) if default_prim_path else None
+        default_prim_valid = default_prim.IsValid() if default_prim is not None else None
+
         health = StageHealthContext(
             file=FileHealth(
                 filename=source_path.name,
@@ -42,16 +34,8 @@ class StageHealthExtractor:
                 root_layer=stage.GetRootLayer().identifier,
                 default_prim=default_prim_path,
                 default_prim_valid=default_prim_valid,
-                root_prim_name=(
-                    default_prim.GetName()
-                    if default_prim_valid
-                    else ""
-                ),
-                root_prim_type=(
-                    default_prim.GetTypeName()
-                    if default_prim_valid
-                    else ""
-                ),
+                root_prim_name=(default_prim.GetName() if default_prim_valid else ""),
+                root_prim_type=(default_prim.GetTypeName() if default_prim_valid else ""),
                 up_axis=UsdGeom.GetStageUpAxis(stage),
                 meters_per_unit=UsdGeom.GetStageMetersPerUnit(stage),
                 frames_per_second=stage.GetFramesPerSecond(),

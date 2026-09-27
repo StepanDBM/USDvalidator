@@ -8,9 +8,7 @@ class ValidationRegistry:
 
     def register(self, definition: CheckDefinition):
         if definition.check_id in self._definitions:
-            raise ValueError(
-                f"Duplicate check ID: {definition.check_id}"
-            )
+            raise ValueError(f"Duplicate check ID: {definition.check_id}")
 
         phase_order(definition.phase)
         self._definitions[definition.check_id] = definition
@@ -34,10 +32,7 @@ class ValidationRegistry:
         definitions = []
 
         for definition in self._definitions.values():
-            if (
-                not definition.enabled
-                or definition.check_id in disabled_ids
-            ):
+            if not definition.enabled or definition.check_id in disabled_ids:
                 continue
 
             if not include_all and definition.check_id not in enabled_ids:

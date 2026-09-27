@@ -9,24 +9,19 @@ def execute_checks(definitions, targets, effective_config):
     results = []
 
     for definition in definitions:
-        compatible_targets = [
-            target
-            for target in targets
-            if isinstance(target, definition.target_type)
-        ]
+        compatible_targets = [target for target in targets if isinstance(target, definition.target_type)]
 
         if not compatible_targets:
-            results.append(CheckResult(
-                check_id=definition.check_id,
-                label=definition.label,
-                category=definition.category,
-                status=CheckStatus.SKIPPED,
-                severity=Severity.INFO,
-                message=(
-                    f"No {definition.target_type.__name__} target "
-                    "was available."
-                ),
-            ))
+            results.append(
+                CheckResult(
+                    check_id=definition.check_id,
+                    label=definition.label,
+                    category=definition.category,
+                    status=CheckStatus.SKIPPED,
+                    severity=Severity.INFO,
+                    message=(f"No {definition.target_type.__name__} target was available."),
+                )
+            )
             continue
 
         runtime_context = CheckRuntimeContext(
@@ -37,24 +32,29 @@ def execute_checks(definitions, targets, effective_config):
 
         for target in compatible_targets:
             try:
-                check_results = definition.func(
-                    target,
-                    runtime_context,
-                ) or []
+                check_results = (
+                    definition.func(
+                        target,
+                        runtime_context,
+                    )
+                    or []
+                )
 
                 results.extend(check_results)
 
             except Exception as exc:
-                results.append(CheckResult(
-                    check_id=definition.check_id,
-                    label=definition.label,
-                    category=definition.category,
-                    status=CheckStatus.ERROR,
-                    severity=Severity.ERROR,
-                    message=f"Check failed internally: {exc}",
-                    details={
-                        "traceback": traceback.format_exc(),
-                    },
-                ))
+                results.append(
+                    CheckResult(
+                        check_id=definition.check_id,
+                        label=definition.label,
+                        category=definition.category,
+                        status=CheckStatus.ERROR,
+                        severity=Severity.ERROR,
+                        message=f"Check failed internally: {exc}",
+                        details={
+                            "traceback": traceback.format_exc(),
+                        },
+                    )
+                )
 
     return results

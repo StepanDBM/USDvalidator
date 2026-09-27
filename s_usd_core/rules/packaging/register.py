@@ -22,8 +22,18 @@ from .checks import (
 
 def register_packaging_checks(registry):
     entries = (
-        (USD_NO_PARENT_DIRECTORY_ESCAPES, "No Parent Directory Escapes", check_no_parent_directory_escapes, Severity.ERROR),
-        (USD_NO_ABSOLUTE_DEPENDENCY_PATHS, "No Absolute Dependency Paths", check_no_absolute_dependency_paths, Severity.ERROR),
+        (
+            USD_NO_PARENT_DIRECTORY_ESCAPES,
+            "No Parent Directory Escapes",
+            check_no_parent_directory_escapes,
+            Severity.ERROR,
+        ),
+        (
+            USD_NO_ABSOLUTE_DEPENDENCY_PATHS,
+            "No Absolute Dependency Paths",
+            check_no_absolute_dependency_paths,
+            Severity.ERROR,
+        ),
         (USD_NO_TEMPORARY_DEPENDENCIES, "No Temporary Dependencies", check_no_temporary_dependencies, Severity.WARNING),
         (USD_DEPENDENCY_COUNT_LIMIT, "Dependency Count Limit", check_dependency_count_limit, Severity.WARNING),
         (USD_SOURCE_EXTENSION_ALLOWED, "Source Extension Allowed", check_source_extension_allowed, Severity.ERROR),
@@ -31,14 +41,16 @@ def register_packaging_checks(registry):
     )
 
     for check_id, label, func, severity in entries:
-        registry.register(CheckDefinition(
-            check_id=check_id,
-            label=label,
-            description=label,
-            func=func,
-            target_type=StageHealthContext,
-            category="Packaging",
-            phase="publish",
-            default_severity=severity,
-            tags=("packaging", "publish"),
-        ))
+        registry.register(
+            CheckDefinition(
+                check_id=check_id,
+                label=label,
+                description=label,
+                func=func,
+                target_type=StageHealthContext,
+                category="Packaging",
+                phase="publish",
+                default_severity=severity,
+                tags=("packaging", "publish"),
+            )
+        )

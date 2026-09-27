@@ -54,8 +54,7 @@ class OverridePickerDialog(QDialog):
             return ()
 
         return tuple(
-            check_id for check_id in self._current_field().related_check_ids
-            if check_id not in self.profile_check_ids
+            check_id for check_id in self._current_field().related_check_ids if check_id not in self.profile_check_ids
         )
 
     def _build_ui(self):
@@ -107,10 +106,7 @@ class OverridePickerDialog(QDialog):
         metadata_layout.addRow("", self.add_related_checkbox)
         layout.addWidget(metadata_group, 1)
 
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Cancel
-            | QDialogButtonBox.StandardButton.Ok
-        )
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Cancel | QDialogButtonBox.StandardButton.Ok)
         buttons.button(QDialogButtonBox.StandardButton.Ok).setText(
             "Replace Override" if self.existing_override else "Create Override"
         )
@@ -138,9 +134,7 @@ class OverridePickerDialog(QDialog):
         self._on_field_changed()
 
     def _load_existing_override(self):
-        self.enabled_checkbox.setChecked(
-            self.existing_override.enabled if self.existing_override else True
-        )
+        self.enabled_checkbox.setChecked(self.existing_override.enabled if self.existing_override else True)
 
         if not self.existing_override:
             return
@@ -168,15 +162,10 @@ class OverridePickerDialog(QDialog):
         self.default_label.setText(str(default))
         self.type_label.setText(field.value_type.__name__)
         related_names = [
-            self.definitions[check_id].label
-            for check_id in field.related_check_ids
-            if check_id in self.definitions
+            self.definitions[check_id].label for check_id in field.related_check_ids if check_id in self.definitions
         ]
         self.related_label.setText(", ".join(related_names) or "None")
-        has_missing_related = any(
-            check_id not in self.profile_check_ids
-            for check_id in field.related_check_ids
-        )
+        has_missing_related = any(check_id not in self.profile_check_ids for check_id in field.related_check_ids)
         self.add_related_checkbox.setVisible(has_missing_related)
         self.add_related_checkbox.setChecked(has_missing_related)
         self._replace_value_editor(field, default)

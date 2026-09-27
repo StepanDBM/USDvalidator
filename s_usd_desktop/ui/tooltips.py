@@ -3,7 +3,9 @@ from enum import StrEnum
 
 class TooltipText(StrEnum):
     # APPLICATION
-    APP_WINDOW = "S-USDv is a desktop tool for inspecting, validating, comparing, storing, and publishing OpenUSD content."
+    APP_WINDOW = (
+        "S-USDv is a desktop tool for inspecting, validating, comparing, storing, and publishing OpenUSD content."
+    )
     TAB_VALIDATION = "Validate a local USD file or directory against a selected profile and inspect every check result."
     TAB_PROFILES = "Create and edit validation profiles. A profile chooses which checks run and which configuration values override the defaults."
     TAB_COMPARISON = "Compare two USD stages. Semantic comparison explains meaningful scene changes; source diff compares serialized text when available."
@@ -18,7 +20,9 @@ class TooltipText(StrEnum):
     SERVICE_TIMEOUT = "Maximum time the desktop waits for a service response before reporting a timeout. Increasing it may help on slow networks."
     SERVICE_CONNECT = "Test the configured service address and use it for future shared Storage requests."
     SERVICE_DISCONNECT = "Stop using the current service connection. Local validation, profiles, comparison, and cached files remain available."
-    SERVICE_SAVE_SETTINGS = "Save the service address and timeout on this computer. This does not start or configure the service itself."
+    SERVICE_SAVE_SETTINGS = (
+        "Save the service address and timeout on this computer. This does not start or configure the service itself."
+    )
     SERVICE_ERROR_CONNECTION = "The desktop could not reach the service. Confirm the URL, ensure Uvicorn is running, and check firewall or network access."
     SERVICE_ERROR_TIMEOUT = "The service did not answer before the configured timeout. The request may still have failed or the network may be slow."
     SERVICE_ERROR_NOT_FOUND = "The requested service record no longer exists or the identifier is invalid. Refresh Storage to load the current catalog."
@@ -31,16 +35,22 @@ class TooltipText(StrEnum):
     SOURCE_PATH = "Local path that will be inspected. Validation reads the source and its resolvable dependencies but does not modify them."
     SOURCE_BROWSE_FILE = "Choose one USD file to validate."
     SOURCE_BROWSE_DIRECTORY = "Choose a directory. Matching USD files are discovered and validated as a batch."
-    SOURCE_OPEN_RELOAD = "Open the selected source or reload it after external changes. Reloading clears outdated displayed results."
+    SOURCE_OPEN_RELOAD = (
+        "Open the selected source or reload it after external changes. Reloading clears outdated displayed results."
+    )
     SOURCE_CLEAR = "Clear the selected validation source and its displayed results. Files on disk are not deleted."
-    SOURCE_RECURSIVE = "When validating a directory, include USD files in subdirectories instead of only the selected directory."
+    SOURCE_RECURSIVE = (
+        "When validating a directory, include USD files in subdirectories instead of only the selected directory."
+    )
     SOURCE_INCLUDE_PATTERN = "Optional filename pattern that limits batch discovery, such as assets/**/*.usda."
     SOURCE_EXCLUDE_PATTERN = "Optional filename pattern that removes matching files from batch discovery."
 
     # VALIDATION_RUN
     PROFILE_SELECTOR = "Selects the validation policy. Profiles choose checks and may override limits or allowed values without changing the USD source."
     VALIDATE_BUTTON = "Run the selected profile against the selected source. Existing files are read only; a new in-memory report replaces displayed results."
-    CANCEL_VALIDATION = "Request cancellation of the active validation. The current check may finish before cancellation takes effect."
+    CANCEL_VALIDATION = (
+        "Request cancellation of the active validation. The current check may finish before cancellation takes effect."
+    )
     VALIDATION_PROGRESS = "Shows progress through source discovery, stage inspection, checks, and report construction."
     EXPORT_OPTIONS = "Choose which validation reports and publish manifests are written to disk after a run."
     EXPORT_DIRECTORY = "Directory where exported JSON reports and manifests will be written. Existing files with the same names may be replaced."
@@ -51,15 +61,23 @@ class TooltipText(StrEnum):
     # VALIDATION_RESULTS
     RESULTS_SUMMARY = "Summarizes passed, failed, skipped, warning, error, and internal-error results for the current report or batch."
     RESULTS_TREE = "The Result Tree groups check results by file and category. Select a row for the message, location, observed values, expected values, and suggested repair."
-    RESULT_ROW = "One validation check outcome. Hover for its meaning; select it for full details and affected USD targets."
+    RESULT_ROW = (
+        "One validation check outcome. Hover for its meaning; select it for full details and affected USD targets."
+    )
     RESULT_TARGET_ROW = "One prim or property evaluated by a check. PASSED means this target satisfied the rule; FAILED identifies a specific repair location."
     RESULT_STATUS_PASSED = "The evaluated source or target satisfied this check under the active profile."
-    RESULT_STATUS_FAILED = "The evaluated source or target violated this check and may block publishing depending on severity and policy."
+    RESULT_STATUS_FAILED = (
+        "The evaluated source or target violated this check and may block publishing depending on severity and policy."
+    )
     RESULT_STATUS_SKIPPED = "The check could not or did not need to run, usually because a prerequisite was absent or the rule was not applicable."
     RESULT_STATUS_ERROR = "The check itself could not complete. Treat this as an unreliable validation outcome and inspect the error details."
     RESULT_SEVERITY_INFO = "Informational finding. It describes the source but normally does not block publishing."
-    RESULT_SEVERITY_WARNING = "Potential pipeline or quality concern. The profile may allow publishing, but the finding should be reviewed."
-    RESULT_SEVERITY_ERROR = "Publish-blocking problem under normal policy. Repair the source or deliberately change the profile policy."
+    RESULT_SEVERITY_WARNING = (
+        "Potential pipeline or quality concern. The profile may allow publishing, but the finding should be reviewed."
+    )
+    RESULT_SEVERITY_ERROR = (
+        "Publish-blocking problem under normal policy. Repair the source or deliberately change the profile policy."
+    )
     RESULT_MESSAGE = "Human-readable outcome produced by the selected check."
     RESULT_LOCATION = "USD prim, property, layer, or source path associated with the finding."
     RESULT_OBSERVED = "Value found in the inspected USD content."
@@ -69,10 +87,14 @@ class TooltipText(StrEnum):
     RESULT_OPEN_IN_VIEWPORT = "Load the result source in Viewport and select or frame its affected prim when a navigable prim path is available."
     RESULT_FILTER_STATUS = "Show only results with the selected execution status, such as FAILED or PASSED."
     RESULT_FILTER_SEVERITY = "Show only results with the selected severity, such as ERROR or WARNING."
-    RESULT_FILTER_CATEGORY = "Show only checks from one validation domain, such as Geometry, Metadata, Packaging, or Materials."
+    RESULT_FILTER_CATEGORY = (
+        "Show only checks from one validation domain, such as Geometry, Metadata, Packaging, or Materials."
+    )
     RESULT_FILTER_SEARCH = "Filter results by matching check label, identifier, message, location, or related text."
     RESULT_FILTER_CLEAR = "Reset all result filters so every result is visible again."
-    BATCH_FILES_TREE = "Lists discovered files and each file's publish outcome. Select a file to inspect its check results."
+    BATCH_FILES_TREE = (
+        "Lists discovered files and each file's publish outcome. Select a file to inspect its check results."
+    )
     BATCH_FILE_ROW = "One USD source from a batch. Passed means all publish-blocking checks passed; failed means at least one blocking result or internal error occurred."
     BATCH_EXPAND_ALL = "Expand every directory and file group in the batch-results tree."
     BATCH_COLLAPSE_ALL = "Collapse the batch-results tree to its top-level groups."
@@ -89,7 +111,9 @@ class TooltipText(StrEnum):
     PROFILE_CHECK_LIST = "Checks included in this profile. Only enabled listed checks run during validation."
     PROFILE_CHECK_ROW = "One registered validation check included in the profile. The row identifies its category, phase, severity, tags, and stable check ID."
     PROFILE_ADD_CHECKS = "Open the check catalog and add selected registered checks to this profile."
-    PROFILE_REMOVE_CHECKS = "Remove selected checks from this profile. The checks remain registered and can be added again later."
+    PROFILE_REMOVE_CHECKS = (
+        "Remove selected checks from this profile. The checks remain registered and can be added again later."
+    )
     CHECK_PICKER_SEARCH = "Filter available checks by label, identifier, category, phase, severity, or tags."
     CHECK_PICKER_CATEGORY = "Limit available checks to one validation category."
     CHECK_PICKER_PHASE = "Limit available checks to one execution phase."
@@ -99,10 +123,18 @@ class TooltipText(StrEnum):
     CHECK_PICKER_MISSING = "Also add checks that are missing from the current profile when applying the selection."
     PROFILE_OVERRIDE_LIST = "Configuration values overridden only for this profile. Overrides replace defaults at runtime without changing global configuration."
     PROFILE_OVERRIDE_ROW = "One profile-specific configuration replacement. Disabled overrides are stored but not applied during validation."
-    PROFILE_CREATE_OVERRIDE = "Choose a configurable validation setting and create a profile-specific replacement value."
-    PROFILE_EDIT_OVERRIDE = "Edit the selected override value while preserving its configuration path and expected data type."
-    PROFILE_TOGGLE_OVERRIDE = "Enable or disable the selected override. Disabled values remain saved but do not affect validation."
-    PROFILE_REMOVE_OVERRIDE = "Delete the selected override so validation falls back to the default configuration value."
+    PROFILE_CREATE_OVERRIDE = (
+        "Choose a configurable validation setting and create a profile-specific replacement value."
+    )
+    PROFILE_EDIT_OVERRIDE = (
+        "Edit the selected override value while preserving its configuration path and expected data type."
+    )
+    PROFILE_TOGGLE_OVERRIDE = (
+        "Enable or disable the selected override. Disabled values remain saved but do not affect validation."
+    )
+    PROFILE_REMOVE_OVERRIDE = (
+        "Delete the selected override so validation falls back to the default configuration value."
+    )
     OVERRIDE_PICKER_SEARCH = "Filter configurable settings by path, label, type, or description."
     OVERRIDE_VALUE = "Replacement runtime value for this profile. The editor enforces the setting's expected data type."
 
@@ -114,9 +146,13 @@ class TooltipText(StrEnum):
     VERSION_CONCEPT = "A numbered, immutable-after-publication snapshot within a stream. New changes should be placed in a new version rather than altering a published version."
     STORED_FILE_CONCEPT = "A file registered with a version and stored by the service. Its role and package-relative path describe how it belongs to the USD package."
     ROOT_LAYER_CONCEPT = "The main USD layer used to open the version. A publishable version must contain exactly one available root layer."
-    DEPENDENCY_CONCEPT = "A supporting file used by the root layer, such as another USD layer, texture, manifest, preview, or report."
+    DEPENDENCY_CONCEPT = (
+        "A supporting file used by the root layer, such as another USD layer, texture, manifest, preview, or report."
+    )
     RELATIVE_PATH_CONCEPT = "Portable path of a stored file inside the version package. It must not be absolute or escape the package with parent-directory traversal."
-    FILE_ROLE_CONCEPT = "Describes a stored file's purpose: root layer, dependency, texture, preview, manifest, report, or other."
+    FILE_ROLE_CONCEPT = (
+        "Describes a stored file's purpose: root layer, dependency, texture, preview, manifest, report, or other."
+    )
     SERVICE_STORAGE_CONCEPT = "Authoritative object storage managed by the service. Deleting a mutable stored file removes both service metadata and its stored object."
     CACHE_CONCEPT = "Verified local copy of service files used for faster opening, validation, and comparison. Removing cache does not delete authoritative service content."
     CACHE_MANIFEST_CONCEPT = "Local record of cached files, expected sizes, checksums, timestamps, and service identities used to detect missing, stale, or corrupt cache entries."
@@ -136,17 +172,25 @@ class TooltipText(StrEnum):
     STORAGE_UPLOAD_FILE = "Upload a local file to the selected mutable version. Choose the correct role and portable package-relative path."
     STORAGE_DOWNLOAD_FILE = "Download the selected stored file to the managed local cache and verify it against registered size and checksum."
     STORAGE_DOWNLOAD_ROOT = "Download only the selected version's root layer. Referenced dependencies may remain unavailable, so the version may not be ready to open."
-    STORAGE_DOWNLOAD_VERSION = "Download and verify every file registered to the selected version while preserving package-relative paths."
+    STORAGE_DOWNLOAD_VERSION = (
+        "Download and verify every file registered to the selected version while preserving package-relative paths."
+    )
     STORAGE_OPEN_VERSION = "Open the selected version's verified cached root layer. This requires exactly one root layer and all registered dependencies to be locally available."
     STORAGE_VALIDATE_VERSION = "Validate the selected version's verified cached root and submit the resulting report to service validation history with stored-file identity."
     STORAGE_COMPARE_VERSIONS = "Prepare and compare exactly two selected versions from the same stream. The older version becomes Previous/Base and the newer becomes Current/Target."
     STORAGE_REVEAL_CACHE = "Open the selected cached file's containing folder in the operating-system file browser."
-    STORAGE_REMOVE_CACHE = "Delete only the selected local cache copy and its cache record. The authoritative service file is not deleted."
+    STORAGE_REMOVE_CACHE = (
+        "Delete only the selected local cache copy and its cache record. The authoritative service file is not deleted."
+    )
     STORAGE_CLEAR_VERSION_CACHE = "Delete every local cached file for the selected version. Service files, metadata, and validation history remain unchanged."
-    STORAGE_CACHE_SETTINGS = "Configure local cache location, storage limit, and checksum verification behavior for this computer."
+    STORAGE_CACHE_SETTINGS = (
+        "Configure local cache location, storage limit, and checksum verification behavior for this computer."
+    )
     STORAGE_CANCEL_TRANSFER = "Request cancellation of the active upload, download, or comparison preparation. Partial temporary files are cleaned when possible."
     STORAGE_REFRESH_HISTORY = "Reload validation history for the selected version from the service."
-    STORAGE_OPEN_HISTORY = "Open the selected historical validation report in the Validation results browser without rerunning checks."
+    STORAGE_OPEN_HISTORY = (
+        "Open the selected historical validation report in the Validation results browser without rerunning checks."
+    )
     STORAGE_PUBLISH_VERSION = "Publish a validated version. Publishing stores its content fingerprint and permanently prevents file additions, replacements, and deletions."
     STORAGE_DEPRECATE_VERSION = "Mark a published version as no longer recommended for new work. The version remains available, auditable, downloadable, and immutable."
 
@@ -161,29 +205,47 @@ class TooltipText(StrEnum):
     VERSION_ROW = "One stream version. Its status shows lifecycle state; selecting it loads stored files, readiness, cache state, and validation history."
     STORED_FILE_TABLE = "Files registered to the selected version, including role, relative path, size, service state, and local-cache state."
     STORED_FILE_ROW = "One authoritative service file. Selecting it enables context-appropriate download, reveal, or cache-removal actions."
-    VALIDATION_HISTORY_TABLE = "Persisted validation runs for the selected stored version, ordered with the newest runs first."
+    VALIDATION_HISTORY_TABLE = (
+        "Persisted validation runs for the selected stored version, ordered with the newest runs first."
+    )
     VALIDATION_HISTORY_ROW = "One historical validation run. It records profile, pass state, counts, timestamps, tool version, root-file identity, and content fingerprint."
-    VERSION_DETAIL_LIFECYCLE = "Current service-controlled state: draft, uploaded, validation failed, validated, published, or deprecated."
-    VERSION_DETAIL_READINESS = "Whether registered files form a complete verified local package that can be opened or validated."
-    VERSION_DETAIL_PUBLISH_READINESS = "Explains the next requirement before publication, or confirms that the version is published and immutable."
-    VERSION_DETAIL_CONTENT_IDENTITY = "Published content fingerprint. Matching fingerprints identify the same logical registered package content."
+    VERSION_DETAIL_LIFECYCLE = (
+        "Current service-controlled state: draft, uploaded, validation failed, validated, published, or deprecated."
+    )
+    VERSION_DETAIL_READINESS = (
+        "Whether registered files form a complete verified local package that can be opened or validated."
+    )
+    VERSION_DETAIL_PUBLISH_READINESS = (
+        "Explains the next requirement before publication, or confirms that the version is published and immutable."
+    )
+    VERSION_DETAIL_CONTENT_IDENTITY = (
+        "Published content fingerprint. Matching fingerprints identify the same logical registered package content."
+    )
 
     # CACHE
     CACHE_ROOT = "Local directory where managed version packages are stored. Changing it does not move files from the old cache automatically."
-    CACHE_LIMIT = "Maximum managed-cache size. Downloads that would exceed this limit are rejected and partial files are cleaned."
+    CACHE_LIMIT = (
+        "Maximum managed-cache size. Downloads that would exceed this limit are rejected and partial files are cleaned."
+    )
     CACHE_VERIFY_ON_ACCESS = "Recalculate SHA-256 when inspecting cached files. This detects corruption but can make access slower for large packages."
     CACHE_STATUS_MISSING = "No verified local copy exists at the expected cache path."
     CACHE_STATUS_AVAILABLE = "The local file exists and matches registered size, checksum, and cache metadata."
     CACHE_STATUS_STALE = "The local file or metadata belongs to an older service record and should be downloaded again."
-    CACHE_STATUS_CORRUPT = "The local file exists but size or SHA-256 does not match. Remove or redownload it before use."
+    CACHE_STATUS_CORRUPT = (
+        "The local file exists but size or SHA-256 does not match. Remove or redownload it before use."
+    )
 
     # LIFECYCLE
     VERSION_DRAFT = "The version exists but has no available root layer. Upload exactly one root layer to continue."
     VERSION_UPLOADED = "The version has an available root layer but requires a current passing validation of its exact registered content."
-    VERSION_VALIDATION_FAILED = "The newest applicable validation did not pass. Repair the content or policy issue and validate again."
+    VERSION_VALIDATION_FAILED = (
+        "The newest applicable validation did not pass. Repair the content or policy issue and validate again."
+    )
     VERSION_VALIDATED = "The newest root-linked validation passed and matches current registered content. The version is eligible for publication."
     VERSION_PUBLISHED = "The version is approved and immutable. Create a new version for future content changes."
-    VERSION_DEPRECATED = "The published version remains immutable and accessible for history, but is no longer recommended for new work."
+    VERSION_DEPRECATED = (
+        "The published version remains immutable and accessible for history, but is no longer recommended for new work."
+    )
 
     # COMPARISON
     COMPARISON_PREVIOUS_SOURCE = "Baseline source. Changes are described relative to this stage."
@@ -198,24 +260,44 @@ class TooltipText(StrEnum):
     COMPARISON_SEMANTIC_TREE = "Groups meaningful changes by domain and subject. Select a row for previous/current values, impact, explanation, and related validation evidence."
     COMPARISON_CHANGE_ROW = "One semantic property or object comparison between Previous and Current."
     COMPARISON_CHANGE_DETAILS = "Explains the selected change, its impact, why it matters, previous and current values, source hint, and validation correlation."
-    COMPARISON_FILTER_IMPACT = "Show changes at or matching the selected impact level: informational, low, medium, high, or critical."
-    COMPARISON_FILTER_DOMAIN = "Show changes from one semantic domain, such as Geometry, Materials, Composition, Animation, or Validation."
-    COMPARISON_FILTER_KIND = "Show one change kind, such as added, removed, changed, regression, resolved, increased, or decreased."
-    COMPARISON_FILTER_SEARCH = "Filter semantic changes by domain, path, label, values, explanation, or related check identifiers."
+    COMPARISON_FILTER_IMPACT = (
+        "Show changes at or matching the selected impact level: informational, low, medium, high, or critical."
+    )
+    COMPARISON_FILTER_DOMAIN = (
+        "Show changes from one semantic domain, such as Geometry, Materials, Composition, Animation, or Validation."
+    )
+    COMPARISON_FILTER_KIND = (
+        "Show one change kind, such as added, removed, changed, regression, resolved, increased, or decreased."
+    )
+    COMPARISON_FILTER_SEARCH = (
+        "Filter semantic changes by domain, path, label, values, explanation, or related check identifiers."
+    )
     COMPARISON_ONLY_CHANGED = "Hide unchanged semantic rows so only meaningful differences remain."
     COMPARISON_ONLY_REGRESSIONS = "Show changes associated with validation regressions or new publish risks."
-    COMPARISON_FULL_DIFF = "Build every source-diff row. This can consume substantial time and memory for very large textual USD files."
-    COMPARISON_SUMMARY_DIFF = "Show changed regions with limited surrounding context and omission rows for large unchanged sections."
-    COMPARISON_SKIP_DIFF = "Do not compare serialized source text. Semantic comparison and validation correlation still run."
-    COMPARISON_DIFF_TABLE = "Side-by-side textual source comparison with previous/current line numbers and change kinds."
+    COMPARISON_FULL_DIFF = (
+        "Build every source-diff row. This can consume substantial time and memory for very large textual USD files."
+    )
+    COMPARISON_SUMMARY_DIFF = (
+        "Show changed regions with limited surrounding context and omission rows for large unchanged sections."
+    )
+    COMPARISON_SKIP_DIFF = (
+        "Do not compare serialized source text. Semantic comparison and validation correlation still run."
+    )
+    COMPARISON_DIFF_TABLE = (
+        "Side-by-side textual source comparison with previous/current line numbers and change kinds."
+    )
     COMPARISON_DIFF_ROW_ADDED = "Line exists only in Current."
     COMPARISON_DIFF_ROW_REMOVED = "Line exists only in Previous."
     COMPARISON_DIFF_ROW_CHANGED = "Aligned Previous and Current lines contain different text."
     COMPARISON_DIFF_ROW_UNCHANGED = "Aligned Previous and Current lines contain the same text."
-    COMPARISON_DIFF_ROW_OMITTED = "Summary Diff intentionally hides a large region and reports how many lines were omitted."
+    COMPARISON_DIFF_ROW_OMITTED = (
+        "Summary Diff intentionally hides a large region and reports how many lines were omitted."
+    )
     CHANGE_IMPACT_INFORMATIONAL = "Descriptive difference with little expected effect on downstream behavior."
     CHANGE_IMPACT_LOW = "Small change that is unlikely to break consumers but may deserve review."
-    CHANGE_IMPACT_MEDIUM = "Meaningful change that can affect appearance, performance, timing, or downstream assumptions."
+    CHANGE_IMPACT_MEDIUM = (
+        "Meaningful change that can affect appearance, performance, timing, or downstream assumptions."
+    )
     CHANGE_IMPACT_HIGH = "Significant change likely to alter composition, rendering, deformation, or pipeline behavior."
     CHANGE_IMPACT_CRITICAL = "Potentially breaking or unusable change requiring deliberate review before publishing."
     CHANGE_KIND_REGRESSION = "A validation condition moved from acceptable to failed or error in Current."
@@ -225,19 +307,29 @@ class TooltipText(StrEnum):
     VIEWPORT_CONCEPT = "Interactive OpenUSD Hydra preview. It is for inspection and navigation; it does not edit or save the USD stage."
     VIEWPORT_SOURCE = "Local USD stage currently loaded in the viewport."
     VIEWPORT_BROWSE = "Choose a local USD source to display."
-    VIEWPORT_LOAD = "Open or reload the selected stage in Hydra. Unsaved source changes outside S-USDv are reflected after reload."
+    VIEWPORT_LOAD = (
+        "Open or reload the selected stage in Hydra. Unsaved source changes outside S-USDv are reflected after reload."
+    )
     VIEWPORT_RENDERER = "Select an available Hydra render delegate. Rendering features and settings differ by installed OpenUSD runtime."
     VIEWPORT_AOV = "Select the rendered output channel, such as color or depth, when supported by the active renderer."
-    VIEWPORT_HYDRA_SETTINGS = "Edit settings exposed by the active Hydra renderer. Changes affect only viewport display."
-    VIEWPORT_RUNTIME_DIAGNOSTICS = "Copy details about OpenUSD, Hydra plugins, renderer availability, and runtime paths for troubleshooting."
+    VIEWPORT_HYDRA_SETTINGS = (
+        "Edit settings exposed by the active Hydra renderer. Changes affect only viewport display."
+    )
+    VIEWPORT_RUNTIME_DIAGNOSTICS = (
+        "Copy details about OpenUSD, Hydra plugins, renderer availability, and runtime paths for troubleshooting."
+    )
     VIEWPORT_SCREENSHOT = "Save an image of the current viewport framing and display settings."
-    VIEWPORT_OUTLINER = "Hierarchy of prims in the loaded stage. Selecting a prim synchronizes the viewport and Prim Inspector."
+    VIEWPORT_OUTLINER = (
+        "Hierarchy of prims in the loaded stage. Selecting a prim synchronizes the viewport and Prim Inspector."
+    )
     VIEWPORT_OUTLINER_ROW = "One USD prim. The row shows hierarchy and type; selection does not alter the stage."
     VIEWPORT_PRIM_INSPECTOR = "Displays metadata, properties, relationships, and authored values for the selected prim."
     VIEWPORT_PROPERTY_ROW = "One property or metadata value on the selected prim. Values are read-only in S-USDv."
     VIEWPORT_FRAME_SELECTION = "Move the camera to frame the selected prim's visible bounds."
     VIEWPORT_FRAME_ALL = "Move the camera to frame the visible bounds of the entire loaded stage."
-    VIEWPORT_VISIBILITY = "Toggle display visibility for the selected prim in the current viewport session. The USD file is not modified."
+    VIEWPORT_VISIBILITY = (
+        "Toggle display visibility for the selected prim in the current viewport session. The USD file is not modified."
+    )
     VIEWPORT_CAMERA_MODE = "Choose navigation or a stage-authored camera when available."
     VIEWPORT_PLAY = "Play or pause timeline sampling for animated properties."
     VIEWPORT_STEP_PREVIOUS = "Move to the previous timeline frame or time code."
@@ -245,9 +337,15 @@ class TooltipText(StrEnum):
     VIEWPORT_FIRST_FRAME = "Jump to the stage start time code."
     VIEWPORT_LAST_FRAME = "Jump to the stage end time code."
     VIEWPORT_TIMELINE = "Current stage time used to evaluate animated properties in the viewport."
-    VIEWPORT_VALIDATION_CONTEXT = "Lists validation findings related to the selected prim and allows navigation between affected targets."
-    VIEWPORT_COMPARISON_CONTEXT = "Lists semantic comparison findings related to the selected prim and selected comparison side."
-    VIEWPORT_PREVIOUS_FINDING = "Select the previous validation or comparison finding associated with the current context."
+    VIEWPORT_VALIDATION_CONTEXT = (
+        "Lists validation findings related to the selected prim and allows navigation between affected targets."
+    )
+    VIEWPORT_COMPARISON_CONTEXT = (
+        "Lists semantic comparison findings related to the selected prim and selected comparison side."
+    )
+    VIEWPORT_PREVIOUS_FINDING = (
+        "Select the previous validation or comparison finding associated with the current context."
+    )
     VIEWPORT_NEXT_FINDING = "Select the next validation or comparison finding associated with the current context."
     VIEWPORT_UNAVAILABLE = "The installed OpenUSD runtime lacks required Usdviewq or Hydra components. Validation, profiles, storage, and non-viewport comparison remain available."
 
@@ -258,28 +356,44 @@ class TooltipText(StrEnum):
     UPLOAD_LOCAL_FILE = "Local file to copy into authoritative service storage."
     UPLOAD_ROLE = "Purpose of the file inside the stored version. Choose root_layer only for the single main stage used to open the version."
     UPLOAD_RELATIVE_PATH = "Portable path inside the version package. Keep dependency layout consistent with asset paths authored in the root layer."
-    CREATE_PROJECT_CODE = "Short stable project identifier. It is normalized to uppercase and must be unique in the service."
+    CREATE_PROJECT_CODE = (
+        "Short stable project identifier. It is normalized to uppercase and must be unique in the service."
+    )
     CREATE_ASSET_CODE = "Short stable asset identifier inside the project. It is normalized to lowercase and must be unique within that project."
-    CREATE_ASSET_TYPE = "Production classification such as prop, character, environment, or other pipeline-defined type."
+    CREATE_ASSET_TYPE = (
+        "Production classification such as prop, character, environment, or other pipeline-defined type."
+    )
     CREATE_STREAM_NAME = "Deliverable discipline name such as model, rig, lookdev, animation, layout, or lighting."
     CREATE_VERSION_COMMENT = "Human-readable reason or summary for creating this numbered version."
 
     # ERRORS
-    ERROR_NO_SOURCE = "Select a valid USD file or directory before starting validation, comparison, or viewport loading."
+    ERROR_NO_SOURCE = (
+        "Select a valid USD file or directory before starting validation, comparison, or viewport loading."
+    )
     ERROR_FILE_MISSING = "The selected local file no longer exists. Browse again or restore the file."
     ERROR_STAGE_OPEN = "OpenUSD could not construct a stage from the source. Review file syntax, dependencies, permissions, and runtime diagnostics."
-    ERROR_MULTIPLE_ROOTS = "The version has more than one root_layer record. A stored version must have exactly one root layer."
-    ERROR_ROOT_NOT_CACHED = "The root layer is registered but has no verified local cache copy. Download Root or Download Version."
-    ERROR_DEPENDENCIES_NOT_CACHED = "One or more registered package files are missing, stale, or corrupt locally. Download the complete version."
+    ERROR_MULTIPLE_ROOTS = (
+        "The version has more than one root_layer record. A stored version must have exactly one root layer."
+    )
+    ERROR_ROOT_NOT_CACHED = (
+        "The root layer is registered but has no verified local cache copy. Download Root or Download Version."
+    )
+    ERROR_DEPENDENCIES_NOT_CACHED = (
+        "One or more registered package files are missing, stale, or corrupt locally. Download the complete version."
+    )
     ERROR_CHECKSUM_MISMATCH = "Downloaded bytes do not match the registered SHA-256 checksum. The partial file was rejected and should be downloaded again."
     ERROR_SIZE_MISMATCH = "Downloaded size does not match service metadata. The partial file was rejected."
     ERROR_STORAGE_LIMIT = "The operation would exceed the configured local cache or service upload size limit."
     ERROR_CANCELLED = "The operation was cancelled. Completed verified files remain available; incomplete temporary files are removed when possible."
-    ERROR_IMMUTABLE_VERSION = "Published and deprecated versions cannot receive file changes. Create a new version for changed content."
+    ERROR_IMMUTABLE_VERSION = (
+        "Published and deprecated versions cannot receive file changes. Create a new version for changed content."
+    )
     ERROR_VALIDATION_REQUIRED = "The version needs a current passing validation linked to its root layer and exact content fingerprint before publication."
     ERROR_FINGERPRINT_MISMATCH = "Registered version content changed after validation. Validate the current exact content again before publishing."
     ERROR_UNSUPPORTED_REPORT = "The service cannot use this validation report schema for publication. Revalidate with a compatible S-USDv version."
-    ERROR_NO_VIEWPORT_RUNTIME = "The required OpenUSD viewport modules or Hydra renderer plugins are unavailable in the active runtime."
+    ERROR_NO_VIEWPORT_RUNTIME = (
+        "The required OpenUSD viewport modules or Hydra renderer plugins are unavailable in the active runtime."
+    )
 
 
 def tooltip(value, **values):

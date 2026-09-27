@@ -24,29 +24,19 @@ class CheckDefinition:
             raise ValueError("Check ID cannot be empty.")
 
         if not self.label.strip():
-            raise ValueError(
-                f"Check label cannot be empty: {self.check_id}"
-            )
+            raise ValueError(f"Check label cannot be empty: {self.check_id}")
 
         if not callable(self.func):
-            raise TypeError(
-                f"Check function must be callable: {self.check_id}"
-            )
+            raise TypeError(f"Check function must be callable: {self.check_id}")
 
         if not isinstance(self.target_type, type):
-            raise TypeError(
-                f"Check target_type must be a type: {self.check_id}"
-            )
+            raise TypeError(f"Check target_type must be a type: {self.check_id}")
 
         if not isinstance(self.default_severity, Severity):
-            raise TypeError(
-                f"Check default_severity must be a Severity: {self.check_id}"
-            )
+            raise TypeError(f"Check default_severity must be a Severity: {self.check_id}")
 
         if any(not tag.strip() for tag in self.tags):
-            raise ValueError(
-                f"Check tags cannot contain empty values: {self.check_id}"
-            )
+            raise ValueError(f"Check tags cannot contain empty values: {self.check_id}")
 
 
 @dataclass(frozen=True)
@@ -83,22 +73,16 @@ class CheckResult:
             raise ValueError("Check result ID cannot be empty.")
 
         if not isinstance(self.status, CheckStatus):
-            raise TypeError(
-                f"Check result status must be a CheckStatus: {self.check_id}"
-            )
+            raise TypeError(f"Check result status must be a CheckStatus: {self.check_id}")
 
         if not isinstance(self.severity, Severity):
-            raise TypeError(
-                f"Check result severity must be a Severity: {self.check_id}"
-            )
+            raise TypeError(f"Check result severity must be a Severity: {self.check_id}")
 
         if not isinstance(self.targets, tuple) or any(not isinstance(item, CheckTargetResult) for item in self.targets):
             raise TypeError(f"Check result targets must be CheckTargetResult tuples: {self.check_id}")
 
         if not isinstance(self.details, dict):
-            raise TypeError(
-                f"Check result details must be a dictionary: {self.check_id}"
-            )
+            raise TypeError(f"Check result details must be a dictionary: {self.check_id}")
 
 
 @dataclass

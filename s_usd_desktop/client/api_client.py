@@ -21,7 +21,7 @@ class SUsdvApiClient:
             base_url=self.configuration.base_url,
             timeout=self.configuration.make_timeout(),
             transport=transport,
-            headers={"Accept": "application/json"}
+            headers={"Accept": "application/json"},
         )
 
     def __enter__(self):
@@ -51,9 +51,7 @@ class SUsdvApiClient:
                     self._raise_service_error(response)
                 yield response
         except httpx.TimeoutException as error:
-            raise RequestTimeoutError(
-                f"S-USDv Service request timed out: {method} {path}"
-            ) from error
+            raise RequestTimeoutError(f"S-USDv Service request timed out: {method} {path}") from error
         except httpx.ConnectError as error:
             raise ServiceUnavailableError(
                 f"Could not connect to S-USDv Service at {self.configuration.base_url}"
@@ -65,9 +63,7 @@ class SUsdvApiClient:
         try:
             response = self._client.request(method, path, **kwargs)
         except httpx.TimeoutException as error:
-            raise RequestTimeoutError(
-                f"S-USDv Service request timed out: {method} {path}"
-            ) from error
+            raise RequestTimeoutError(f"S-USDv Service request timed out: {method} {path}") from error
         except httpx.ConnectError as error:
             raise ServiceUnavailableError(
                 f"Could not connect to S-USDv Service at {self.configuration.base_url}"
@@ -85,8 +81,7 @@ class SUsdvApiClient:
             return response.json()
         except ValueError as error:
             raise UnexpectedServiceError(
-                "S-USDv Service returned malformed JSON",
-                status_code=response.status_code
+                "S-USDv Service returned malformed JSON", status_code=response.status_code
             ) from error
 
     @staticmethod
@@ -98,7 +93,7 @@ class SUsdvApiClient:
             403: AuthenticationError,
             404: ResourceNotFoundError,
             409: ResourceConflictError,
-            422: ValidationResponseError
+            422: ValidationResponseError,
         }.get(response.status_code, UnexpectedServiceError)
         raise error_type(message, status_code=response.status_code, details=details)
 

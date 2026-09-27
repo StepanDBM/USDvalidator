@@ -38,7 +38,15 @@ class CompositionRuleConfig:
 @dataclass
 class AnimationRuleConfig:
     allowed_frame_rates: tuple[float, ...] = (
-        23.976, 24.0, 25.0, 29.97, 30.0, 48.0, 50.0, 59.94, 60.0,
+        23.976,
+        24.0,
+        25.0,
+        29.97,
+        30.0,
+        48.0,
+        50.0,
+        59.94,
+        60.0,
     )
     maximum_frame_range: int = 10000
     maximum_time_samples: int = 1000000
@@ -145,6 +153,7 @@ class LayerRuleConfig:
     allow_anonymous_layers: bool = False
     allow_dirty_layers: bool = False
     require_root_default_prim: bool = True
+
 
 @dataclass
 class ValidationRuleConfig:

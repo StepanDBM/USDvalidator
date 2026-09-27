@@ -32,3 +32,10 @@ ignore = [
 "s_usd_desktop/ui/storage/models.py" = ["B008"]
 "s_usd_desktop/ui/widgets/comparison_browser/diff_view.py" = ["B008"]
 "s_usd_desktop/ui/widgets/usd_viewport/outliner_model.py" = ["B008"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+docstring-code-format = false

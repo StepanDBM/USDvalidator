@@ -24,12 +24,7 @@ class CatalogClient:
 
     def create_asset(self, project_id, code, name, asset_type, description=""):
         path = f"/api/v1/projects/{project_id}/assets"
-        data = {
-            "code": code,
-            "name": name,
-            "asset_type": asset_type,
-            "description": description
-        }
+        data = {"code": code, "name": name, "asset_type": asset_type, "description": description}
         return AssetRecord.from_dict(self.api.post(path, json=data))
 
     def get_asset(self, asset_id):

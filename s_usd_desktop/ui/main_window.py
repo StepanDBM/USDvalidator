@@ -41,6 +41,7 @@ def _change_theme(self, index):
     if application is not None:
         application.setStyleSheet(themes)
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -84,12 +85,9 @@ class MainWindow(QMainWindow):
         self.tab_bar.addTab("Profiles")
         self.tab_bar.addTab("Comparison")
         self.tab_bar.addTab("Viewport")
-        for index, text in enumerate((
-            TooltipText.TAB_VALIDATION,
-            TooltipText.TAB_PROFILES,
-            TooltipText.TAB_COMPARISON,
-            TooltipText.TAB_VIEWPORT
-        )):
+        for index, text in enumerate(
+            (TooltipText.TAB_VALIDATION, TooltipText.TAB_PROFILES, TooltipText.TAB_COMPARISON, TooltipText.TAB_VIEWPORT)
+        ):
             self.tab_bar.setTabToolTip(index, text)
 
         top_layout.addWidget(self.tab_bar)
@@ -103,13 +101,7 @@ class MainWindow(QMainWindow):
         top_layout.addWidget(QLabel("Theme"))
         self.theme_selector = QComboBox()
         self.theme_selector.setToolTip(TooltipText.THEME_SELECTOR)
-        self.theme_selector.addItems(
-            [
-                "Dark Blue / Orange",
-                "Dark",
-                "Light"
-            ]
-        )
+        self.theme_selector.addItems(["Dark Blue / Orange", "Dark", "Light"])
 
         top_layout.addWidget(self.theme_selector)
         main_layout.addWidget(top_bar)
@@ -123,8 +115,10 @@ class MainWindow(QMainWindow):
         # Hide the QTabWidget's own tab bar
         self.tabs.tabBar().hide()
         self.validation_view = ValidationView(profile_loader=self.profile_loader)
-        self.profile_editor = ProfileEditor(profile_loader=self.profile_loader,
-            registry=self.registry,)
+        self.profile_editor = ProfileEditor(
+            profile_loader=self.profile_loader,
+            registry=self.registry,
+        )
 
         self.comparison_view = ComparisonView(profile_loader=self.profile_loader)
         self.viewport_view = create_usd_viewport()
@@ -132,12 +126,9 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.profile_editor, "Profiles")
         self.tabs.addTab(self.comparison_view, "Comparison")
         self.tabs.addTab(self.viewport_view, "Viewport")
-        for index, text in enumerate((
-            TooltipText.TAB_VALIDATION,
-            TooltipText.TAB_PROFILES,
-            TooltipText.TAB_COMPARISON,
-            TooltipText.TAB_VIEWPORT
-        )):
+        for index, text in enumerate(
+            (TooltipText.TAB_VALIDATION, TooltipText.TAB_PROFILES, TooltipText.TAB_COMPARISON, TooltipText.TAB_VIEWPORT)
+        ):
             self.tabs.setTabToolTip(index, text)
         main_layout.addWidget(self.tabs, 1)
         self.setCentralWidget(central_widget)
@@ -152,40 +143,23 @@ class MainWindow(QMainWindow):
         self.viewport_view.validation_requested.connect(self._validate_viewport_source)
         self.validation_view.report_ready.connect(self._handle_validation_report)
         self.validation_view.validation_finished.connect(self.viewport_view.retry_pending_validation)
-        self.connection_indicator.reconnect_requested.connect(
-            self.connection_service.connect_to_service
-        )
-        self.connection_indicator.settings_requested.connect(
-            self._show_connection_settings
-        )
-        self.connection_service.state_changed.connect(
-            self._update_connection_indicator
-        )
+        self.connection_indicator.reconnect_requested.connect(self.connection_service.connect_to_service)
+        self.connection_indicator.settings_requested.connect(self._show_connection_settings)
+        self.connection_service.state_changed.connect(self._update_connection_indicator)
         self.connection_service.connected.connect(
-            lambda health: self._update_connection_indicator(
-                self.connection_service.state,
-                health
-            )
+            lambda health: self._update_connection_indicator(self.connection_service.state, health)
         )
         self.connection_service.connection_failed.connect(
-            lambda error: self._update_connection_indicator(
-                self.connection_service.state,
-                error=error
-            )
+            lambda error: self._update_connection_indicator(self.connection_service.state, error=error)
         )
 
     def _update_connection_indicator(self, state, health=None, error=""):
         self.connection_indicator.set_state(
-            state,
-            health or self.connection_service.health,
-            error or self.connection_service.last_error
+            state, health or self.connection_service.health, error or self.connection_service.last_error
         )
 
     def _show_connection_settings(self):
-        dialog = ConnectionSettingsDialog(
-            self.connection_service.preferences,
-            self
-        )
+        dialog = ConnectionSettingsDialog(self.connection_service.preferences, self)
 
         if dialog.exec() == QDialog.Accepted:
             self.connection_service.apply_preferences(dialog.preferences())
@@ -203,11 +177,7 @@ class MainWindow(QMainWindow):
         self.viewport_view.show_comparison_change(comparison, change, side)
 
     def _change_theme(self, index):
-        themes = [
-            dark_blue_orange_theme,
-            dark_theme,
-            light_theme
-        ]
+        themes = [dark_blue_orange_theme, dark_theme, light_theme]
 
         self.setStyleSheet(themes[index]())
 

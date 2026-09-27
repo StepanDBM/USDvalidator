@@ -36,7 +36,9 @@ class CatalogRepository:
 
     def create_asset(self, project_id: UUID, data):
         self.get_project(project_id)
-        return self._commit(Asset(project_id=project_id, **data), f"Asset code '{data['code']}' already exists in project")
+        return self._commit(
+            Asset(project_id=project_id, **data), f"Asset code '{data['code']}' already exists in project"
+        )
 
     def list_assets(self, project_id: UUID):
         self.get_project(project_id)
@@ -67,7 +69,9 @@ class CatalogRepository:
     def create_version(self, stream_id: UUID, data):
         self.get_stream(stream_id)
         latest = self.database.scalar(select(func.max(Version.number)).where(Version.stream_id == stream_id)) or 0
-        return self._commit(Version(stream_id=stream_id, number=latest + 1, **data), "Version number conflict; retry request")
+        return self._commit(
+            Version(stream_id=stream_id, number=latest + 1, **data), "Version number conflict; retry request"
+        )
 
     def list_versions(self, stream_id: UUID):
         self.get_stream(stream_id)

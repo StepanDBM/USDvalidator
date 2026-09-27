@@ -72,11 +72,10 @@ class CreateAssetDialog(FormDialog):
     def values(self):
         code = self.required_text(self.code, "Code")
         name = self.required_text(self.name, "Name")
-        return None if not code or not name else (
-            code,
-            name,
-            self.asset_type.currentText(),
-            self.description.toPlainText().strip()
+        return (
+            None
+            if not code or not name
+            else (code, name, self.asset_type.currentText(), self.description.toPlainText().strip())
         )
 
     def accept(self):

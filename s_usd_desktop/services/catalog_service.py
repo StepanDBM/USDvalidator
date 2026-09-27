@@ -42,7 +42,9 @@ class CatalogService(QObject):
         self._submit("streams", self.streams_loaded, self._catalog_call, "list_streams", asset_id, context=asset_id)
 
     def load_versions(self, stream_id):
-        self._submit("versions", self.versions_loaded, self._catalog_call, "list_versions", stream_id, context=stream_id)
+        self._submit(
+            "versions", self.versions_loaded, self._catalog_call, "list_versions", stream_id, context=stream_id
+        )
 
     def load_files(self, version_id):
         self._submit("files", self.files_loaded, self._file_call, "list_files", version_id, context=version_id)
@@ -60,7 +62,7 @@ class CatalogService(QObject):
             code,
             name,
             asset_type,
-            description
+            description,
         )
 
     def create_stream(self, asset_id, name, description=""):
@@ -70,16 +72,10 @@ class CatalogService(QObject):
         self._submit("mutation", self.version_created, self._catalog_call, "create_version", stream_id, comment)
 
     def publish_version(self, version_id):
-        self._submit(
-            "lifecycle", self.version_published,
-            self._catalog_call, "publish_version", version_id
-        )
+        self._submit("lifecycle", self.version_published, self._catalog_call, "publish_version", version_id)
 
     def deprecate_version(self, version_id):
-        self._submit(
-            "lifecycle", self.version_deprecated,
-            self._catalog_call, "deprecate_version", version_id
-        )
+        self._submit("lifecycle", self.version_deprecated, self._catalog_call, "deprecate_version", version_id)
 
     def _submit(self, scope, result_signal, function, method_name, *args, context=None):
         self._generations[scope] += 1
@@ -87,16 +83,10 @@ class CatalogService(QObject):
         self.loading_changed.emit(scope, True)
         worker = RequestWorker(function, method_name, *args)
         worker.signals.result.connect(
-            lambda result, s=scope, g=generation, c=context: self._handle_result(
-                s, g, c, result, result_signal
-            )
+            lambda result, s=scope, g=generation, c=context: self._handle_result(s, g, c, result, result_signal)
         )
-        worker.signals.error.connect(
-            lambda error, s=scope, g=generation: self._handle_error(s, g, error)
-        )
-        worker.signals.finished.connect(
-            lambda current=worker: self._workers.discard(current)
-        )
+        worker.signals.error.connect(lambda error, s=scope, g=generation: self._handle_error(s, g, error))
+        worker.signals.finished.connect(lambda current=worker: self._workers.discard(current))
         self._workers.add(worker)
         self.thread_pool.start(worker)
 

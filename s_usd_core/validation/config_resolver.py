@@ -9,27 +9,20 @@ def resolve_override_target(root, path):
     parts = path.split(".")
 
     if len(parts) < 2:
-        raise ValueError(
-            f"Override path must include a section and attribute: {path}"
-        )
+        raise ValueError(f"Override path must include a section and attribute: {path}")
 
     target = root
 
     for part in parts[:-1]:
         if not hasattr(target, part):
-            raise AttributeError(
-                f"Unknown component '{part}' in override path '{path}'."
-            )
+            raise AttributeError(f"Unknown component '{part}' in override path '{path}'.")
 
         target = getattr(target, part)
 
     attribute_name = parts[-1]
 
     if not hasattr(target, attribute_name):
-        raise AttributeError(
-            f"Unknown attribute '{attribute_name}' "
-            f"in override path '{path}'."
-        )
+        raise AttributeError(f"Unknown attribute '{attribute_name}' in override path '{path}'.")
 
     return target, attribute_name
 
@@ -53,9 +46,7 @@ def validate_override_value(current_value, value, path):
         value,
         expected_type,
     ):
-        raise TypeError(
-            f"Override '{path}' expects {expected_type.__name__}."
-        )
+        raise TypeError(f"Override '{path}' expects {expected_type.__name__}.")
 
     return value
 

@@ -1,2 +1,1 @@
-
 from s_usd_service.database.repositories.validation import ValidationRunRepository

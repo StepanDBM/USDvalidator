@@ -48,11 +48,7 @@ class FileTransferService:
         normalized_role = role.strip().lower()
         self._validate_upload(version_id, safe_name, normalized_path, normalized_role)
         storage_key = self._build_storage_key(version, safe_name)
-        stored_object = self.storage.write_stream(
-            source,
-            storage_key,
-            maximum_bytes=self.settings.maximum_upload_bytes
-        )
+        stored_object = self.storage.write_stream(source, storage_key, maximum_bytes=self.settings.maximum_upload_bytes)
 
         if stored_object.size_bytes == 0:
             self.storage.delete(stored_object.storage_key)
@@ -67,7 +63,7 @@ class FileTransferService:
             content_type=content_type or "application/octet-stream",
             size_bytes=stored_object.size_bytes,
             sha256=stored_object.sha256,
-            status="available"
+            status="available",
         )
 
         try:

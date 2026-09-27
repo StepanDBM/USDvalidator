@@ -40,5 +40,5 @@ __all__ = [
     "ConnectionPreferences",
     "ConnectionService",
     "ConnectionState",
-    "DesktopSettings"
+    "DesktopSettings",
 ]

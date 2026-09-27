@@ -101,10 +101,7 @@ def build_source_diff(previous_path, current_path, mode=DiffMode.FULL, token=Non
 
 
 def _full_opcode(tag, i1, i2, j1, j2, old_lines, new_lines):
-    return [
-        _opcode_line(tag, offset, i1, i2, j1, j2, old_lines, new_lines)
-        for offset in range(max(i2 - i1, j2 - j1))
-    ]
+    return [_opcode_line(tag, offset, i1, i2, j1, j2, old_lines, new_lines) for offset in range(max(i2 - i1, j2 - j1))]
 
 
 def _summary_opcode(tag, i1, i2, j1, j2, old_lines, new_lines):
@@ -114,10 +111,7 @@ def _summary_opcode(tag, i1, i2, j1, j2, old_lines, new_lines):
 
     context = SUMMARY_CONTEXT_LINES
     offsets = tuple(range(context)) + tuple(range(count - context, count))
-    rows = [
-        _opcode_line(tag, offset, i1, i2, j1, j2, old_lines, new_lines)
-        for offset in offsets
-    ]
+    rows = [_opcode_line(tag, offset, i1, i2, j1, j2, old_lines, new_lines) for offset in offsets]
     old_omitted = max(0, i2 - i1 - context * 2)
     new_omitted = max(0, j2 - j1 - context * 2)
     rows.insert(context, _omission_line(tag, old_omitted, new_omitted))

@@ -31,14 +31,16 @@ def register_transforms_checks(registry):
     )
 
     for check_id, label, func, severity in entries:
-        registry.register(CheckDefinition(
-            check_id=check_id,
-            label=label,
-            description=label,
-            func=func,
-            target_type=StageHealthContext,
-            category="Transforms",
-            phase="structure",
-            default_severity=severity,
-            tags=("transforms", "publish"),
-        ))
+        registry.register(
+            CheckDefinition(
+                check_id=check_id,
+                label=label,
+                description=label,
+                func=func,
+                target_type=StageHealthContext,
+                category="Transforms",
+                phase="structure",
+                default_severity=severity,
+                tags=("transforms", "publish"),
+            )
+        )

@@ -43,12 +43,7 @@ class StoredVersionComparisonSource:
 
     @property
     def location(self):
-        return CacheLocation(
-            self.project_code,
-            self.asset_code,
-            self.stream_name,
-            self.version_number
-        )
+        return CacheLocation(self.project_code, self.asset_code, self.stream_name, self.version_number)
 
 
 @dataclass(frozen=True, slots=True)
@@ -86,19 +81,12 @@ class PairPreparationWorker(QRunnable):
             with SUsdvApiClient(self.configuration) as api:
                 client = FileClient(api)
                 sources = (self.pair.base, self.pair.target)
-                source_files = [
-                    (source, tuple(client.list_files(source.version_id).items))
-                    for source in sources
-                ]
+                source_files = [(source, tuple(client.list_files(source.version_id).items)) for source in sources]
                 pending = []
                 for source, files in source_files:
                     for item in files:
                         entry = self.cache_manager.inspect(
-                            source.project_code,
-                            source.asset_code,
-                            source.stream_name,
-                            source.version_number,
-                            item
+                            source.project_code, source.asset_code, source.stream_name, source.version_number, item
                         )
                         if entry.status != CacheEntryStatus.AVAILABLE:
                             pending.append((source, item))
@@ -114,21 +102,13 @@ class PairPreparationWorker(QRunnable):
                         source.location,
                         token=self.token,
                         progress=lambda sent, _size, offset=base, name=item.relative_path, version=source.version_number: (
-                            self.signals.progress.emit(
-                                offset + sent,
-                                total,
-                                f"v{version:04d} / {name}"
-                            )
-                        )
+                            self.signals.progress.emit(offset + sent, total, f"v{version:04d} / {name}")
+                        ),
                     )
                     transferred += item.size_bytes
 
                 prepared = _build_pair(
-                    self.cache_manager,
-                    source_files[0][0],
-                    source_files[0][1],
-                    source_files[1][0],
-                    source_files[1][1]
+                    self.cache_manager, source_files[0][0], source_files[0][1], source_files[1][0], source_files[1][1]
                 )
                 if not prepared.ready:
                     raise RuntimeError(prepared.message)
@@ -178,14 +158,10 @@ class StoredComparisonService(QObject):
             project_code,
             asset_code,
             stream_name,
-            versions
+            versions,
         )
-        worker.signals.result.connect(
-            lambda pair, current=generation: self._result(current, pair)
-        )
-        worker.signals.error.connect(
-            lambda error, current=generation: self._error(current, error)
-        )
+        worker.signals.result.connect(lambda pair, current=generation: self._result(current, pair))
+        worker.signals.error.connect(lambda error, current=generation: self._error(current, error))
         worker.signals.finished.connect(lambda current=worker: self.workers.discard(current))
         self.workers.add(worker)
         self.loading_changed.emit(True)
@@ -198,10 +174,7 @@ class StoredComparisonService(QObject):
             raise ValueError(pair.message)
         self.preparation_token = DownloadCancellationToken()
         worker = PairPreparationWorker(
-            self.connection_service.preferences.to_api_configuration(),
-            self.cache_manager,
-            pair,
-            self.preparation_token
+            self.connection_service.preferences.to_api_configuration(), self.cache_manager, pair, self.preparation_token
         )
         worker.signals.progress.connect(self.preparation_progress)
         worker.signals.completed.connect(self.pair_prepared)
@@ -225,16 +198,11 @@ class StoredComparisonService(QObject):
             source_files = []
             for version in versions:
                 source = StoredVersionComparisonSource(
-                    project_code, asset_code, stream_name, version.id,
-                    version.number, None, None, "checking", 0, 0
+                    project_code, asset_code, stream_name, version.id, version.number, None, None, "checking", 0, 0
                 )
                 source_files.append((source, tuple(client.list_files(version.id).items)))
         return _build_pair(
-            self.cache_manager,
-            source_files[0][0],
-            source_files[0][1],
-            source_files[1][0],
-            source_files[1][1]
+            self.cache_manager, source_files[0][0], source_files[0][1], source_files[1][0], source_files[1][1]
         )
 
     def _result(self, generation, pair):
@@ -260,26 +228,27 @@ def _build_pair(cache_manager, base_source, base_files, target_source, target_fi
     sources = []
     for source, files in ((base_source, base_files), (target_source, target_files)):
         resolution = opener.resolve(files, source.location)
-        sources.append(StoredVersionComparisonSource(
-            project_code=source.project_code,
-            asset_code=source.asset_code,
-            stream_name=source.stream_name,
-            version_id=source.version_id,
-            version_number=source.version_number,
-            root_file_id=resolution.root_file.id if resolution.root_file else None,
-            root_path=resolution.root_path,
-            readiness=resolution.readiness.value,
-            missing_count=len(resolution.missing_files),
-            invalid_count=len(resolution.invalid_files)
-        ))
+        sources.append(
+            StoredVersionComparisonSource(
+                project_code=source.project_code,
+                asset_code=source.asset_code,
+                stream_name=source.stream_name,
+                version_id=source.version_id,
+                version_number=source.version_number,
+                root_file_id=resolution.root_file.id if resolution.root_file else None,
+                root_path=resolution.root_path,
+                readiness=resolution.readiness.value,
+                missing_count=len(resolution.missing_files),
+                invalid_count=len(resolution.invalid_files),
+            )
+        )
     base, target = sources
     if not base.root_file_id or not target.root_file_id:
         readiness = ComparisonPairReadiness.INVALID
         message = "Both versions must contain exactly one root layer."
-    elif all((base.root_path, target.root_path)) and not any((
-        base.missing_count, target.missing_count,
-        base.invalid_count, target.invalid_count
-    )):
+    elif all((base.root_path, target.root_path)) and not any(
+        (base.missing_count, target.missing_count, base.invalid_count, target.invalid_count)
+    ):
         readiness = ComparisonPairReadiness.READY
         message = f"Ready to compare v{base.version_number:04d} with v{target.version_number:04d}."
     else:

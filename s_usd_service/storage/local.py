@@ -20,12 +20,7 @@ class LocalObjectStorage(ObjectStorage):
         self.root.mkdir(parents=True, exist_ok=True)
         self.temporary_root.mkdir(parents=True, exist_ok=True)
 
-    def write_stream(
-        self,
-        source: BinaryIO,
-        storage_key: str,
-        maximum_bytes: int | None = None
-    ) -> StoredObject:
+    def write_stream(self, source: BinaryIO, storage_key: str, maximum_bytes: int | None = None) -> StoredObject:
         normalized_key = self._normalize_key(storage_key)
         destination = self._resolve(normalized_key)
         temporary_path = self.temporary_root / f"{uuid4().hex}.part"
@@ -52,11 +47,7 @@ class LocalObjectStorage(ObjectStorage):
             temporary_path.unlink(missing_ok=True)
             raise
 
-        return StoredObject(
-            storage_key=normalized_key,
-            size_bytes=size_bytes,
-            sha256=digest.hexdigest()
-        )
+        return StoredObject(storage_key=normalized_key, size_bytes=size_bytes, sha256=digest.hexdigest())
 
     def open(self, storage_key: str) -> BinaryIO:
         path = self._resolve(storage_key)
@@ -79,11 +70,7 @@ class LocalObjectStorage(ObjectStorage):
         if not self.root.exists():
             return iter(())
 
-        return (
-            path.relative_to(self.root).as_posix()
-            for path in self.root.rglob("*")
-            if path.is_file()
-        )
+        return (path.relative_to(self.root).as_posix() for path in self.root.rglob("*") if path.is_file())
 
     def resolve_local_path(self, storage_key: str) -> Path:
         return self._resolve(storage_key)

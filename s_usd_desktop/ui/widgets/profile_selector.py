@@ -25,17 +25,13 @@ class ProfileSelector(QWidget):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        layout.addWidget(
-            QLabel("Profile:")
-        )
+        layout.addWidget(QLabel("Profile:"))
 
         self.combo = QComboBox()
         self.combo.setToolTip(TooltipText.PROFILE_SELECTOR)
         self.combo.setMinimumWidth(180)
 
-        layout.addWidget(
-            self.combo
-        )
+        layout.addWidget(self.combo)
 
     def refresh(self):
         current_name = self.get_profile_name()
@@ -43,15 +39,10 @@ class ProfileSelector(QWidget):
         self.combo.blockSignals(True)
         self.combo.clear()
 
-        for name in (
-            self.profile_loader
-            .get_profile_names()
-        ):
+        for name in self.profile_loader.get_profile_names():
             self.combo.addItem(name)
 
-        index = self.combo.findText(
-            current_name
-        )
+        index = self.combo.findText(current_name)
 
         if index < 0 and self.combo.count():
             index = 0
@@ -70,6 +61,4 @@ class ProfileSelector(QWidget):
         if not name:
             return None
 
-        return self.profile_loader.get_profile(
-            name
-        )
+        return self.profile_loader.get_profile(name)

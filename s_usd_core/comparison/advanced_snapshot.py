@@ -56,16 +56,16 @@ def extract_advanced_domains(stage):
 
 
 def _light(prim):
-    shaping = tuple(sorted(
-        (attr.GetName(), _value(attr.Get()))
-        for attr in prim.GetAttributes()
-        if attr.GetName().startswith("shaping:")
-    ))
-    texture_assets = tuple(sorted(
-        _asset_path(attr.Get())
-        for attr in prim.GetAttributes()
-        if isinstance(attr.Get(), Sdf.AssetPath)
-    ))
+    shaping = tuple(
+        sorted(
+            (attr.GetName(), _value(attr.Get()))
+            for attr in prim.GetAttributes()
+            if attr.GetName().startswith("shaping:")
+        )
+    )
+    texture_assets = tuple(
+        sorted(_asset_path(attr.Get()) for attr in prim.GetAttributes() if isinstance(attr.Get(), Sdf.AssetPath))
+    )
     return LightSnapshot(
         prim.GetPath().pathString,
         prim.GetTypeName(),
@@ -162,10 +162,9 @@ def _blend_shape(stage, prim):
         targets = _relationship_targets(candidate, "skel:blendShapeTargets")
         if path in targets:
             bound.append(candidate.GetPath().pathString)
-    inbetweens = tuple(sorted(
-        attr.GetName() for attr in prim.GetAttributes()
-        if attr.GetName().startswith("inbetweens:")
-    ))
+    inbetweens = tuple(
+        sorted(attr.GetName() for attr in prim.GetAttributes() if attr.GetName().startswith("inbetweens:"))
+    )
     return BlendShapeSnapshot(
         path,
         _hash(_raw_attr(prim, "offsets")),
@@ -200,11 +199,13 @@ def _value_clips(prim):
 
 def _namespaced_settings(prim):
     excluded = {"visibility", "purpose", "extent"}
-    return tuple(sorted(
-        (attr.GetName(), _value(attr.Get()))
-        for attr in prim.GetAttributes()
-        if ":" in attr.GetName() and attr.GetName() not in excluded
-    ))
+    return tuple(
+        sorted(
+            (attr.GetName(), _value(attr.Get()))
+            for attr in prim.GetAttributes()
+            if ":" in attr.GetName() and attr.GetName() not in excluded
+        )
+    )
 
 
 def _raw_attr(prim, name):

@@ -23,11 +23,7 @@ class ReconciliationReport:
         return self.consistent_before
 
     def to_dict(self):
-        return {
-            "consistent": self.consistent_before,
-            "consistent_before": self.consistent_before,
-            **asdict(self)
-        }
+        return {"consistent": self.consistent_before, "consistent_before": self.consistent_before, **asdict(self)}
 
 
 class StorageReconciliationService:
@@ -47,7 +43,7 @@ class StorageReconciliationService:
             database_records=len(records),
             storage_objects=len(storage_keys),
             missing_database_objects=missing_keys,
-            orphaned_storage_objects=orphaned_keys
+            orphaned_storage_objects=orphaned_keys,
         )
 
         if repair:

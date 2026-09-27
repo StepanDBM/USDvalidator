@@ -30,6 +30,7 @@ from .semantic_tree import SemanticChangesTree
 
 class ComparisonView(QWidget):
     open_in_viewport_requested = Signal(object, object, str)
+
     def __init__(self, profile_loader, parent=None):
         super().__init__(parent)
 
@@ -65,9 +66,7 @@ class ComparisonView(QWidget):
         files_row.addWidget(QLabel("Profile:"))
 
         self.profile_combo = QComboBox()
-        self.profile_combo.addItems(
-            self.profile_loader.get_profile_names()
-        )
+        self.profile_combo.addItems(self.profile_loader.get_profile_names())
 
         files_row.addWidget(self.profile_combo)
 
@@ -98,14 +97,10 @@ class ComparisonView(QWidget):
 
         status_row = QHBoxLayout()
 
-        self.summary_label = QLabel(
-            "Select two USD files to compare."
-        )
+        self.summary_label = QLabel("Select two USD files to compare.")
         self.summary_label.setMaximumHeight(42)
 
-        self.show_unchanged = QCheckBox(
-            "Show unchanged semantic values"
-        )
+        self.show_unchanged = QCheckBox("Show unchanged semantic values")
 
         status_row.addWidget(self.summary_label, 1)
         status_row.addWidget(self.show_unchanged)
@@ -131,24 +126,16 @@ class ComparisonView(QWidget):
         progress_row.addWidget(self.cancel_button)
         layout.addLayout(progress_row)
 
-        self.main_splitter = QSplitter(
-            Qt.Orientation.Vertical
-        )
+        self.main_splitter = QSplitter(Qt.Orientation.Vertical)
 
-        self.semantic_splitter = QSplitter(
-            Qt.Orientation.Horizontal
-        )
+        self.semantic_splitter = QSplitter(Qt.Orientation.Horizontal)
 
         self.semantic_toolbar = SemanticComparisonToolbar()
         self.semantic_tree = SemanticChangesTree()
         self.change_details = ChangeDetails()
 
-        self.semantic_splitter.addWidget(
-            self.semantic_tree
-        )
-        self.semantic_splitter.addWidget(
-            self.change_details
-        )
+        self.semantic_splitter.addWidget(self.semantic_tree)
+        self.semantic_splitter.addWidget(self.change_details)
 
         self.semantic_splitter.setStretchFactor(
             0,
@@ -168,12 +155,8 @@ class ComparisonView(QWidget):
         semantic_layout.addWidget(self.semantic_toolbar)
         semantic_layout.addWidget(self.semantic_splitter, 1)
 
-        self.main_splitter.addWidget(
-            semantic_widget
-        )
-        self.main_splitter.addWidget(
-            self.diff_view
-        )
+        self.main_splitter.addWidget(semantic_widget)
+        self.main_splitter.addWidget(self.diff_view)
 
         self.main_splitter.setStretchFactor(
             0,
@@ -192,26 +175,14 @@ class ComparisonView(QWidget):
     def _connect_signals(self):
         self.compare_button.clicked.connect(self._compare)
         self.swap_button.clicked.connect(self.swap_sources)
-        self.previous_edit.textChanged.connect(
-            lambda value: self._source_changed("previous", value)
-        )
-        self.current_edit.textChanged.connect(
-            lambda value: self._source_changed("current", value)
-        )
+        self.previous_edit.textChanged.connect(lambda value: self._source_changed("previous", value))
+        self.current_edit.textChanged.connect(lambda value: self._source_changed("current", value))
 
-        self.show_unchanged.toggled.connect(
-            self._refresh_semantic_tree
-        )
+        self.show_unchanged.toggled.connect(self._refresh_semantic_tree)
 
-        self.semantic_tree.change_selected.connect(
-            self.change_details.show_change
-        )
-        self.semantic_tree.open_in_viewport_requested.connect(
-            self._request_viewport
-        )
-        self.semantic_toolbar.filters_changed.connect(
-            self._refresh_semantic_tree
-        )
+        self.semantic_tree.change_selected.connect(self.change_details.show_change)
+        self.semantic_tree.open_in_viewport_requested.connect(self._request_viewport)
+        self.semantic_toolbar.filters_changed.connect(self._refresh_semantic_tree)
         self.cancel_button.clicked.connect(self._cancel_comparison)
 
     @staticmethod
@@ -219,9 +190,7 @@ class ComparisonView(QWidget):
         layout = QHBoxLayout()
 
         edit = QLineEdit()
-        edit.setPlaceholderText(
-            "Select a USD file..."
-        )
+        edit.setPlaceholderText("Select a USD file...")
 
         button = QPushButton("Browse...")
         button.clicked.connect(callback)
@@ -297,13 +266,9 @@ class ComparisonView(QWidget):
         if self.worker_thread is not None:
             return
 
-        previous = Path(
-            self.previous_edit.text().strip()
-        )
+        previous = Path(self.previous_edit.text().strip())
 
-        current = Path(
-            self.current_edit.text().strip()
-        )
+        current = Path(self.current_edit.text().strip())
 
         if not previous.is_file() or not current.is_file():
             QMessageBox.warning(
@@ -332,11 +297,7 @@ class ComparisonView(QWidget):
 
         profile_name = self.profile_combo.currentText()
 
-        profile = (
-            self.profile_loader.get_profile(profile_name)
-            if profile_name
-            else None
-        )
+        profile = self.profile_loader.get_profile(profile_name) if profile_name else None
 
         self.comparison = None
         self.semantic_tree.clear()
@@ -353,42 +314,24 @@ class ComparisonView(QWidget):
             diff_mode=diff_mode,
         )
 
-        self.worker.moveToThread(
-            self.worker_thread
-        )
+        self.worker.moveToThread(self.worker_thread)
 
-        self.worker_thread.started.connect(
-            self.worker.run
-        )
+        self.worker_thread.started.connect(self.worker.run)
 
-        self.worker.progress_changed.connect(
-            self._on_progress_changed
-        )
+        self.worker.progress_changed.connect(self._on_progress_changed)
 
-        self.worker.completed.connect(
-            self._on_comparison_completed
-        )
+        self.worker.completed.connect(self._on_comparison_completed)
 
-        self.worker.failed.connect(
-            self._on_comparison_failed
-        )
+        self.worker.failed.connect(self._on_comparison_failed)
         self.worker.cancelled.connect(self._on_comparison_cancelled)
 
-        self.worker.finished.connect(
-            self.worker_thread.quit
-        )
+        self.worker.finished.connect(self.worker_thread.quit)
 
-        self.worker.finished.connect(
-            self.worker.deleteLater
-        )
+        self.worker.finished.connect(self.worker.deleteLater)
 
-        self.worker_thread.finished.connect(
-            self._on_worker_finished
-        )
+        self.worker_thread.finished.connect(self._on_worker_finished)
 
-        self.worker_thread.finished.connect(
-            self.worker_thread.deleteLater
-        )
+        self.worker_thread.finished.connect(self.worker_thread.deleteLater)
 
         self.worker_thread.start()
 
@@ -433,9 +376,7 @@ class ComparisonView(QWidget):
         self.summary_label.setText("Comparison cancelled.")
 
     def _on_comparison_failed(self, message):
-        self.summary_label.setText(
-            "Comparison failed."
-        )
+        self.summary_label.setText("Comparison failed.")
 
         QMessageBox.critical(
             self,
@@ -449,32 +390,20 @@ class ComparisonView(QWidget):
         self.worker_thread = None
 
     def _set_running(self, running):
-        self.previous_edit.setEnabled(
-            not running
-        )
+        self.previous_edit.setEnabled(not running)
 
-        self.current_edit.setEnabled(
-            not running
-        )
+        self.current_edit.setEnabled(not running)
 
-        self.previous_button.setEnabled(
-            not running
-        )
+        self.previous_button.setEnabled(not running)
 
-        self.current_button.setEnabled(
-            not running
-        )
+        self.current_button.setEnabled(not running)
 
-        self.profile_combo.setEnabled(
-            not running
-        )
+        self.profile_combo.setEnabled(not running)
 
         self.compare_button.setEnabled(not running)
         self.swap_button.setEnabled(not running)
 
-        self.show_unchanged.setEnabled(
-            not running
-        )
+        self.show_unchanged.setEnabled(not running)
 
         self.progress_bar.setVisible(running)
         self.cancel_button.setVisible(running)
@@ -493,29 +422,15 @@ class ComparisonView(QWidget):
         if self.comparison is None:
             return
 
-        changed = len(
-            self.comparison.changed
-        )
+        changed = len(self.comparison.changed)
 
-        regressions = sum(
-            change.kind.value == "REGRESSION"
-            for change in self.comparison.changes
-        )
+        regressions = sum(change.kind.value == "REGRESSION" for change in self.comparison.changes)
 
-        resolved = sum(
-            change.kind.value == "RESOLVED"
-            for change in self.comparison.changes
-        )
+        resolved = sum(change.kind.value == "RESOLVED" for change in self.comparison.changes)
 
-        additions = sum(
-            change.kind.value == "ADDED"
-            for change in self.comparison.changes
-        )
+        additions = sum(change.kind.value == "ADDED" for change in self.comparison.changes)
 
-        removals = sum(
-            change.kind.value == "REMOVED"
-            for change in self.comparison.changes
-        )
+        removals = sum(change.kind.value == "REMOVED" for change in self.comparison.changes)
 
         text = (
             f"{changed} semantic changes · "
@@ -525,9 +440,7 @@ class ComparisonView(QWidget):
             f"{removals} removed"
         )
 
-        warnings = " | ".join(
-            self.comparison.warnings
-        )
+        warnings = " | ".join(self.comparison.warnings)
 
         if warnings:
             text = f"{text} · {warnings}"
@@ -543,6 +456,7 @@ class ComparisonView(QWidget):
             show_unchanged=self.show_unchanged.isChecked(),
             filters=self.semantic_toolbar.filters(),
         )
+
     def _request_viewport(self, change, side):
         if self.comparison is not None:
             self.open_in_viewport_requested.emit(self.comparison, change, side)

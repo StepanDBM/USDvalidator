@@ -35,9 +35,7 @@ class ValidationSubmissionService(QObject):
 
     def expect_report(self, version_id, stored_file_id, local_root_path):
         self.pending_target = StoredValidationTarget(
-            version_id,
-            stored_file_id,
-            Path(local_root_path).expanduser().resolve()
+            version_id, stored_file_id, Path(local_root_path).expanduser().resolve()
         )
 
     def clear_pending(self):
@@ -53,26 +51,17 @@ class ValidationSubmissionService(QObject):
 
         if report_path != target.local_root_path:
             self.pending_target = None
-            self.submission_skipped.emit(
-                "Validation completed for a different source; history was not submitted."
-            )
+            self.submission_skipped.emit("Validation completed for a different source; history was not submitted.")
             return False
 
         if self.active:
-            self.submission_skipped.emit(
-                "A validation report submission is already in progress."
-            )
+            self.submission_skipped.emit("A validation report submission is already in progress.")
             return False
 
         self.pending_target = None
         payload = build_validation_run_payload(report, target.stored_file_id)
         configuration = self.connection_service.preferences.to_api_configuration()
-        worker = RequestWorker(
-            self._create_run,
-            configuration,
-            target.version_id,
-            payload
-        )
+        worker = RequestWorker(self._create_run, configuration, target.version_id, payload)
         worker.signals.result.connect(self._completed)
         worker.signals.error.connect(self._failed)
         worker.signals.finished.connect(self._finished)

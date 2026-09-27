@@ -65,9 +65,7 @@ class ProfileDraft:
         self.overrides.append(override)
 
     def remove_override(self, path):
-        self.overrides = [
-            override for override in self.overrides if override.path != path
-        ]
+        self.overrides = [override for override in self.overrides if override.path != path]
 
     def set_override_enabled(self, path, enabled):
         override = self.get_override(path)

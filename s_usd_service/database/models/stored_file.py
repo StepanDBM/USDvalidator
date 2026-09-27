@@ -19,9 +19,7 @@ class StoredFile(IdMixin, TimestampMixin, Base):
         UniqueConstraint("storage_key", name="uq_stored_file_storage_key"),
     )
 
-    version_id: Mapped[UUID] = mapped_column(
-        Uuid, ForeignKey("versions.id", ondelete="CASCADE"), index=True
-    )
+    version_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("versions.id", ondelete="CASCADE"), index=True)
     role: Mapped[str] = mapped_column(String(32), default="other")
     original_name: Mapped[str] = mapped_column(String(255))
     relative_path: Mapped[str] = mapped_column(String(1024))

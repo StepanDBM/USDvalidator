@@ -20,9 +20,7 @@ class PropertyTable(QWidget):
         self.search = QLineEdit()
         self.search.setPlaceholderText("Search properties...")
         self.table = QTableWidget(0, 3)
-        self.search.setToolTip(
-            "Filter the selected prim's properties by name, type, or displayed value."
-        )
+        self.search.setToolTip("Filter the selected prim's properties by name, type, or displayed value.")
         self.table.setToolTip(TooltipText.VIEWPORT_PRIM_INSPECTOR)
         self.table.setHorizontalHeaderLabels(["Type", "Property Name", "Value"])
         self.table.horizontalHeader().setStretchLastSection(True)
@@ -76,10 +74,14 @@ class PropertyTable(QWidget):
         ]
         imageable = UsdGeom.Imageable(prim)
         if imageable:
-            rows.extend([
-                PropertyRow("C", "Resolved Visibility", str(imageable.ComputeVisibility()), imageable.ComputeVisibility()),
-                PropertyRow("C", "Purpose", str(imageable.ComputePurpose()), imageable.ComputePurpose()),
-            ])
+            rows.extend(
+                [
+                    PropertyRow(
+                        "C", "Resolved Visibility", str(imageable.ComputeVisibility()), imageable.ComputeVisibility()
+                    ),
+                    PropertyRow("C", "Purpose", str(imageable.ComputePurpose()), imageable.ComputePurpose()),
+                ]
+            )
         for attribute in sorted(prim.GetAttributes(), key=lambda value: value.GetName()):
             try:
                 value = attribute.Get(self._time)
@@ -103,10 +105,7 @@ class PropertyTable(QWidget):
                 item = QTableWidgetItem(value)
                 item.setData(Qt.ItemDataRole.UserRole, row)
                 item.setToolTip(
-                    f"{TooltipText.VIEWPORT_PROPERTY_ROW}\n\n"
-                    f"Kind: {row.kind}\n"
-                    f"Property: {row.name}\n"
-                    f"Value: {row.value}"
+                    f"{TooltipText.VIEWPORT_PROPERTY_ROW}\n\nKind: {row.kind}\nProperty: {row.name}\nValue: {row.value}"
                 )
                 self.table.setItem(row_index, column, item)
         if visible:

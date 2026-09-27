@@ -41,5 +41,5 @@ __all__ = [
     "VersionCacheManifest",
     "default_cache_root",
     "normalize_relative_path",
-    "safe_component"
+    "safe_component",
 ]

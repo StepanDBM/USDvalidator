@@ -47,7 +47,7 @@ class PrimOutlinerModel(QAbstractItemModel):
         self.comparison_findings = ComparisonFindingIndex()
         self.display_mode = "All"
         self.validation_visible = False
-        
+
     def set_display_mode(self, mode):
         self.display_mode = str(mode or "All")
         self._emit_all_rows_changed()
@@ -68,7 +68,6 @@ class PrimOutlinerModel(QAbstractItemModel):
 
         self._emit_all_rows_changed()
 
-
     def set_validation_visible(self, visible):
         self.validation_visible = bool(visible)
 
@@ -77,7 +76,6 @@ class PrimOutlinerModel(QAbstractItemModel):
             item.comparison_summary = self.comparison_findings.summary(item.path)
 
         self._emit_all_rows_changed()
-
 
     def validation_results_for_paths(self, paths, include_descendants=False):
         return self.findings.results_for_paths(
@@ -204,7 +202,13 @@ class PrimOutlinerModel(QAbstractItemModel):
 
     def _append_prim(self, prim, parent):
         property_count, sample_count = self._animation_counts(prim)
-        item = PrimTreeItem(prim, parent, animated=bool(property_count), animated_property_count=property_count, animation_sample_count=sample_count)
+        item = PrimTreeItem(
+            prim,
+            parent,
+            animated=bool(property_count),
+            animated_property_count=property_count,
+            animation_sample_count=sample_count,
+        )
         parent.children.append(item)
         self.items[item.path] = item
         for child in prim.GetChildren():
@@ -237,17 +241,21 @@ class PrimOutlinerModel(QAbstractItemModel):
             if not left.isValid():
                 continue
 
-            self.dataChanged.emit(left, right, [
-                Qt.ItemDataRole.DisplayRole,
-                Qt.ItemDataRole.ToolTipRole,
-                Qt.ItemDataRole.UserRole + 2,
-                Qt.ItemDataRole.UserRole + 3,
-                Qt.ItemDataRole.UserRole + 4,
-                Qt.ItemDataRole.UserRole + 5,
-                Qt.ItemDataRole.UserRole + 6,
-                Qt.ItemDataRole.UserRole + 7,
-                Qt.ItemDataRole.UserRole + 8,
-                Qt.ItemDataRole.UserRole + 9,
-                Qt.ItemDataRole.UserRole + 10,
-                Qt.ItemDataRole.UserRole + 11,
-            ])
+            self.dataChanged.emit(
+                left,
+                right,
+                [
+                    Qt.ItemDataRole.DisplayRole,
+                    Qt.ItemDataRole.ToolTipRole,
+                    Qt.ItemDataRole.UserRole + 2,
+                    Qt.ItemDataRole.UserRole + 3,
+                    Qt.ItemDataRole.UserRole + 4,
+                    Qt.ItemDataRole.UserRole + 5,
+                    Qt.ItemDataRole.UserRole + 6,
+                    Qt.ItemDataRole.UserRole + 7,
+                    Qt.ItemDataRole.UserRole + 8,
+                    Qt.ItemDataRole.UserRole + 9,
+                    Qt.ItemDataRole.UserRole + 10,
+                    Qt.ItemDataRole.UserRole + 11,
+                ],
+            )

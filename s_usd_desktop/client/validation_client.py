@@ -6,10 +6,7 @@ class ValidationClient:
         self.api = api
 
     def create_run(self, version_id, payload):
-        data = self.api.post(
-            f"/api/v1/versions/{version_id}/validation-runs",
-            json=payload
-        )
+        data = self.api.post(f"/api/v1/versions/{version_id}/validation-runs", json=payload)
         return ValidationRunRecord.from_dict(data)
 
     def list_runs(self, version_id):

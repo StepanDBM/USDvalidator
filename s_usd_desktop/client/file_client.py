@@ -22,13 +22,7 @@ class FileClient:
         source_path = Path(source_path)
 
         with source_path.open("rb") as source:
-            return self.upload_stream(
-                version_id,
-                source,
-                source_path.name,
-                role,
-                relative_path or source_path.name
-            )
+            return self.upload_stream(version_id, source, source_path.name, role, relative_path or source_path.name)
 
     def upload_stream(self, version_id, source, filename, role="other", relative_path=None):
         content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"

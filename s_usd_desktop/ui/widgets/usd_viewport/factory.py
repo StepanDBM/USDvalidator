@@ -9,20 +9,13 @@ def create_usd_viewport(parent=None, capabilities=None):
 
     try:
         from .viewport_widget import UsdViewportWidget
+
         return UsdViewportWidget(parent=parent)
     except (ImportError, OSError, RuntimeError) as error:
-        return _unavailable(
-            capabilities,
-            parent,
-            startup_error=f"{type(error).__name__}: {error}"
-        )
+        return _unavailable(capabilities, parent, startup_error=f"{type(error).__name__}: {error}")
 
 
 def _unavailable(capabilities, parent, startup_error=""):
     from .unavailable_viewport import UnavailableUsdViewportWidget
 
-    return UnavailableUsdViewportWidget(
-        capabilities=capabilities,
-        startup_error=startup_error,
-        parent=parent
-    )
+    return UnavailableUsdViewportWidget(capabilities=capabilities, startup_error=startup_error, parent=parent)

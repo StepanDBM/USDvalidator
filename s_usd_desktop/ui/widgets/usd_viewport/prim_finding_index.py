@@ -67,7 +67,9 @@ class FindingSummary:
 
     @property
     def severity_counts(self):
-        return Counter(item.severity.value for item in self.all_evidence if item.status in {CheckStatus.FAILED, CheckStatus.ERROR})
+        return Counter(
+            item.severity.value for item in self.all_evidence if item.status in {CheckStatus.FAILED, CheckStatus.ERROR}
+        )
 
     @property
     def passed_count(self):
@@ -83,7 +85,9 @@ class FindingSummary:
 
     @property
     def warning_count(self):
-        return sum(item.status is CheckStatus.FAILED and item.severity is Severity.WARNING for item in self.all_evidence)
+        return sum(
+            item.status is CheckStatus.FAILED and item.severity is Severity.WARNING for item in self.all_evidence
+        )
 
     @property
     def information_count(self):
@@ -99,7 +103,14 @@ class FindingSummary:
 
     @property
     def highest_severity_rank(self):
-        return max((SEVERITY_RANK.get(item.severity, 0) for item in self.all_evidence if item.status in {CheckStatus.FAILED, CheckStatus.ERROR}), default=0)
+        return max(
+            (
+                SEVERITY_RANK.get(item.severity, 0)
+                for item in self.all_evidence
+                if item.status in {CheckStatus.FAILED, CheckStatus.ERROR}
+            ),
+            default=0,
+        )
 
     @property
     def is_aggregate(self):
@@ -110,18 +121,20 @@ class FindingSummary:
         if not self.total_count:
             return "No validation target outcomes affect this prim."
         status = self.status_counts
-        return "\n".join([
-            f"Total target outcomes: {self.total_count}",
-            f"Direct: {self.direct_count}",
-            f"Descendants: {self.descendant_count}",
-            "",
-            f"Passed: {self.passed_count}",
-            f"Failed: {status.get('FAILED', 0)}",
-            f"Errors: {self.error_count}",
-            f"Warnings: {self.warning_count}",
-            f"Information: {self.information_count}",
-            f"Skipped: {self.skipped_count}",
-        ])
+        return "\n".join(
+            [
+                f"Total target outcomes: {self.total_count}",
+                f"Direct: {self.direct_count}",
+                f"Descendants: {self.descendant_count}",
+                "",
+                f"Passed: {self.passed_count}",
+                f"Failed: {status.get('FAILED', 0)}",
+                f"Errors: {self.error_count}",
+                f"Warnings: {self.warning_count}",
+                f"Information: {self.information_count}",
+                f"Skipped: {self.skipped_count}",
+            ]
+        )
 
 
 class PrimFindingIndex:
@@ -139,7 +152,9 @@ class PrimFindingIndex:
         if prim_path not in self._summaries:
             direct = list(self.direct_evidence.get(prim_path, ()))
             prefix = prim_path.rstrip("/") + "/"
-            descendants = [item for path, values in self.direct_evidence.items() if path.startswith(prefix) for item in values]
+            descendants = [
+                item for path, values in self.direct_evidence.items() if path.startswith(prefix) for item in values
+            ]
             self._summaries[prim_path] = FindingSummary(direct, descendants)
         return self._summaries[prim_path]
 
@@ -174,7 +189,9 @@ class PrimFindingIndex:
             candidate = target.property_path or target.prim_path
             prim_path = self._owning_prim_path(candidate)
             if prim_path:
-                evidence.append(FindingEvidence(result, target.status, result.severity, prim_path, target.property_path))
+                evidence.append(
+                    FindingEvidence(result, target.status, result.severity, prim_path, target.property_path)
+                )
         return evidence
 
     def _legacy_evidence(self, result):
@@ -191,7 +208,22 @@ class PrimFindingIndex:
         if result.location:
             yield result.location
         details = result.details or {}
-        priority_keys = ("property_path", "prim_path", "paths", "invalid_meshes", "primvars", "variant_sets", "instancers", "meshes", "shaders", "cameras", "lights", "materials", "prims", "affected_paths")
+        priority_keys = (
+            "property_path",
+            "prim_path",
+            "paths",
+            "invalid_meshes",
+            "primvars",
+            "variant_sets",
+            "instancers",
+            "meshes",
+            "shaders",
+            "cameras",
+            "lights",
+            "materials",
+            "prims",
+            "affected_paths",
+        )
         for key in priority_keys:
             if key in details:
                 yield from _flatten(details[key])

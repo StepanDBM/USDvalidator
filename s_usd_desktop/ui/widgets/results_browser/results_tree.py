@@ -14,8 +14,6 @@ STATUS_COLORS = {
 }
 
 
-
-
 class ResultsTree(QTreeWidget):
     result_selected = Signal(object)
     open_in_viewport_requested = Signal(object)
@@ -48,18 +46,20 @@ class ResultsTree(QTreeWidget):
             category_item.setToolTip(
                 0,
                 f"Validation results in the {category} category. Expand this "
-                "group to inspect individual checks and affected targets."
+                "group to inspect individual checks and affected targets.",
             )
             category_item.setFirstColumnSpanned(True)
             self.addTopLevelItem(category_item)
             for result in grouped[category]:
-                item = QTreeWidgetItem([
-                    result.label,
-                    result.status.value,
-                    result.severity.value,
-                    result.location,
-                    result.message,
-                ])
+                item = QTreeWidgetItem(
+                    [
+                        result.label,
+                        result.status.value,
+                        result.severity.value,
+                        result.location,
+                        result.message,
+                    ]
+                )
                 item.setData(0, Qt.ItemDataRole.UserRole, result)
                 result_tooltip = (
                     f"{TooltipText.RESULT_ROW}\n\n"
@@ -95,15 +95,17 @@ class ResultsTree(QTreeWidget):
             return False
         if category != "All Categories" and result.category != category:
             return False
-        searchable = " ".join([
-            result.check_id,
-            result.label,
-            result.category,
-            result.message,
-            result.location,
-            result.layer,
-            result.suggestion,
-        ]).lower()
+        searchable = " ".join(
+            [
+                result.check_id,
+                result.label,
+                result.category,
+                result.message,
+                result.location,
+                result.layer,
+                result.suggestion,
+            ]
+        ).lower()
         return not search or search in searchable
 
     def _on_item_changed(self, current, previous):
@@ -124,15 +126,10 @@ class ResultsTree(QTreeWidget):
             "Copy Check ID": result.check_id,
             "Copy Message": result.message,
             "Copy Location": result.location,
-            "Copy Details as JSON": json.dumps(
-                result.details, indent=2, ensure_ascii=False, default=str
-            ),
+            "Copy Details as JSON": json.dumps(result.details, indent=2, ensure_ascii=False, default=str),
         }
         for label, value in actions.items():
             action = menu.addAction(label)
             action.setEnabled(bool(value))
-            action.triggered.connect(
-                lambda checked=False, text=str(value):
-                QApplication.clipboard().setText(text)
-            )
+            action.triggered.connect(lambda checked=False, text=str(value): QApplication.clipboard().setText(text))
         menu.exec(self.viewport().mapToGlobal(position))

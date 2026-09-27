@@ -10,7 +10,7 @@ EXECUTION_PHASES = (
     "shading",
     "animation",
     "performance",
-    "publish"
+    "publish",
 )
 
 _PHASE_ORDER = {phase: index for index, phase in enumerate(EXECUTION_PHASES)}

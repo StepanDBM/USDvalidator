@@ -6,15 +6,12 @@ from .profiles import ValidationProfile
 
 
 class ProfileRegistry:
-
     def __init__(self, profiles):
         self._profiles = {}
 
         for profile in profiles:
             if profile.name in self._profiles:
-                raise ValueError(
-                    f"Duplicate profile name: {profile.name}"
-                )
+                raise ValueError(f"Duplicate profile name: {profile.name}")
 
             self._profiles[profile.name] = profile
 
@@ -29,7 +26,6 @@ class ProfileRegistry:
 
 
 class ProfileLoader:
-
     CURRENT_PROFILE = "default"
 
     def __init__(self, profiles_path):
@@ -49,10 +45,7 @@ class ProfileLoader:
                     description=entry.get("description", ""),
                     enabled_check_ids=frozenset(entry.get("enabled_checks", [])),
                     disabled_check_ids=frozenset(entry.get("disabled_checks", [])),
-                    overrides=tuple(
-                        AttributeOverride.from_dict(item)
-                        for item in entry.get("overrides", [])
-                    ),
+                    overrides=tuple(AttributeOverride.from_dict(item) for item in entry.get("overrides", [])),
                     include_all_checks=entry.get("include_all_checks", False),
                 )
             )
@@ -77,9 +70,7 @@ class ProfileLoader:
 
     def add_profile(self, profile):
         if profile.name in self.registry.names():
-            raise ValueError(
-                f"Profile already exists: {profile.name}"
-            )
+            raise ValueError(f"Profile already exists: {profile.name}")
 
         profiles = list(self.registry.all())
         profiles.append(profile)
@@ -88,33 +79,20 @@ class ProfileLoader:
 
     def update_profile(self, profile):
         if profile.name not in self.registry.names():
-            raise KeyError(
-                f"Profile does not exist: {profile.name}"
-            )
+            raise KeyError(f"Profile does not exist: {profile.name}")
 
-        profiles = [
-            profile if existing.name == profile.name else existing
-            for existing in self.registry.all()
-        ]
+        profiles = [profile if existing.name == profile.name else existing for existing in self.registry.all()]
 
         self.registry = ProfileRegistry(profiles)
 
     def delete_profile(self, name):
         if name not in self.registry.names():
-            raise KeyError(
-                f"Profile does not exist: {name}"
-            )
+            raise KeyError(f"Profile does not exist: {name}")
 
-        profiles = [
-            profile
-            for profile in self.registry.all()
-            if profile.name != name
-        ]
+        profiles = [profile for profile in self.registry.all() if profile.name != name]
 
         if not profiles:
-            raise ValueError(
-                "Cannot delete the last validation profile."
-            )
+            raise ValueError("Cannot delete the last validation profile.")
 
         self.registry = ProfileRegistry(profiles)
 
@@ -146,21 +124,11 @@ class ProfileLoader:
 
     def replace_profile(self, old_name, profile):
         if old_name not in self.registry.names():
-            raise KeyError(
-                f"Profile does not exist: {old_name}"
-            )
+            raise KeyError(f"Profile does not exist: {old_name}")
 
-        if (
-            profile.name != old_name
-            and profile.name in self.registry.names()
-        ):
-            raise ValueError(
-                f"Profile already exists: {profile.name}"
-            )
+        if profile.name != old_name and profile.name in self.registry.names():
+            raise ValueError(f"Profile already exists: {profile.name}")
 
-        profiles = [
-            profile if existing.name == old_name else existing
-            for existing in self.registry.all()
-        ]
+        profiles = [profile if existing.name == old_name else existing for existing in self.registry.all()]
 
         self.registry = ProfileRegistry(profiles)

@@ -24,33 +24,17 @@ def install_storage_workspace(window):
     window.storage_workspace.set_transfer_service(window.transfer_service)
     window.cache_settings = CacheSettings()
     window.cache_manager = CacheManager(window.cache_settings.configuration())
-    window.comparison_view.set_cache_root(
-        window.cache_manager.configuration.root
-    )
+    window.comparison_view.set_cache_root(window.cache_manager.configuration.root)
     window.download_service = DownloadService(
-        window.connection_service,
-        cache_manager=window.cache_manager,
-        parent=window
+        window.connection_service, cache_manager=window.cache_manager, parent=window
     )
-    window.storage_workspace.set_cache_services(
-        window.cache_manager,
-        window.download_service,
-        window.cache_settings
-    )
-    window.storage_workspace.cache_root_changed.connect(
-        window.comparison_view.set_cache_root
-    )
+    window.storage_workspace.set_cache_services(window.cache_manager, window.download_service, window.cache_settings)
+    window.storage_workspace.cache_root_changed.connect(window.comparison_view.set_cache_root)
     window.stored_comparison_service = StoredComparisonService(
-        window.connection_service,
-        window.cache_manager,
-        parent=window
+        window.connection_service, window.cache_manager, parent=window
     )
-    window.storage_workspace.set_stored_comparison_service(
-        window.stored_comparison_service
-    )
-    window.storage_workspace.comparison_pair_ready.connect(
-        lambda pair: _open_stored_comparison(window, pair)
-    )
+    window.storage_workspace.set_stored_comparison_service(window.stored_comparison_service)
+    window.storage_workspace.comparison_pair_ready.connect(lambda pair: _open_stored_comparison(window, pair))
     window.storage_workspace.comparison_preparation_requested.connect(
         lambda _pair: window.storage_workspace.status_label.setText(
             "Nope, not yet integrated, but this signal works :D"
@@ -58,42 +42,20 @@ def install_storage_workspace(window):
     )
     window.version_open_service = VersionOpenService(window.cache_manager)
     window.version_download_service = VersionDownloadService(
-        window.connection_service,
-        window.cache_manager,
-        parent=window
+        window.connection_service, window.cache_manager, parent=window
     )
-    window.storage_workspace.set_version_services(
-        window.version_open_service,
-        window.version_download_service
-    )
+    window.storage_workspace.set_version_services(window.version_open_service, window.version_download_service)
     window.storage_workspace.local_source_open_requested.connect(
         lambda path: _open_cached_source(window, path, validate=False)
     )
-    window.validation_history_service = ValidationHistoryService(
-        window.connection_service,
-        parent=window
-    )
-    window.storage_workspace.set_validation_history_service(
-        window.validation_history_service
-    )
-    window.storage_workspace.historical_report_ready.connect(
-        lambda report: _show_historical_report(window, report)
-    )
-    window.validation_submission_service = ValidationSubmissionService(
-        window.connection_service,
-        parent=window
-    )
+    window.validation_history_service = ValidationHistoryService(window.connection_service, parent=window)
+    window.storage_workspace.set_validation_history_service(window.validation_history_service)
+    window.storage_workspace.historical_report_ready.connect(lambda report: _show_historical_report(window, report))
+    window.validation_submission_service = ValidationSubmissionService(window.connection_service, parent=window)
     window.storage_workspace.local_source_validation_requested.connect(
-        lambda path, version_id, stored_file_id: _validate_cached_source(
-            window,
-            path,
-            version_id,
-            stored_file_id
-        )
+        lambda path, version_id, stored_file_id: _validate_cached_source(window, path, version_id, stored_file_id)
     )
-    window.validation_view.report_ready.connect(
-        window.validation_submission_service.submit_matching_report
-    )
+    window.validation_view.report_ready.connect(window.validation_submission_service.submit_matching_report)
     window.validation_submission_service.submission_started.connect(
         lambda _target: window.storage_workspace.status_label.setText(
             "Validation complete. Saving validation history..."
@@ -107,20 +69,12 @@ def install_storage_workspace(window):
             f"Validation completed, but history could not be saved: {message}"
         )
     )
-    window.validation_submission_service.submission_skipped.connect(
-        window.storage_workspace.status_label.setText
-    )
+    window.validation_submission_service.submission_skipped.connect(window.storage_workspace.status_label.setText)
     window.tabs.addTab(window.storage_workspace, "Storage")
     window.tab_bar.addTab("Storage")
-    window.connection_service.connected.connect(
-        lambda _health: window.storage_workspace.set_connected(True)
-    )
-    window.connection_service.disconnected.connect(
-        lambda: window.storage_workspace.set_connected(False)
-    )
-    window.connection_service.connection_failed.connect(
-        lambda _error: window.storage_workspace.set_connected(False)
-    )
+    window.connection_service.connected.connect(lambda _health: window.storage_workspace.set_connected(True))
+    window.connection_service.disconnected.connect(lambda: window.storage_workspace.set_connected(False))
+    window.connection_service.connection_failed.connect(lambda _error: window.storage_workspace.set_connected(False))
 
     if window.connection_service.state == ConnectionState.CONNECTED:
         window.storage_workspace.set_connected(True)
@@ -136,11 +90,7 @@ def _open_cached_source(window, path, validate=False):
 
 
 def _validate_cached_source(window, path, version_id, stored_file_id):
-    window.validation_submission_service.expect_report(
-        version_id,
-        stored_file_id,
-        path
-    )
+    window.validation_submission_service.expect_report(version_id, stored_file_id, path)
     _open_cached_source(window, path)
 
     if not window.validation_view.validate_source(path):
@@ -148,9 +98,7 @@ def _validate_cached_source(window, path, version_id, stored_file_id):
 
 
 def _validation_history_saved(window, record):
-    window.storage_workspace.status_label.setText(
-        f"Validation history saved: {record.id}"
-    )
+    window.storage_workspace.status_label.setText(f"Validation history saved: {record.id}")
     if record.version_id == window.storage_workspace.current_version_id:
         window.storage_workspace._refresh_validation_history()
 

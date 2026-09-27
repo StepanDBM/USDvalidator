@@ -30,5 +30,5 @@ class FileLifecycleService:
             "file_id": file_id,
             "storage_key": storage_key,
             "object_existed": object_existed,
-            "metadata_deleted": True
+            "metadata_deleted": True,
         }

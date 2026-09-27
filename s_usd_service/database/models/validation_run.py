@@ -16,9 +16,7 @@ if TYPE_CHECKING:
 class ValidationRun(IdMixin, TimestampMixin, Base):
     __tablename__ = "validation_runs"
 
-    version_id: Mapped[UUID] = mapped_column(
-        Uuid, ForeignKey("versions.id", ondelete="CASCADE"), index=True
-    )
+    version_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("versions.id", ondelete="CASCADE"), index=True)
     stored_file_id: Mapped[UUID | None] = mapped_column(
         Uuid, ForeignKey("stored_files.id", ondelete="SET NULL"), nullable=True, index=True
     )

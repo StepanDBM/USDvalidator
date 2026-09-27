@@ -69,20 +69,12 @@ class StageComparisonSnapshotBuilder:
         pipeline = PipelineExtractor().extract(stage)
         lookdev = LookdevExtractor().extract(stage)
         variants = {
-            (item.prim_path, item.name): VariantSnapshot(
-                item.prim_path, item.name, item.variants, item.selection
-            )
+            (item.prim_path, item.name): VariantSnapshot(item.prim_path, item.name, item.variants, item.selection)
             for item in pipeline.variants
         }
         materials = {item.path: MaterialSnapshot(**item.__dict__) for item in lookdev.materials}
-        shaders = {
-            item.path: self._shader_snapshot(stage.GetPrimAtPath(item.path), item)
-            for item in lookdev.shaders
-        }
-        bindings = {
-            item.prim_path: MaterialBindingSnapshot(**item.__dict__)
-            for item in lookdev.bindings
-        }
+        shaders = {item.path: self._shader_snapshot(stage.GetPrimAtPath(item.path), item) for item in lookdev.shaders}
+        bindings = {item.prim_path: MaterialBindingSnapshot(**item.__dict__) for item in lookdev.bindings}
         surfaces = {
             item.mesh_path: SurfaceSnapshot(
                 item.mesh_path,
@@ -109,10 +101,12 @@ class StageComparisonSnapshotBuilder:
             metadata=self._metadata(stage),
             prims=prims,
             meshes=meshes,
-            dependencies=tuple(sorted(
-                dependencies,
-                key=lambda item: (item.arc_type, item.prim_path, item.asset_path),
-            )),
+            dependencies=tuple(
+                sorted(
+                    dependencies,
+                    key=lambda item: (item.arc_type, item.prim_path, item.asset_path),
+                )
+            ),
             animation=animation,
             transforms=transforms,
             variants=variants,
@@ -124,13 +118,11 @@ class StageComparisonSnapshotBuilder:
             cameras=cameras,
             instancing=instancing,
             dependency_map={
-                (item.prim_path, item.arc_type, item.asset_path, item.prim_path_in_asset): item
-                for item in dependencies
+                (item.prim_path, item.arc_type, item.asset_path, item.prim_path_in_asset): item for item in dependencies
             },
             **extended,
             **advanced,
         )
-
 
     @staticmethod
     def _shader_snapshot(prim, item):
@@ -190,7 +182,6 @@ class StageComparisonSnapshotBuilder:
             orientation=mesh.GetOrientationAttr().Get() or "rightHanded",
         )
 
-
     @staticmethod
     def _transform(prim):
         xformable = UsdGeom.Xformable(prim)
@@ -238,16 +229,20 @@ class StageComparisonSnapshotBuilder:
 
             for item in prim.GetMetadata(metadata_name).GetAddedOrExplicitItems():
                 asset_path = item.assetPath
-                resolved = bool(Sdf.ComputeAssetPathRelativeToLayer(
-                    prim.GetStage().GetRootLayer(), asset_path
-                )) if asset_path else True
-                dependencies.append(DependencySnapshot(
-                    prim_path=prim.GetPath().pathString,
-                    arc_type=arc_type,
-                    asset_path=asset_path,
-                    prim_path_in_asset=str(item.primPath),
-                    resolved=resolved,
-                ))
+                resolved = (
+                    bool(Sdf.ComputeAssetPathRelativeToLayer(prim.GetStage().GetRootLayer(), asset_path))
+                    if asset_path
+                    else True
+                )
+                dependencies.append(
+                    DependencySnapshot(
+                        prim_path=prim.GetPath().pathString,
+                        arc_type=arc_type,
+                        asset_path=asset_path,
+                        prim_path_in_asset=str(item.primPath),
+                        resolved=resolved,
+                    )
+                )
 
         return dependencies
 
@@ -280,6 +275,7 @@ def _finite(value):
         return True
     try:
         import math
+
         if isinstance(value, (int, float)):
             return math.isfinite(float(value))
         return all(_finite(item) for item in value)

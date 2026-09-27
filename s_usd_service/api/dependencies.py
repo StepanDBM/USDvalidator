@@ -15,9 +15,7 @@ DatabaseSession = Annotated[Session, Depends(get_db)]
 def get_object_storage():
     settings = get_settings()
     return LocalObjectStorage(
-        root=settings.storage_root,
-        temporary_root=settings.temporary_root,
-        chunk_size=settings.storage_chunk_size
+        root=settings.storage_root, temporary_root=settings.temporary_root, chunk_size=settings.storage_chunk_size
     )
 
 

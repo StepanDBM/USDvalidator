@@ -26,7 +26,7 @@ class OpenUsdRuntimeLayout:
             python_root=root / "lib" / "python",
             library_root=root / "lib",
             binary_root=root / "bin",
-            plugin_root=root / "plugin" / "usd"
+            plugin_root=root / "plugin" / "usd",
         )
 
     @property
@@ -36,7 +36,7 @@ class OpenUsdRuntimeLayout:
             self.python_root / "pxr" / "Usdviewq" / "stageView.py",
             self.python_root / "pxr" / "UsdImagingGL" / "__init__.py",
             self.library_root / "usd_usdImagingGL.dll",
-            self.plugin_root
+            self.plugin_root,
         )
         return all(path.exists() for path in required)
 

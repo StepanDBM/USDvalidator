@@ -76,7 +76,7 @@ jobs:
         run: python scripts/ci/run_tests.py tests -v
 
   lint:
-    name: Ruff source lint
+    name: Ruff source quality
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
@@ -103,3 +103,10 @@ jobs:
             s_usd_service \
             s_usd_desktop \
             --output-format github
+            - name: Verify production source formatting
+        run: |
+          python -m ruff format \
+            --check \
+            s_usd_core \
+            s_usd_service \
+            s_usd_desktop

@@ -45,20 +45,14 @@ class TimelineWidget(QWidget):
         self.end_box = self._time_box()
         self.range_label = QLabel("Stage 0 - 0 @ 24 fps")
         self.to_start.setToolTip(TooltipText.VIEWPORT_FIRST_FRAME)
-        self.previous_sample.setToolTip(
-            "Jump to the previous authored time sample within the playback range."
-        )
+        self.previous_sample.setToolTip("Jump to the previous authored time sample within the playback range.")
         self.previous_frame.setToolTip(TooltipText.VIEWPORT_STEP_PREVIOUS)
         self.play.setToolTip(TooltipText.VIEWPORT_PLAY)
         self.next_frame.setToolTip(TooltipText.VIEWPORT_STEP_NEXT)
-        self.next_sample.setToolTip(
-            "Jump to the next authored time sample within the playback range."
-        )
+        self.next_sample.setToolTip("Jump to the next authored time sample within the playback range.")
         self.to_end.setToolTip(TooltipText.VIEWPORT_LAST_FRAME)
         self.slider.setToolTip(TooltipText.VIEWPORT_TIMELINE)
-        self.start_box.setToolTip(
-            "Playback start time. Playback loops from the Out value back to this In value."
-        )
+        self.start_box.setToolTip("Playback start time. Playback loops from the Out value back to this In value.")
         self.time_box.setToolTip(TooltipText.VIEWPORT_TIMELINE)
         self.end_box.setToolTip(
             "Playback end time. Values outside the authored stage range may show held or default values."
@@ -66,10 +60,20 @@ class TimelineWidget(QWidget):
         self.range_label.setToolTip(TooltipText.VIEWPORT_TIMELINE)
 
         for widget in (
-            self.to_start, self.previous_sample, self.previous_frame,
-            self.play, self.next_frame, self.next_sample, self.to_end,
-            QLabel("In"), self.start_box, self.slider, self.time_box,
-            QLabel("Out"), self.end_box, self.range_label,
+            self.to_start,
+            self.previous_sample,
+            self.previous_frame,
+            self.play,
+            self.next_frame,
+            self.next_sample,
+            self.to_end,
+            QLabel("In"),
+            self.start_box,
+            self.slider,
+            self.time_box,
+            QLabel("Out"),
+            self.end_box,
+            self.range_label,
         ):
             layout.addWidget(widget)
         layout.setStretchFactor(self.slider, 1)
@@ -186,11 +190,18 @@ class TimelineWidget(QWidget):
         self.set_time(value, emit=True)
 
     def _step_sample(self, direction):
-        samples = sorted({
-            float(value) for value in self._sample_provider()
-            if self.playback_start <= float(value) <= self.playback_end
-        })
-        candidates = [value for value in samples if value > self.current_time] if direction > 0 else [value for value in samples if value < self.current_time]
+        samples = sorted(
+            {
+                float(value)
+                for value in self._sample_provider()
+                if self.playback_start <= float(value) <= self.playback_end
+            }
+        )
+        candidates = (
+            [value for value in samples if value > self.current_time]
+            if direction > 0
+            else [value for value in samples if value < self.current_time]
+        )
         if candidates:
             self.set_time(candidates[0] if direction > 0 else candidates[-1], emit=True)
 

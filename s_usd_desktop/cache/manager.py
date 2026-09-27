@@ -16,27 +16,11 @@ class CacheManager:
         self.paths = CachePaths(self.configuration.root)
         self.index = CacheIndex()
 
-    def inspect(
-        self,
-        project_code,
-        asset_code,
-        stream_name,
-        version_number,
-        stored_file
-    ):
+    def inspect(self, project_code, asset_code, stream_name, version_number, stored_file):
         local_path = self.paths.file_path(
-            project_code,
-            asset_code,
-            stream_name,
-            version_number,
-            stored_file.relative_path
+            project_code, asset_code, stream_name, version_number, stored_file.relative_path
         )
-        manifest = self.read_manifest(
-            project_code,
-            asset_code,
-            stream_name,
-            version_number
-        )
+        manifest = self.read_manifest(project_code, asset_code, stream_name, version_number)
         manifest_entry = self._find_entry(manifest, stored_file.id)
         status = self._status(local_path, stored_file, manifest_entry)
         now = datetime.now(timezone.utc)
@@ -49,40 +33,26 @@ class CacheManager:
             sha256=stored_file.sha256,
             downloaded_at=manifest_entry.downloaded_at if manifest_entry else now,
             last_accessed_at=manifest_entry.last_accessed_at if manifest_entry else now,
-            status=status
+            status=status,
         )
 
     def read_manifest(self, project_code, asset_code, stream_name, version_number):
-        manifest_path = self.paths.manifest_path(
-            project_code,
-            asset_code,
-            stream_name,
-            version_number
-        )
+        manifest_path = self.paths.manifest_path(project_code, asset_code, stream_name, version_number)
         return self.index.read(
             manifest_path,
             lambda relative_path: self.paths.file_path(
-                project_code,
-                asset_code,
-                stream_name,
-                version_number,
-                relative_path
-            )
+                project_code, asset_code, stream_name, version_number, relative_path
+            ),
         )
 
     def record(self, project_code, asset_code, stream_name, version_number, entry):
-        manifest_path = self.paths.manifest_path(
-            project_code,
-            asset_code,
-            stream_name,
-            version_number
-        )
+        manifest_path = self.paths.manifest_path(project_code, asset_code, stream_name, version_number)
         existing = self.read_manifest(project_code, asset_code, stream_name, version_number)
         entries = {item.file_id: item for item in existing.files} if existing else {}
         entries[entry.file_id] = entry
         manifest = VersionCacheManifest(
             version_id=entry.version_id,
-            files=tuple(sorted(entries.values(), key=lambda item: item.relative_path.lower()))
+            files=tuple(sorted(entries.values(), key=lambda item: item.relative_path.lower())),
         )
         self.index.write(manifest_path, manifest)
         return manifest
@@ -102,18 +72,10 @@ class CacheManager:
         existed = entry.local_path.exists()
         entry.local_path.unlink(missing_ok=True)
         remaining = tuple(item for item in manifest.files if item.file_id != file_id)
-        manifest_path = self.paths.manifest_path(
-            project_code,
-            asset_code,
-            stream_name,
-            version_number
-        )
+        manifest_path = self.paths.manifest_path(project_code, asset_code, stream_name, version_number)
 
         if remaining:
-            self.index.write(
-                manifest_path,
-                VersionCacheManifest(version_id=manifest.version_id, files=remaining)
-            )
+            self.index.write(manifest_path, VersionCacheManifest(version_id=manifest.version_id, files=remaining))
         else:
             manifest_path.unlink(missing_ok=True)
             self._remove_empty_parents(manifest_path.parent)
@@ -121,12 +83,7 @@ class CacheManager:
         return existed
 
     def clear_version(self, project_code, asset_code, stream_name, version_number):
-        version_root = self.paths.version_root(
-            project_code,
-            asset_code,
-            stream_name,
-            version_number
-        )
+        version_root = self.paths.version_root(project_code, asset_code, stream_name, version_number)
 
         if not version_root.exists():
             return False

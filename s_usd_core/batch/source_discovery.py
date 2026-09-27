@@ -31,9 +31,7 @@ def discover_usd_files(source, options=None):
     paths = {
         path.resolve()
         for path in iterator
-        if path.is_file()
-        and not _in_excluded_directory(path, source, options)
-        and _matches(path, source, options)
+        if path.is_file() and not _in_excluded_directory(path, source, options) and _matches(path, source, options)
     }
     return tuple(sorted(paths, key=lambda path: path.as_posix().lower()))
 
@@ -43,9 +41,7 @@ def _matches(path, root, options):
         return False
 
     relative = path.relative_to(root).as_posix()
-    if options.include_patterns and not any(
-        fnmatch(relative, pattern) for pattern in options.include_patterns
-    ):
+    if options.include_patterns and not any(fnmatch(relative, pattern) for pattern in options.include_patterns):
         return False
     return not any(fnmatch(relative, pattern) for pattern in options.exclude_patterns)
 

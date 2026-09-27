@@ -15,30 +15,27 @@ from s_usd_service.storage.errors import StorageLimitExceededError
 
 router = APIRouter(tags=["Files"])
 
+
 def iter_file(storage, storage_key, chunk_size=1024 * 1024):
     with storage.open(storage_key) as source:
         while chunk := source.read(chunk_size):
             yield chunk
 
+
 def serialize_file(stored_file):
-    return StoredFileRead.model_validate({
-        **stored_file.__dict__,
-        "content_url": f"/api/v1/files/{stored_file.id}/content"
-    })
+    return StoredFileRead.model_validate(
+        {**stored_file.__dict__, "content_url": f"/api/v1/files/{stored_file.id}/content"}
+    )
 
 
-@router.post(
-    "/versions/{version_id}/files",
-    response_model=StoredFileRead,
-    status_code=status.HTTP_201_CREATED
-)
+@router.post("/versions/{version_id}/files", response_model=StoredFileRead, status_code=status.HTTP_201_CREATED)
 def upload_file(
     version_id: UUID,
     database: DatabaseSession,
     storage: ObjectStorageDependency,
     file: Annotated[UploadFile, File()],
     role: Annotated[str, Form()] = "other",
-    relative_path: Annotated[str | None, Form()] = None
+    relative_path: Annotated[str | None, Form()] = None,
 ):
     try:
         stored_file = FileTransferService(database, storage).upload(
@@ -47,7 +44,7 @@ def upload_file(
             original_name=file.filename or "unnamed",
             relative_path=relative_path,
             role=role,
-            content_type=file.content_type or "application/octet-stream"
+            content_type=file.content_type or "application/octet-stream",
         )
     except StorageLimitExceededError as error:
         raise HTTPException(status_code=413, detail=str(error)) from error
@@ -70,42 +67,25 @@ def get_file_metadata(file_id: UUID, database: DatabaseSession, storage: ObjectS
 
 
 @router.get("/files/{file_id}/content")
-def download_file(
-    file_id: UUID,
-    database: DatabaseSession,
-    storage: ObjectStorageDependency
-):
+def download_file(file_id: UUID, database: DatabaseSession, storage: ObjectStorageDependency):
     stored_file = FileTransferService(database, storage).get(file_id)
 
     if not storage.exists(stored_file.storage_key):
         stored_file.status = "missing"
         database.commit()
-        raise HTTPException(
-            status_code=404,
-            detail="Stored file content is missing"
-        )
+        raise HTTPException(status_code=404, detail="Stored file content is missing")
 
-    ascii_name = (
-        Path(stored_file.original_name)
-        .name
-        .encode("ascii", "ignore")
-        .decode()
-        or "download"
-    )
+    ascii_name = Path(stored_file.original_name).name.encode("ascii", "ignore").decode() or "download"
     encoded_name = quote(stored_file.original_name)
 
     headers = {
         "Content-Length": str(stored_file.size_bytes),
-        "Content-Disposition": (
-            f'attachment; filename="{ascii_name}"; '
-            f"filename*=UTF-8''{encoded_name}"
-        ),"ETag": f'"{stored_file.sha256}"'
+        "Content-Disposition": (f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{encoded_name}"),
+        "ETag": f'"{stored_file.sha256}"',
     }
 
     return StreamingResponse(
-        iter_file(storage, stored_file.storage_key),
-        media_type=stored_file.content_type,
-        headers=headers
+        iter_file(storage, stored_file.storage_key), media_type=stored_file.content_type, headers=headers
     )
 
 

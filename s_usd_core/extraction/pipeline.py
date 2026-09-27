@@ -23,13 +23,15 @@ class PipelineExtractor:
 
         for prim in stage.TraverseAll():
             path = prim.GetPath().pathString
-            result.prims.append(PrimInfo(
-                path=path,
-                name=prim.GetName(),
-                parent_path=prim.GetPath().GetParentPath().pathString,
-                type_name=prim.GetTypeName(),
-                depth=path.count("/"),
-            ))
+            result.prims.append(
+                PrimInfo(
+                    path=path,
+                    name=prim.GetName(),
+                    parent_path=prim.GetPath().GetParentPath().pathString,
+                    type_name=prim.GetTypeName(),
+                    depth=path.count("/"),
+                )
+            )
             result.transforms.append(self._transform(prim))
             result.variants.extend(self._variants(prim))
             result.dependencies.extend(self._dependencies(prim))
@@ -80,14 +82,11 @@ class PipelineExtractor:
             op_names=tuple(op.GetOpName() for op in ops),
             resets_stack=resets_stack,
             time_varying=time_varying,
-            matrix_op_count=sum(
-                op.GetOpType() == UsdGeom.XformOp.TypeTransform for op in ops
-            ),
+            matrix_op_count=sum(op.GetOpType() == UsdGeom.XformOp.TypeTransform for op in ops),
             scale_values=tuple(scales),
             values_finite=all(math.isfinite(value) for value in values),
             local_transform_identity=identity,
         )
-
 
     @staticmethod
     def _numbers(value):
@@ -144,9 +143,7 @@ class PipelineExtractor:
             prototype_count = len(instancer.GetPrototypesRel().GetTargets())
             indices = instancer.GetProtoIndicesAttr().Get() or []
             point_instance_count = len(indices)
-            invalid_proto_indices = sum(
-                index < 0 or index >= prototype_count for index in indices
-            )
+            invalid_proto_indices = sum(index < 0 or index >= prototype_count for index in indices)
 
         prototype = prim.GetPrototype()
         return InstancingInfo(
@@ -175,13 +172,15 @@ class PipelineExtractor:
             for item in prim.GetMetadata(metadata_name).GetAddedOrExplicitItems():
                 path = item.assetPath
                 lower = path.lower()
-                result.append(DependencyInfo(
-                    prim_path=prim.GetPath().pathString,
-                    arc_type=arc_type,
-                    asset_path=path,
-                    absolute=os.path.isabs(path),
-                    parent_escape=".." in PurePosixPath(path.replace("\\", "/")).parts,
-                    temporary=any(token in lower for token in cls.TEMPORARY_TOKENS),
-                ))
+                result.append(
+                    DependencyInfo(
+                        prim_path=prim.GetPath().pathString,
+                        arc_type=arc_type,
+                        asset_path=path,
+                        absolute=os.path.isabs(path),
+                        parent_escape=".." in PurePosixPath(path.replace("\\", "/")).parts,
+                        temporary=any(token in lower for token in cls.TEMPORARY_TOKENS),
+                    )
+                )
 
         return result

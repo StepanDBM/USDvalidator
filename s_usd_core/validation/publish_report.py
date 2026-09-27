@@ -18,7 +18,7 @@ from .version import (
 )
 
 
-#trying to solve the fields that may contain tuples, while JSON converts tuples into lists, my code doesn't internaly. I need to normalize these values when building the dictionary.
+# trying to solve the fields that may contain tuples, while JSON converts tuples into lists, my code doesn't internaly. I need to normalize these values when building the dictionary.
 # before having this normalization:
 # report.to_dict()["results"][63]["targets"][0]["expected"]
 # returned: ("rightHanded",)
@@ -34,6 +34,7 @@ def _json_compatible(value):
     if isinstance(value, Path):
         return value.as_posix()
     return value
+
 
 @dataclass
 class PublishReport:
@@ -88,15 +89,10 @@ class PublishReport:
                 "root_layer": PublishReport._serialize_path(self.root_layer),
             },
             "stage_health": (
-                self._serialize_stage_health(self.stage_health)
-                if self.stage_health is not None
-                else None
+                self._serialize_stage_health(self.stage_health) if self.stage_health is not None else None
             ),
             "summary": self._serialize_summary(self.summary),
-            "results": [
-                self._serialize_result(result)
-                for result in self.results
-            ],
+            "results": [self._serialize_result(result) for result in self.results],
         }
 
     def to_json(self, *, indent=2):
@@ -172,20 +168,30 @@ class PublishReport:
 
     @staticmethod
     def _deserialize_result(data):
-        targets = tuple(CheckTargetResult(
-            prim_path=item.get("prim_path", ""),
-            property_path=item.get("property_path", ""),
-            status=CheckStatus(item.get("status", CheckStatus.PASSED.value)),
-            observed=item.get("observed"), expected=item.get("expected"),
-            message=item.get("message", ""),
-        ) for item in data.get("targets", ()))
+        targets = tuple(
+            CheckTargetResult(
+                prim_path=item.get("prim_path", ""),
+                property_path=item.get("property_path", ""),
+                status=CheckStatus(item.get("status", CheckStatus.PASSED.value)),
+                observed=item.get("observed"),
+                expected=item.get("expected"),
+                message=item.get("message", ""),
+            )
+            for item in data.get("targets", ())
+        )
         return CheckResult(
-            check_id=data["check_id"], label=data.get("label", data["check_id"]),
-            category=data.get("category", ""), status=CheckStatus(data["status"]),
-            severity=Severity(data["severity"]), message=data.get("message", ""),
-            location=data.get("location", ""), layer=data.get("layer", ""),
-            suggestion=data.get("suggestion", ""), details=data.get("details") or {},
-            check_version=str(data.get("check_version", "1")), targets=targets,
+            check_id=data["check_id"],
+            label=data.get("label", data["check_id"]),
+            category=data.get("category", ""),
+            status=CheckStatus(data["status"]),
+            severity=Severity(data["severity"]),
+            message=data.get("message", ""),
+            location=data.get("location", ""),
+            layer=data.get("layer", ""),
+            suggestion=data.get("suggestion", ""),
+            details=data.get("details") or {},
+            check_version=str(data.get("check_version", "1")),
+            targets=targets,
         )
 
     @staticmethod
@@ -274,8 +280,6 @@ class PublishReport:
                 ],
             },
             "animation": {
-                "invalid_time_samples": (
-                    health.animation.invalid_time_samples
-                ),
+                "invalid_time_samples": (health.animation.invalid_time_samples),
             },
         }

@@ -53,10 +53,7 @@ class UploadFileDialog(QDialog):
 
     def _browse(self):
         filename, _ = QFileDialog.getOpenFileName(
-            self,
-            "Select OpenUSD File",
-            "",
-            "OpenUSD (*.usd *.usda *.usdc *.usdz)"
+            self, "Select OpenUSD File", "", "OpenUSD (*.usd *.usda *.usdc *.usdz)"
         )
 
         if filename:

@@ -28,7 +28,15 @@ class PrimOutlinerProxy(QSortFilterProxyModel):
 
     @property
     def filters_active(self):
-        return bool(self.query or not self.all_types or self.validation_statuses or self.findings_only or self.animated_only or self.comparison_impacts or self.comparison_kinds)
+        return bool(
+            self.query
+            or not self.all_types
+            or self.validation_statuses
+            or self.findings_only
+            or self.animated_only
+            or self.comparison_impacts
+            or self.comparison_kinds
+        )
 
     def data(self, index, role=Qt.ItemDataRole.DisplayRole):
         if role == self.MATCH_ROLE:
@@ -100,7 +108,9 @@ class PrimOutlinerProxy(QSortFilterProxyModel):
             return False
         comparison = index.data(self.COMPARISON_ROLE)
         direct_changes = comparison.direct_changes if comparison else ()
-        if self.comparison_impacts and not any(change.impact.value in self.comparison_impacts for change in direct_changes):
+        if self.comparison_impacts and not any(
+            change.impact.value in self.comparison_impacts for change in direct_changes
+        ):
             return False
         if self.comparison_kinds and not any(change.kind.value in self.comparison_kinds for change in direct_changes):
             return False

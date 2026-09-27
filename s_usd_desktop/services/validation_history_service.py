@@ -39,16 +39,10 @@ class ValidationHistoryService(QObject):
         self.loading_changed.emit(scope, True)
         worker = RequestWorker(self._call, method_name, *args)
         worker.signals.result.connect(
-            lambda result, s=scope, g=generation, c=context: self._result(
-                s, g, c, result, signal
-            )
+            lambda result, s=scope, g=generation, c=context: self._result(s, g, c, result, signal)
         )
-        worker.signals.error.connect(
-            lambda error, s=scope, g=generation: self._error(s, g, error)
-        )
-        worker.signals.finished.connect(
-            lambda current=worker: self._workers.discard(current)
-        )
+        worker.signals.error.connect(lambda error, s=scope, g=generation: self._error(s, g, error))
+        worker.signals.finished.connect(lambda current=worker: self._workers.discard(current))
         self._workers.add(worker)
         self.thread_pool.start(worker)
 

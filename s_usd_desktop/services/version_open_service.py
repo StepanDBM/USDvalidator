@@ -46,29 +46,18 @@ class VersionOpenService:
 
         if len(roots) != 1:
             return VersionResolution(
-                VersionReadiness.NO_ROOT_LAYER,
-                None,
-                roots[0] if roots else None,
-                files,
-                (),
-                0,
-                len(files)
+                VersionReadiness.NO_ROOT_LAYER, None, roots[0] if roots else None, files, (), 0, len(files)
             )
 
         entries = {
             item.id: self.cache_manager.inspect(
-                location.project_code,
-                location.asset_code,
-                location.stream_name,
-                location.version_number,
-                item
+                location.project_code, location.asset_code, location.stream_name, location.version_number, item
             )
             for item in files
         }
         missing = tuple(item for item in files if entries[item.id].status == CacheEntryStatus.MISSING)
         invalid = tuple(
-            item for item in files
-            if entries[item.id].status in {CacheEntryStatus.STALE, CacheEntryStatus.CORRUPT}
+            item for item in files if entries[item.id].status in {CacheEntryStatus.STALE, CacheEntryStatus.CORRUPT}
         )
         cached = len(files) - len(missing) - len(invalid)
         root = roots[0]
@@ -92,7 +81,7 @@ class VersionOpenService:
             missing,
             invalid,
             cached,
-            len(files)
+            len(files),
         )
 
     def open_path(self, files, location):
@@ -102,8 +91,6 @@ class VersionOpenService:
             raise RootLayerMissingError("The version must contain exactly one root_layer file")
 
         if not resolution.ready:
-            raise VersionOpenError(
-                f"The version is not ready: {resolution.readiness.value}"
-            )
+            raise VersionOpenError(f"The version is not ready: {resolution.readiness.value}")
 
         return resolution.root_path

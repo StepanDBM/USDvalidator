@@ -19,15 +19,9 @@ class ResultsFilterBar(QWidget):
         self.severity_combo.setToolTip(TooltipText.RESULT_FILTER_SEVERITY)
         self.category_combo.setToolTip(TooltipText.RESULT_FILTER_CATEGORY)
         self.search_edit.setToolTip(TooltipText.RESULT_FILTER_SEARCH)
-        self.search_edit.setPlaceholderText(
-            "Search check IDs, labels, messages, locations or suggestions..."
-        )
-        self.status_combo.addItems(
-            ["All Statuses", "PASSED", "FAILED", "SKIPPED", "ERROR"]
-        )
-        self.severity_combo.addItems(
-            ["All Severities", "ERROR", "WARNING", "INFO"]
-        )
+        self.search_edit.setPlaceholderText("Search check IDs, labels, messages, locations or suggestions...")
+        self.status_combo.addItems(["All Statuses", "PASSED", "FAILED", "SKIPPED", "ERROR"])
+        self.severity_combo.addItems(["All Severities", "ERROR", "WARNING", "INFO"])
         self.category_combo.addItem("All Categories")
         layout.addWidget(QLabel("Status"))
         layout.addWidget(self.status_combo)

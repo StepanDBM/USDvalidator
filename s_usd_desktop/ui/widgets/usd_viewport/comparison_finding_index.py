@@ -37,11 +37,21 @@ class ComparisonSummary:
 
     @property
     def highest_impact(self):
-        return max((change.impact.value for change in self.all_changes), key=lambda value: IMPACT_RANK.get(value, 0), default="INFORMATIONAL")
+        return max(
+            (change.impact.value for change in self.all_changes),
+            key=lambda value: IMPACT_RANK.get(value, 0),
+            default="INFORMATIONAL",
+        )
 
     @property
     def tooltip(self):
-        lines = [f"Semantic changes: {self.total_count}", f"Direct: {self.direct_count}", f"Descendants: {self.descendant_count}", f"Highest impact: {self.highest_impact}", ""]
+        lines = [
+            f"Semantic changes: {self.total_count}",
+            f"Direct: {self.direct_count}",
+            f"Descendants: {self.descendant_count}",
+            f"Highest impact: {self.highest_impact}",
+            "",
+        ]
         lines.extend(f"{name.title()}: {self.impact_counts.get(name, 0)}" for name in IMPACT_RANK)
         lines.append("")
         lines.extend(f"{name.title()}: {count}" for name, count in sorted(self.kind_counts.items()))
@@ -62,7 +72,9 @@ class ComparisonFindingIndex:
         prim_path = str(prim_path or "")
         if prim_path not in self._summaries:
             prefix = prim_path.rstrip("/") + "/"
-            descendants = [change for path, changes in self.direct_changes.items() if path.startswith(prefix) for change in changes]
+            descendants = [
+                change for path, changes in self.direct_changes.items() if path.startswith(prefix) for change in changes
+            ]
             self._summaries[prim_path] = ComparisonSummary(list(self.direct_changes.get(prim_path, ())), descendants)
         return self._summaries[prim_path]
 

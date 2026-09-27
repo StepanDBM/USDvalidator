@@ -10,6 +10,7 @@ class ValidationTarget:
     property_path: str = ""
     kind: str = "stage"
 
+
 def resolve_validation_target(report, result):
     details = result.details or {}
     candidates = []

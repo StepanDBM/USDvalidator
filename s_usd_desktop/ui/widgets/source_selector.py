@@ -53,10 +53,7 @@ class SourceSelector(QWidget):
         layout.addWidget(self.browse_button)
 
     def _browse_file(self):
-        path, _ = QFileDialog.getOpenFileName(
-            self, "Select USD File",
-            self._initial_directory()
-        )
+        path, _ = QFileDialog.getOpenFileName(self, "Select USD File", self._initial_directory())
 
         if not path:
             return
@@ -69,10 +66,7 @@ class SourceSelector(QWidget):
         self.set_source(source_path)
 
     def _browse_folder(self):
-        path = QFileDialog.getExistingDirectory(
-            self, "Select USD Folder",
-            self._initial_directory()
-        )
+        path = QFileDialog.getExistingDirectory(self, "Select USD Folder", self._initial_directory())
 
         if path:
             self.set_source(path)
@@ -90,15 +84,10 @@ class SourceSelector(QWidget):
         source_path = Path(path).expanduser()
 
         if not source_path.exists():
-            raise FileNotFoundError(
-                f"Source does not exist: {source_path}"
-            )
+            raise FileNotFoundError(f"Source does not exist: {source_path}")
 
         if source_path.is_file():
-            if (
-                source_path.suffix.lower()
-                not in USD_EXTENSIONS
-            ):
+            if source_path.suffix.lower() not in USD_EXTENSIONS:
                 raise ValueError("The selected file is not a supported USD file.")
 
             source_type = "USD File"

@@ -46,12 +46,8 @@ class ConnectionService(QObject):
         self.last_error = ""
         self._set_state(ConnectionState.CONNECTING)
         worker = RequestWorker(self._check_health, configuration)
-        worker.signals.result.connect(
-            lambda health, current=generation: self._handle_connected(current, health)
-        )
-        worker.signals.error.connect(
-            lambda error, current=generation: self._handle_error(current, error)
-        )
+        worker.signals.result.connect(lambda health, current=generation: self._handle_connected(current, health))
+        worker.signals.error.connect(lambda error, current=generation: self._handle_error(current, error))
         worker.signals.finished.connect(lambda current=worker: self._workers.discard(current))
         self._workers.add(worker)
         self.thread_pool.start(worker)

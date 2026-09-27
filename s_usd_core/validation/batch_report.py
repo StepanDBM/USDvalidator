@@ -39,9 +39,7 @@ class BatchReport:
 
     @property
     def failed_files(self):
-        return sum(not report.publish_passed for report in self.reports) + len(
-            self.failures
-        )
+        return sum(not report.publish_passed for report in self.reports) + len(self.failures)
 
     def to_dict(self):
         return {

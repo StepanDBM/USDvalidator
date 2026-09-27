@@ -14,5 +14,5 @@ __all__ = [
     "CreateProjectDialog",
     "CreateStreamDialog",
     "CreateVersionDialog",
-    "UploadFileDialog"
+    "UploadFileDialog",
 ]

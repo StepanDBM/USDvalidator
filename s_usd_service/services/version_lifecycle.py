@@ -14,27 +14,19 @@ class VersionLifecycleService:
 
     def ensure_content_mutable(self, version):
         if version.status in {VersionStatus.PUBLISHED, VersionStatus.DEPRECATED}:
-            raise ConflictError(
-                "Published and deprecated versions are immutable. Create a new version instead."
-            )
+            raise ConflictError("Published and deprecated versions are immutable. Create a new version instead.")
 
     def mark_after_upload(self, version, stored_file):
         self.ensure_content_mutable(version)
         if stored_file.role == "root_layer" and stored_file.status == "available":
             version.status = VersionStatus.UPLOADED
-        elif version.status in {
-            VersionStatus.VALIDATED,
-            VersionStatus.VALIDATION_FAILED
-        }:
+        elif version.status in {VersionStatus.VALIDATED, VersionStatus.VALIDATION_FAILED}:
             version.status = VersionStatus.UPLOADED
 
     def mark_after_delete(self, version, deleted_file):
         self.ensure_content_mutable(version)
         remaining = [item for item in version.files if item.id != deleted_file.id]
-        has_root = any(
-            item.role == "root_layer" and item.status == "available"
-            for item in remaining
-        )
+        has_root = any(item.role == "root_layer" and item.status == "available" for item in remaining)
         version.status = VersionStatus.UPLOADED if has_root else VersionStatus.DRAFT
 
     def mark_after_validation(self, version, validation_run):
@@ -45,19 +37,13 @@ class VersionLifecycleService:
         stored_file = self.database.get(StoredFile, validation_run.stored_file_id)
         if not stored_file or stored_file.role != "root_layer":
             return
-        version.status = (
-            VersionStatus.VALIDATED
-            if validation_run.publish_passed
-            else VersionStatus.VALIDATION_FAILED
-        )
+        version.status = VersionStatus.VALIDATED if validation_run.publish_passed else VersionStatus.VALIDATION_FAILED
 
     def publish(self, version_id):
         version = self._version(version_id)
         if version.status == VersionStatus.PUBLISHED:
             if not version.published_content_fingerprint:
-                version.published_content_fingerprint = VersionContentFingerprint.calculate(
-                    self._files(version_id)
-                )
+                version.published_content_fingerprint = VersionContentFingerprint.calculate(self._files(version_id))
                 self.database.commit()
                 self.database.refresh(version)
             return version
@@ -73,10 +59,7 @@ class VersionLifecycleService:
 
         validation = self.database.scalar(
             select(ValidationRun)
-            .where(
-                ValidationRun.version_id == version_id,
-                ValidationRun.stored_file_id == roots[0].id
-            )
+            .where(ValidationRun.version_id == version_id, ValidationRun.stored_file_id == roots[0].id)
             .order_by(ValidationRun.created_at.desc())
         )
         if not validation:
@@ -84,22 +67,16 @@ class VersionLifecycleService:
         if not validation.publish_passed:
             raise ConflictError("The latest root-layer validation did not pass")
         if validation.report_schema_version not in SUPPORTED_REPORT_SCHEMA_VERSIONS:
-            raise ConflictError(
-                f"Unsupported validation report schema: {validation.report_schema_version}"
-            )
+            raise ConflictError(f"Unsupported validation report schema: {validation.report_schema_version}")
         report_validation = validation.report.get("validation", {})
         if report_validation.get("cancelled", False):
             raise ConflictError("Cancelled validation runs cannot authorize publishing")
 
         content_fingerprint = VersionContentFingerprint.calculate(files)
         if not validation.content_fingerprint:
-            raise ConflictError(
-                "The latest validation predates content fingerprints; validate the version again"
-            )
+            raise ConflictError("The latest validation predates content fingerprints; validate the version again")
         if validation.content_fingerprint != content_fingerprint:
-            raise ConflictError(
-                "The latest validation does not match the current version contents"
-            )
+            raise ConflictError("The latest validation does not match the current version contents")
 
         version.status = VersionStatus.PUBLISHED
         version.published_content_fingerprint = content_fingerprint

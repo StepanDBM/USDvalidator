@@ -26,8 +26,5 @@ class ApiClientConfiguration:
 
     def make_timeout(self):
         return httpx.Timeout(
-            connect=self.connect_timeout,
-            read=self.read_timeout,
-            write=self.write_timeout,
-            pool=self.pool_timeout
+            connect=self.connect_timeout, read=self.read_timeout, write=self.write_timeout, pool=self.pool_timeout
         )

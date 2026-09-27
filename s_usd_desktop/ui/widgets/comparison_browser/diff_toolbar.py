@@ -26,12 +26,8 @@ class DiffToolbar(QWidget):
         self.summary_label = QLabel("No source diff")
         self.collapse_all_button = QPushButton("Collapse All")
         self.expand_all_button = QPushButton("Expand All")
-        self.previous_button.setToolTip(
-            "Move to the previous changed source region in the side-by-side diff."
-        )
-        self.next_button.setToolTip(
-            "Move to the next changed source region in the side-by-side diff."
-        )
+        self.previous_button.setToolTip("Move to the previous changed source region in the side-by-side diff.")
+        self.next_button.setToolTip("Move to the next changed source region in the side-by-side diff.")
         self.counter_label.setToolTip(TooltipText.COMPARISON_DIFF_TABLE)
         self.changes_only_check.setToolTip(
             "Hide unchanged source rows and omission-only sections so the diff "
@@ -42,9 +38,7 @@ class DiffToolbar(QWidget):
             "Collapse long source regions into compact summary rows. Changed text "
             "is preserved and can be expanded again."
         )
-        self.expand_all_button.setToolTip(
-            "Expand all collapsed source regions to display every generated diff row."
-        )
+        self.expand_all_button.setToolTip("Expand all collapsed source regions to display every generated diff row.")
         layout.addWidget(self.previous_button)
         layout.addWidget(self.next_button)
         layout.addWidget(self.counter_label)

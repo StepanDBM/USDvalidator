@@ -25,6 +25,7 @@ class CacheLocation:
 class DownloadCancellationToken:
     def __init__(self):
         from threading import Event
+
         self._event = Event()
 
     @property
@@ -51,11 +52,7 @@ class VerifiedDownloader:
     def download(self, stored_file, location, progress=None, token=None):
         token = token or DownloadCancellationToken()
         inspection = self.cache_manager.inspect(
-            location.project_code,
-            location.asset_code,
-            location.stream_name,
-            location.version_number,
-            stored_file
+            location.project_code, location.asset_code, location.stream_name, location.version_number, stored_file
         )
         final_path = inspection.local_path
         part_path = final_path.with_name(f"{final_path.name}.part")
@@ -104,20 +101,14 @@ class VerifiedDownloader:
                 sha256=digest.hexdigest(),
                 downloaded_at=now,
                 last_accessed_at=now,
-                status=CacheEntryStatus.AVAILABLE
+                status=CacheEntryStatus.AVAILABLE,
             )
             self.cache_manager.record(
-                location.project_code,
-                location.asset_code,
-                location.stream_name,
-                location.version_number,
-                entry
+                location.project_code, location.asset_code, location.stream_name, location.version_number, entry
             )
             return entry
         except ResourceNotFoundError as error:
-            raise StoredContentMissingError(
-                f"Stored content is missing for file {stored_file.id}"
-            ) from error
+            raise StoredContentMissingError(f"Stored content is missing for file {stored_file.id}") from error
         except (DownloadCancelledError, ChecksumMismatchError, SizeMismatchError):
             raise
         except OSError as error:
@@ -131,11 +122,7 @@ class VerifiedDownloader:
         expected_size = int(stored_file.size_bytes)
 
         if received != expected_size:
-            raise SizeMismatchError(
-                f"Downloaded {received} bytes, expected {expected_size} bytes"
-            )
+            raise SizeMismatchError(f"Downloaded {received} bytes, expected {expected_size} bytes")
 
         if digest.lower() != stored_file.sha256.lower():
-            raise ChecksumMismatchError(
-                f"Downloaded SHA-256 {digest} does not match {stored_file.sha256}"
-            )
+            raise ChecksumMismatchError(f"Downloaded SHA-256 {digest} does not match {stored_file.sha256}")

@@ -7,12 +7,7 @@ from s_usd_service.storage.models import StoredObject
 
 class ObjectStorage(ABC):
     @abstractmethod
-    def write_stream(
-        self,
-        source: BinaryIO,
-        storage_key: str,
-        maximum_bytes: int | None = None
-    ) -> StoredObject:
+    def write_stream(self, source: BinaryIO, storage_key: str, maximum_bytes: int | None = None) -> StoredObject:
         pass
 
     @abstractmethod

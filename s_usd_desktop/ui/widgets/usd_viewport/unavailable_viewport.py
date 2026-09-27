@@ -38,9 +38,7 @@ class UnavailableUsdViewportWidget(QWidget):
         self.setToolTip(TooltipText.VIEWPORT_UNAVAILABLE)
         self.diagnostics.setToolTip(TooltipText.VIEWPORT_RUNTIME_DIAGNOSTICS)
         copy_button.setToolTip(TooltipText.VIEWPORT_RUNTIME_DIAGNOSTICS)
-        copy_button.clicked.connect(
-            lambda: QApplication.clipboard().setText(self.diagnostics.toPlainText())
-        )
+        copy_button.clicked.connect(lambda: QApplication.clipboard().setText(self.diagnostics.toPlainText()))
 
         layout = QVBoxLayout(self)
         layout.addStretch()

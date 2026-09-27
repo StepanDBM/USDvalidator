@@ -56,12 +56,8 @@ class PublishManifest:
                 "sublayers": composition.sublayers if composition else 0,
                 "references": composition.references if composition else 0,
                 "payloads": composition.payloads if composition else 0,
-                "unresolved_references": (
-                    composition.unresolved_references if composition else 0
-                ),
-                "unresolved_payloads": (
-                    composition.unresolved_payloads if composition else 0
-                ),
+                "unresolved_references": (composition.unresolved_references if composition else 0),
+                "unresolved_payloads": (composition.unresolved_payloads if composition else 0),
             },
             "validation": {
                 "report_schema_version": report.to_dict()["schema"]["version"],

@@ -15,5 +15,5 @@ __all__ = [
     "RuntimeCapabilities",
     "bootstrap_openusd_runtime",
     "detect_runtime_capabilities",
-    "discover_openusd_runtime"
+    "discover_openusd_runtime",
 ]

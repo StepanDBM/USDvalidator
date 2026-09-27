@@ -49,11 +49,13 @@ class BatchFilesTree(QTreeWidget):
             self._populate(item, child)
         for report in sorted(node.reports, key=lambda value: Path(value.source_path).name.lower()):
             passed = bool(report.publish_passed)
-            item = QTreeWidgetItem([
-                Path(report.source_path).name,
-                "PASSED" if passed else "FAILED",
-                "",
-            ])
+            item = QTreeWidgetItem(
+                [
+                    Path(report.source_path).name,
+                    "PASSED" if passed else "FAILED",
+                    "",
+                ]
+            )
             item.setData(0, Qt.ItemDataRole.UserRole, report)
             item.setToolTip(0, str(report.source_path))
             item.setForeground(1, QColor("#4CAF50" if passed else "#F44336"))

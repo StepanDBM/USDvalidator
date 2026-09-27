@@ -10,22 +10,13 @@ router = APIRouter(tags=["Validation"])
 
 
 @router.post(
-    "/versions/{version_id}/validation-runs",
-    response_model=ValidationRunDetail,
-    status_code=status.HTTP_201_CREATED
+    "/versions/{version_id}/validation-runs", response_model=ValidationRunDetail, status_code=status.HTTP_201_CREATED
 )
-def create_validation_run(
-    version_id: UUID,
-    payload: ValidationRunCreate,
-    database: DatabaseSession
-):
+def create_validation_run(version_id: UUID, payload: ValidationRunCreate, database: DatabaseSession):
     return ValidationRunRepository(database).create(version_id, payload.model_dump())
 
 
-@router.get(
-    "/versions/{version_id}/validation-runs",
-    response_model=list[ValidationRunRead]
-)
+@router.get("/versions/{version_id}/validation-runs", response_model=list[ValidationRunRead])
 def list_validation_runs(version_id: UUID, database: DatabaseSession):
     return ValidationRunRepository(database).list_for_version(version_id)
 

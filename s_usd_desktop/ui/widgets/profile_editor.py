@@ -46,9 +46,7 @@ class ProfileEditor(QWidget):
         self.profile_loader = profile_loader
         self.registry = registry
         self.definitions = tuple(registry.all())
-        self.definition_by_id = {
-            definition.check_id: definition for definition in self.definitions
-        }
+        self.definition_by_id = {definition.check_id: definition for definition in self.definitions}
         self.rule_config = ValidationRuleConfig()
         self.current_profile_name = None
         self.draft = None
@@ -111,20 +109,28 @@ class ProfileEditor(QWidget):
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(6)
 
-        self.profile_details_panel = CollapsiblePanel("Profile Details",
-            self._build_profile_details(), expanded=True,
+        self.profile_details_panel = CollapsiblePanel(
+            "Profile Details",
+            self._build_profile_details(),
+            expanded=True,
         )
 
-        self.check_filters_panel = CollapsiblePanel("Check Filters",
-            self._build_check_filters(), expanded=False,
+        self.check_filters_panel = CollapsiblePanel(
+            "Check Filters",
+            self._build_check_filters(),
+            expanded=False,
         )
 
-        self.profile_checks_panel = CollapsiblePanel("Profile Checks",
-            self._build_profile_checks(), expanded=True,
+        self.profile_checks_panel = CollapsiblePanel(
+            "Profile Checks",
+            self._build_profile_checks(),
+            expanded=True,
         )
 
-        self.profile_overrides_panel = CollapsiblePanel("Profile Overrides",
-            self._build_profile_overrides(), expanded=False,
+        self.profile_overrides_panel = CollapsiblePanel(
+            "Profile Overrides",
+            self._build_profile_overrides(),
+            expanded=False,
         )
 
         content_layout.addWidget(self.profile_details_panel)
@@ -233,28 +239,17 @@ class ProfileEditor(QWidget):
             QSizePolicy.Policy.Fixed,
         )
 
-        self.check_tree.setSelectionMode(
-            QAbstractItemView
-            .SelectionMode
-            .ExtendedSelection
-        )
+        self.check_tree.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
 
-        self.check_tree.setContextMenuPolicy(
-            Qt.ContextMenuPolicy
-            .CustomContextMenu
-        )
+        self.check_tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
 
         layout.addWidget(self.check_tree)
 
         self.check_tree_resize_handle = VerticalResizeHandle()
 
         self.check_tree_resize_handle.resize_requested.connect(
-            lambda delta: self._resize_tree(
-                self.check_tree,
-                self.profile_checks_panel,
-                delta,
-                180)
-)
+            lambda delta: self._resize_tree(self.check_tree, self.profile_checks_panel, delta, 180)
+        )
 
         layout.addWidget(self.check_tree_resize_handle)
 
@@ -316,20 +311,13 @@ class ProfileEditor(QWidget):
             QSizePolicy.Policy.Fixed,
         )
 
-        self.override_tree.setContextMenuPolicy(
-            Qt.ContextMenuPolicy
-            .CustomContextMenu
-        )
+        self.override_tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
 
         layout.addWidget(self.override_tree)
         self.override_tree_resize_handle = VerticalResizeHandle()
         self.override_tree_resize_handle.resize_requested.connect(
-            lambda delta: self._resize_tree(
-                self.override_tree,
-                self.profile_overrides_panel,
-                delta,
-                140)
-)
+            lambda delta: self._resize_tree(self.override_tree, self.profile_overrides_panel, delta, 140)
+        )
         layout.addWidget(self.override_tree_resize_handle)
 
         return widget
@@ -365,13 +353,10 @@ class ProfileEditor(QWidget):
             tree.height() + delta,
         )
 
-        tree.setFixedHeight(
-            new_height
-        )
+        tree.setFixedHeight(new_height)
 
         panel.updateGeometry()
         self.editor_scroll_content.adjustSize()
-
 
     def _load_profile_list(self, select_name=None):
         self.profile_list.blockSignals(True)
@@ -382,9 +367,7 @@ class ProfileEditor(QWidget):
             item = self.profile_list.item(row)
             profile = self.profile_loader.get_profile(name)
             item.setToolTip(
-                f"{TooltipText.PROFILE_ROW}\n\n"
-                f"Profile: {name}\n"
-                f"Description: {profile.description or 'No description'}"
+                f"{TooltipText.PROFILE_ROW}\n\nProfile: {name}\nDescription: {profile.description or 'No description'}"
             )
         self.profile_list.blockSignals(False)
 
@@ -392,9 +375,7 @@ class ProfileEditor(QWidget):
             self._clear_editor()
             return
 
-        self.profile_list.setCurrentRow(
-            names.index(select_name) if select_name in names else 0
-        )
+        self.profile_list.setCurrentRow(names.index(select_name) if select_name in names else 0)
 
     def _on_profile_selected(self, current, previous):
         if current is None:
@@ -429,16 +410,13 @@ class ProfileEditor(QWidget):
         self.draft.enabled_check_ids = {
             definition.check_id
             for definition in self.definitions
-            if definition.enabled
-            and definition.check_id not in self.draft.disabled_check_ids
+            if definition.enabled and definition.check_id not in self.draft.disabled_check_ids
         }
         self.draft.disabled_check_ids.clear()
         self.draft.include_all_checks = False
 
     def _populate_filters(self):
-        categories = sorted(
-            {item.category for item in self.definitions if item.category}
-        )
+        categories = sorted({item.category for item in self.definitions if item.category})
         tags = sorted({tag for item in self.definitions for tag in item.tags})
         self.category_combo.blockSignals(True)
         self.tag_combo.blockSignals(True)
@@ -459,14 +437,11 @@ class ProfileEditor(QWidget):
             return tuple(
                 definition
                 for definition in self.definitions
-                if definition.enabled
-                and definition.check_id not in self.draft.disabled_check_ids
+                if definition.enabled and definition.check_id not in self.draft.disabled_check_ids
             )
 
         return tuple(
-            definition
-            for definition in self.definitions
-            if definition.check_id in self.draft.enabled_check_ids
+            definition for definition in self.definitions if definition.check_id in self.draft.enabled_check_ids
         )
 
     def _refresh_check_tree(self):
@@ -486,21 +461,21 @@ class ProfileEditor(QWidget):
             if tag_filter != "All Tags" and tag_filter not in definition.tags:
                 continue
 
-            searchable = " ".join([
-                definition.check_id,
-                definition.label,
-                definition.description,
-                definition.category,
-                definition.phase,
-                " ".join(definition.tags),
-            ]).lower()
+            searchable = " ".join(
+                [
+                    definition.check_id,
+                    definition.label,
+                    definition.description,
+                    definition.category,
+                    definition.phase,
+                    " ".join(definition.tags),
+                ]
+            ).lower()
 
             if search and search not in searchable:
                 continue
 
-            grouped.setdefault(
-                definition.category or "Uncategorized", []
-            ).append(definition)
+            grouped.setdefault(definition.category or "Uncategorized", []).append(definition)
 
         self.check_tree.clear()
 
@@ -509,15 +484,15 @@ class ProfileEditor(QWidget):
             category_item.setFirstColumnSpanned(True)
             self.check_tree.addTopLevelItem(category_item)
 
-            for definition in sorted(
-                grouped[category], key=lambda item: item.label.lower()
-            ):
-                item = QTreeWidgetItem([
-                    definition.label,
-                    definition.check_id,
-                    definition.phase,
-                    ", ".join(definition.tags),
-                ])
+            for definition in sorted(grouped[category], key=lambda item: item.label.lower()):
+                item = QTreeWidgetItem(
+                    [
+                        definition.label,
+                        definition.check_id,
+                        definition.phase,
+                        ", ".join(definition.tags),
+                    ]
+                )
                 item.setData(0, Qt.ItemDataRole.UserRole, definition.check_id)
                 item.setToolTip(
                     0,
@@ -527,7 +502,7 @@ class ProfileEditor(QWidget):
                     f"Category: {definition.category}\n"
                     f"Phase: {definition.phase}\n"
                     f"Severity: {definition.default_severity.value}\n"
-                    f"Tags: {', '.join(definition.tags) or 'None'}"
+                    f"Tags: {', '.join(definition.tags) or 'None'}",
                 )
                 item.setToolTip(0, definition.description)
                 category_item.addChild(item)
@@ -549,9 +524,7 @@ class ProfileEditor(QWidget):
             return
 
         self.profile_checks_panel.set_expanded(True)
-        current_ids = {
-            definition.check_id for definition in self._profile_definitions()
-        }
+        current_ids = {definition.check_id for definition in self._profile_definitions()}
         dialog = CheckPickerDialog(self.definitions, current_ids, self)
 
         if dialog.exec() != QDialog.DialogCode.Accepted:
@@ -625,19 +598,21 @@ class ProfileEditor(QWidget):
                     if check_id in self.definition_by_id
                 ]
 
-            item = QTreeWidgetItem([
-                override.path,
-                str(override.value),
-                "Enabled" if override.enabled else "Disabled",
-                ", ".join(related),
-            ])
+            item = QTreeWidgetItem(
+                [
+                    override.path,
+                    str(override.value),
+                    "Enabled" if override.enabled else "Disabled",
+                    ", ".join(related),
+                ]
+            )
             item.setData(0, Qt.ItemDataRole.UserRole, override.path)
             item.setToolTip(
                 0,
                 f"{TooltipText.PROFILE_OVERRIDE_ROW}\n\n"
                 f"Path: {override.path}\n"
                 f"Value: {override.value!r}\n"
-                f"Enabled: {override.enabled}"
+                f"Enabled: {override.enabled}",
             )
             self.override_tree.addTopLevelItem(item)
 
@@ -732,9 +707,7 @@ class ProfileEditor(QWidget):
             fields=fields,
             base_config=self.rule_config,
             definitions=self.definitions,
-            profile_check_ids={
-                definition.check_id for definition in self._profile_definitions()
-            },
+            profile_check_ids={definition.check_id for definition in self._profile_definitions()},
             existing_override=existing_override,
             parent=self,
         )
@@ -798,9 +771,7 @@ class ProfileEditor(QWidget):
                 existing_override=override,
                 fields=get_config_fields(),
             ),
-            toggle=lambda: self._set_override_enabled(
-                path, not override.enabled
-            ),
+            toggle=lambda: self._set_override_enabled(path, not override.enabled),
             remove=lambda: self._remove_override_path(path),
             parent=self,
         )
@@ -815,9 +786,7 @@ class ProfileEditor(QWidget):
             name = f"new_profile_{index}"
             index += 1
 
-        self.profile_loader.add_profile(
-            ValidationProfile(name=name, include_all_checks=False)
-        )
+        self.profile_loader.add_profile(ValidationProfile(name=name, include_all_checks=False))
         self.profile_loader.save()
         self._load_profile_list(select_name=name)
         self.profile_details_panel.set_expanded(True)

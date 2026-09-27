@@ -47,7 +47,7 @@ class ConnectionSettingsDialog(QDialog):
             base_url=self.base_url.text(),
             connect_timeout=self.connect_timeout.value(),
             request_timeout=self.request_timeout.value(),
-            auto_connect=self.auto_connect.isChecked()
+            auto_connect=self.auto_connect.isChecked(),
         )
 
     def accept(self):

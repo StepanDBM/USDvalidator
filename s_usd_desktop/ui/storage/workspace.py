@@ -44,6 +44,7 @@ class StorageWorkspace(QWidget):
     comparison_pair_ready = Signal(object)
     comparison_preparation_requested = Signal(object)
     cache_root_changed = Signal(object)
+
     def __init__(self, catalog_service, parent=None):
         super().__init__(parent)
         self.catalog_service = catalog_service
@@ -113,29 +114,38 @@ class StorageWorkspace(QWidget):
             self.remove_cache_button: TooltipText.STORAGE_REMOVE_CACHE,
             self.clear_version_cache_button: TooltipText.STORAGE_CLEAR_VERSION_CACHE,
             self.cache_settings_button: TooltipText.STORAGE_CACHE_SETTINGS,
-            self.refresh_button: TooltipText.STORAGE_REFRESH
+            self.refresh_button: TooltipText.STORAGE_REFRESH,
         }
         for control, text in tooltips.items():
             control.setToolTip(text)
-        self.new_menu_button = self._menu_button("New", (
-            ("Project...", self._create_project),
-            ("Asset...", self._create_asset),
-            ("Stream...", self._create_stream),
-            ("Version...", self._create_version)
-        ))
-        self.transfer_menu_button = self._menu_button("Transfer", (
-            ("Upload File...", self._upload_file),
-            ("Download Selected File", self._download_file),
-            ("Download Root Layer", lambda: self._download_version(root_only=True)),
-            ("Download Complete Version", lambda: self._download_version(root_only=False))
-        ))
-        self.more_menu_button = self._menu_button("More", (
-            ("Validate Version", self._validate_version),
-            ("Reveal Cached File", self._reveal_cached_file),
-            ("Remove Cached File", self._remove_cached_file),
-            ("Clear Version Cache", self._clear_version_cache),
-            ("Cache Settings...", self._show_cache_settings)
-        ))
+        self.new_menu_button = self._menu_button(
+            "New",
+            (
+                ("Project...", self._create_project),
+                ("Asset...", self._create_asset),
+                ("Stream...", self._create_stream),
+                ("Version...", self._create_version),
+            ),
+        )
+        self.transfer_menu_button = self._menu_button(
+            "Transfer",
+            (
+                ("Upload File...", self._upload_file),
+                ("Download Selected File", self._download_file),
+                ("Download Root Layer", lambda: self._download_version(root_only=True)),
+                ("Download Complete Version", lambda: self._download_version(root_only=False)),
+            ),
+        )
+        self.more_menu_button = self._menu_button(
+            "More",
+            (
+                ("Validate Version", self._validate_version),
+                ("Reveal Cached File", self._reveal_cached_file),
+                ("Remove Cached File", self._remove_cached_file),
+                ("Clear Version Cache", self._clear_version_cache),
+                ("Cache Settings...", self._show_cache_settings),
+            ),
+        )
         header = QHBoxLayout()
         header.setSpacing(6)
         header.addWidget(QLabel("S-USDv Storage"))
@@ -310,9 +320,7 @@ class StorageWorkspace(QWidget):
         self.validation_history_view.selectionModel().currentChanged.connect(
             lambda _current, _previous: self._update_history_actions()
         )
-        self.validation_history_view.doubleClicked.connect(
-            lambda _index: self._open_historical_report()
-        )
+        self.validation_history_view.doubleClicked.connect(lambda _index: self._open_historical_report())
         self.refresh_history_button.clicked.connect(self._refresh_validation_history)
         self.open_history_button.clicked.connect(self._open_historical_report)
         self.catalog_service.projects_loaded.connect(self._projects_loaded)
@@ -323,9 +331,15 @@ class StorageWorkspace(QWidget):
         self.catalog_service.loading_changed.connect(self._loading_changed)
         self.catalog_service.request_failed.connect(self._request_failed)
         self.catalog_service.project_created.connect(lambda _record: self.refresh())
-        self.catalog_service.asset_created.connect(lambda _record: self.catalog_service.load_assets(self.current_project_id))
-        self.catalog_service.stream_created.connect(lambda _record: self.catalog_service.load_streams(self.current_asset_id))
-        self.catalog_service.version_created.connect(lambda _record: self.catalog_service.load_versions(self.current_stream_id))
+        self.catalog_service.asset_created.connect(
+            lambda _record: self.catalog_service.load_assets(self.current_project_id)
+        )
+        self.catalog_service.stream_created.connect(
+            lambda _record: self.catalog_service.load_streams(self.current_asset_id)
+        )
+        self.catalog_service.version_created.connect(
+            lambda _record: self.catalog_service.load_versions(self.current_stream_id)
+        )
         self.catalog_service.version_published.connect(self._lifecycle_completed)
         self.catalog_service.version_deprecated.connect(self._lifecycle_completed)
 
@@ -400,26 +414,20 @@ class StorageWorkspace(QWidget):
 
     def _update_action_states(self):
         version = self._current_version()
-        mutable = bool(
-            version and version.status not in {"published", "deprecated"}
-        )
+        mutable = bool(version and version.status not in {"published", "deprecated"})
         active = bool(
-            (self.transfer_service and self.transfer_service.active) or
-            (self.download_service and self.download_service.active) or
-            (self.version_download_service and self.version_download_service.active) or
-            (self.stored_comparison_service and self.stored_comparison_service.preparing)
+            (self.transfer_service and self.transfer_service.active)
+            or (self.download_service and self.download_service.active)
+            or (self.version_download_service and self.version_download_service.active)
+            or (self.stored_comparison_service and self.stored_comparison_service.preparing)
         )
         self.create_asset_button.setEnabled(self.connected and self.current_project_id is not None and not active)
         self.create_stream_button.setEnabled(self.connected and self.current_asset_id is not None and not active)
         self.create_version_button.setEnabled(self.connected and self.current_stream_id is not None and not active)
         self.new_menu_button.setEnabled(self.connected and not active)
-        self.transfer_menu_button.setEnabled(
-            self.connected and self.current_version_id is not None and not active
-        )
+        self.transfer_menu_button.setEnabled(self.connected and self.current_version_id is not None and not active)
         self.more_menu_button.setEnabled(self.connected and not active)
-        self.upload_button.setEnabled(
-            self.connected and self.current_version_id is not None and mutable and not active
-        )
+        self.upload_button.setEnabled(self.connected and self.current_version_id is not None and mutable and not active)
         selected_file = self._selected_file()
         cache_entry = self._inspect_file(selected_file) if selected_file else None
         available = bool(cache_entry and cache_entry.status.value == "available")
@@ -430,27 +438,21 @@ class StorageWorkspace(QWidget):
         self.cache_settings_button.setEnabled(not active)
         resolution = self._version_resolution()
         has_version = self.current_version_id is not None and bool(self.file_model.records)
-        self.download_root_button.setEnabled(has_version and resolution is not None and resolution.root_file is not None and not active)
+        self.download_root_button.setEnabled(
+            has_version and resolution is not None and resolution.root_file is not None and not active
+        )
         self.download_version_button.setEnabled(has_version and not active)
         ready = bool(resolution and resolution.ready)
         self.open_version_button.setEnabled(ready and not active)
         self.validate_version_button.setEnabled(ready and mutable and not active)
         self._update_lifecycle_action(version, active)
         pair_ready = bool(self.comparison_pair and self.comparison_pair.ready)
-        pair_preparable = bool(
-            self.comparison_pair and
-            self.comparison_pair.readiness.value == "preparation_required"
-        )
-        self.compare_versions_button.setEnabled(
-            self.connected and (pair_ready or pair_preparable) and not active
-        )
+        pair_preparable = bool(self.comparison_pair and self.comparison_pair.readiness.value == "preparation_required")
+        self.compare_versions_button.setEnabled(self.connected and (pair_ready or pair_preparable) and not active)
 
     def _selected_versions(self):
         rows = sorted({index.row() for index in self.version_view.selectionModel().selectedRows()})
-        return tuple(
-            record for row in rows
-            if (record := self.version_model.record_at(row)) is not None
-        )
+        return tuple(record for row in rows if (record := self.version_model.record_at(row)) is not None)
 
     def _version_comparison_selection_changed(self):
         versions = self._selected_versions()
@@ -460,8 +462,8 @@ class StorageWorkspace(QWidget):
         if len(versions) != 2:
             self.comparison_selection_label.setText(
                 "Comparison: select exactly two versions with Ctrl+Click."
-                if len(versions) < 2 else
-                f"Comparison: {len(versions)} versions selected; select exactly two."
+                if len(versions) < 2
+                else f"Comparison: {len(versions)} versions selected; select exactly two."
             )
             self.compare_versions_button.setText("Compare Versions")
             self._update_action_states()
@@ -476,9 +478,7 @@ class StorageWorkspace(QWidget):
         asset = self.asset_model.record_at(self.asset_view.currentIndex().row())
         stream = self.stream_model.record_at(self.stream_view.currentIndex().row())
         if all((project, asset, stream, self.stored_comparison_service)):
-            self.stored_comparison_service.resolve_pair(
-                project.code, asset.code, stream.name, versions
-            )
+            self.stored_comparison_service.resolve_pair(project.code, asset.code, stream.name, versions)
         self._update_action_states()
 
     def _comparison_pair_loaded(self, pair):
@@ -488,9 +488,11 @@ class StorageWorkspace(QWidget):
             f"v{pair.target.version_number:04d} Current / Target | {pair.message}"
         )
         self.compare_versions_button.setText(
-            "Compare Versions" if pair.ready else
-            "Prepare Comparison" if pair.readiness.value == "preparation_required" else
-            "Comparison Unavailable"
+            "Compare Versions"
+            if pair.ready
+            else "Prepare Comparison"
+            if pair.readiness.value == "preparation_required"
+            else "Comparison Unavailable"
         )
         self._update_action_states()
 
@@ -528,9 +530,11 @@ class StorageWorkspace(QWidget):
         self.cancel_upload_button.setVisible(preparing)
         self.cancel_upload_button.setText("Cancel Preparation" if preparing else "Cancel Upload")
         self.compare_versions_button.setText(
-            "Preparing Comparison..." if preparing else
-            "Compare Versions" if self.comparison_pair and self.comparison_pair.ready else
-            "Prepare Comparison"
+            "Preparing Comparison..."
+            if preparing
+            else "Compare Versions"
+            if self.comparison_pair and self.comparison_pair.ready
+            else "Prepare Comparison"
         )
         if not preparing:
             self.progress_bar.reset()
@@ -539,10 +543,7 @@ class StorageWorkspace(QWidget):
     def _comparison_preparation_progress(self, transferred, total, relative_path):
         self.progress_bar.setMaximum(max(total, 1))
         self.progress_bar.setValue(transferred)
-        self.status_label.setText(
-            f"Preparing comparison: {relative_path} "
-            f"({transferred:,} of {total:,} bytes)..."
-        )
+        self.status_label.setText(f"Preparing comparison: {relative_path} ({transferred:,} of {total:,} bytes)...")
 
     def _comparison_preparation_failed(self, message):
         self.status_label.setText(f"Comparison preparation failed: {message}")
@@ -694,14 +695,12 @@ class StorageWorkspace(QWidget):
         self.file_model.set_records(collection.items)
         for stored_file in collection.items:
             self._update_file_cache_status(stored_file)
-        cache_entries = (
-            self._inspect_file(stored_file)
-            for stored_file in collection.items
+        cache_entries = (self._inspect_file(stored_file) for stored_file in collection.items)
+        cached_count = (
+            sum(entry is not None and entry.status.value == "available" for entry in cache_entries)
+            if self.cache_manager
+            else 0
         )
-        cached_count = sum(
-            entry is not None and entry.status.value == "available"
-            for entry in cache_entries
-        ) if self.cache_manager else 0
         self.detail_files.setText(f"Files: {collection.count} | Cached: {cached_count}")
         self._update_version_readiness()
         self.status_label.setText("Version loaded.")
@@ -721,6 +720,7 @@ class StorageWorkspace(QWidget):
         if not all((project, asset, stream, version)):
             return None
         from s_usd_desktop.cache import CacheLocation
+
         return CacheLocation(project.code, asset.code, stream.name, version.number)
 
     def _inspect_file(self, stored_file):
@@ -728,24 +728,14 @@ class StorageWorkspace(QWidget):
         if not self.cache_manager or not location or not stored_file:
             return None
         return self.cache_manager.inspect(
-            location.project_code,
-            location.asset_code,
-            location.stream_name,
-            location.version_number,
-            stored_file
+            location.project_code, location.asset_code, location.stream_name, location.version_number, stored_file
         )
 
     def _update_file_cache_status(self, stored_file):
         entry = self._inspect_file(stored_file)
-        labels = {
-            "missing": "Not cached",
-            "available": "Cached",
-            "stale": "Stale",
-            "corrupt": "Corrupt"
-        }
+        labels = {"missing": "Not cached", "available": "Cached", "stale": "Stale", "corrupt": "Corrupt"}
         self.file_model.set_cache_status(
-            stored_file.id,
-            labels.get(entry.status.value, entry.status.value) if entry else "Unavailable"
+            stored_file.id, labels.get(entry.status.value, entry.status.value) if entry else "Unavailable"
         )
 
     def _version_resolution(self):
@@ -761,7 +751,7 @@ class StorageWorkspace(QWidget):
             "root_not_cached": "Root layer not cached",
             "dependencies_not_cached": "Dependencies not cached",
             "cache_invalid": "Cache stale or corrupt",
-            "ready": "Ready"
+            "ready": "Ready",
         }
         text = labels.get(resolution.readiness.value, "Unavailable") if resolution else "—"
         self.detail_readiness.setText(f"Readiness: {text}")
@@ -770,18 +760,12 @@ class StorageWorkspace(QWidget):
     def _download_version(self, root_only):
         location = self._cache_location()
         if location and self.version_download_service:
-            self.version_download_service.download(
-                self.file_model.records,
-                location,
-                root_only=root_only
-            )
+            self.version_download_service.download(self.file_model.records, location, root_only=root_only)
 
     def _version_download_progress(self, transferred, total, relative_path):
         self.progress_bar.setMaximum(max(total, 1))
         self.progress_bar.setValue(transferred)
-        self.status_label.setText(
-            f"Downloading version: {relative_path} ({transferred:,} of {total:,} bytes)..."
-        )
+        self.status_label.setText(f"Downloading version: {relative_path} ({transferred:,} of {total:,} bytes)...")
 
     def _version_download_completed(self, _entries):
         for stored_file in self.file_model.records:
@@ -815,15 +799,11 @@ class StorageWorkspace(QWidget):
         if validate:
             resolution = self._version_resolution()
             self.local_source_validation_requested.emit(
-                str(root_path),
-                self.current_version_id,
-                resolution.root_file.id
+                str(root_path), self.current_version_id, resolution.root_file.id
             )
         else:
             self.local_source_open_requested.emit(str(root_path))
-        self.status_label.setText(
-            f"{'Validating' if validate else 'Opened'} cached version root: {root_path}"
-        )
+        self.status_label.setText(f"{'Validating' if validate else 'Opened'} cached version root: {root_path}")
 
     def _download_file(self):
         stored_file = self._selected_file()
@@ -879,11 +859,7 @@ class StorageWorkspace(QWidget):
         if not stored_file or not location:
             return
         self.cache_manager.remove_file(
-            location.project_code,
-            location.asset_code,
-            location.stream_name,
-            location.version_number,
-            stored_file.id
+            location.project_code, location.asset_code, location.stream_name, location.version_number, stored_file.id
         )
         self._update_file_cache_status(stored_file)
         self.status_label.setText("Local cached file removed. Remote content was not changed.")
@@ -896,15 +872,12 @@ class StorageWorkspace(QWidget):
         answer = QMessageBox.question(
             self,
             "Clear Version Cache",
-            "Remove all local cached files for this version? Remote files will not be changed."
+            "Remove all local cached files for this version? Remote files will not be changed.",
         )
         if answer != QMessageBox.Yes:
             return
         self.cache_manager.clear_version(
-            location.project_code,
-            location.asset_code,
-            location.stream_name,
-            location.version_number
+            location.project_code, location.asset_code, location.stream_name, location.version_number
         )
         for stored_file in self.file_model.records:
             self._update_file_cache_status(stored_file)
@@ -919,6 +892,7 @@ class StorageWorkspace(QWidget):
             configuration = dialog.configuration()
             self.cache_settings.save(configuration)
             from s_usd_desktop.cache import CacheManager
+
             self.cache_manager = CacheManager(configuration)
             self.download_service.cache_manager = self.cache_manager
             self.version_open_service.cache_manager = self.cache_manager
@@ -942,9 +916,7 @@ class StorageWorkspace(QWidget):
     def _update_history_actions(self):
         selected = self._selected_validation_run()
         active = bool(self.validation_history_service and self.validation_history_service.active)
-        self.refresh_history_button.setEnabled(
-            self.connected and self.current_version_id is not None and not active
-        )
+        self.refresh_history_button.setEnabled(self.connected and self.current_version_id is not None and not active)
         self.open_history_button.setEnabled(selected is not None and not active)
 
     def _validation_history_loaded(self, version_id, records):
@@ -956,8 +928,7 @@ class StorageWorkspace(QWidget):
             latest = records[0]
             result = "Passed" if latest.publish_passed else "Failed"
             self.detail_validation.setText(
-                f"Latest validation: {result} | {latest.profile_name} | "
-                f"{latest.completed_at:%Y-%m-%d %H:%M}"
+                f"Latest validation: {result} | {latest.profile_name} | {latest.completed_at:%Y-%m-%d %H:%M}"
             )
         else:
             self.detail_validation.setText("Latest validation: Never")
@@ -974,6 +945,7 @@ class StorageWorkspace(QWidget):
             return
 
         from s_usd_core.validation import PublishReport
+
         report = PublishReport.from_dict(record.report)
         self.historical_report_ready.emit(report)
         self.status_label.setText(f"Opened validation history: {record.id}")
@@ -981,8 +953,7 @@ class StorageWorkspace(QWidget):
     def _validation_history_loading(self, scope, loading):
         if loading:
             self.status_label.setText(
-                "Loading validation history..." if scope == "history"
-                else "Loading historical report..."
+                "Loading validation history..." if scope == "history" else "Loading historical report..."
             )
         self._update_history_actions()
 
@@ -1001,7 +972,7 @@ class StorageWorkspace(QWidget):
             "assets": self.asset_model,
             "streams": self.stream_model,
             "versions": self.version_model,
-            "files": self.file_model
+            "files": self.file_model,
         }[scope].clear()
 
     def _show_version(self, version):
@@ -1029,17 +1000,14 @@ class StorageWorkspace(QWidget):
             "validation_failed": "Validation required",
             "validated": "Ready",
             "published": "Published and immutable",
-            "deprecated": "Deprecated"
+            "deprecated": "Deprecated",
         }.get(version.status, "Unknown")
         fingerprint = version.published_content_fingerprint or "Not published"
         self.detail_publish_readiness.setText(f"Publish Readiness: {readiness}")
         self.detail_fingerprint.setText(f"Content Identity: {fingerprint}")
 
     def _current_version(self):
-        return next(
-            (item for item in self.version_model.records if item.id == self.current_version_id),
-            None
-        )
+        return next((item for item in self.version_model.records if item.id == self.current_version_id), None)
 
     def _update_lifecycle_action(self, version, active=False):
         status = version.status if version else ""
@@ -1049,14 +1017,12 @@ class StorageWorkspace(QWidget):
             "validation_failed": "Validate Again",
             "validated": "Publish Version",
             "published": "Published",
-            "deprecated": "Deprecated"
+            "deprecated": "Deprecated",
         }
         self.lifecycle_button.setText(labels.get(status, "Select a Version"))
-        self.lifecycle_button.setEnabled(bool(
-            version and not active and status in {
-                "draft", "uploaded", "validation_failed", "validated"
-            }
-        ))
+        self.lifecycle_button.setEnabled(
+            bool(version and not active and status in {"draft", "uploaded", "validation_failed", "validated"})
+        )
         self.deprecate_button.setVisible(status == "published")
         self.deprecate_button.setEnabled(status == "published" and not active)
 
@@ -1075,10 +1041,7 @@ class StorageWorkspace(QWidget):
         version = self._current_version()
         if not version:
             return
-        fingerprint = (
-            self.latest_validation_run.content_fingerprint
-            if self.latest_validation_run else "Unavailable"
-        )
+        fingerprint = self.latest_validation_run.content_fingerprint if self.latest_validation_run else "Unavailable"
         message = (
             f"Publish v{version.number:04d}?\n\n"
             "Publishing locks the version and prevents file additions, "
@@ -1086,14 +1049,11 @@ class StorageWorkspace(QWidget):
             f"Files: {len(self.file_model.records)}\n"
             f"Content fingerprint: {fingerprint}"
         )
-        buttons = (
-            QMessageBox.StandardButton.Cancel |
-            QMessageBox.StandardButton.Yes
-        )
-        if QMessageBox.question(
-            self, "Publish Version", message, buttons,
-            QMessageBox.StandardButton.Cancel
-        ) == QMessageBox.StandardButton.Yes:
+        buttons = QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Yes
+        if (
+            QMessageBox.question(self, "Publish Version", message, buttons, QMessageBox.StandardButton.Cancel)
+            == QMessageBox.StandardButton.Yes
+        ):
             self.catalog_service.publish_version(version.id)
 
     def _deprecate_version(self):
@@ -1105,20 +1065,15 @@ class StorageWorkspace(QWidget):
             "The version will remain available and immutable, but should no "
             "longer be used for new work."
         )
-        buttons = (
-            QMessageBox.StandardButton.Cancel |
-            QMessageBox.StandardButton.Yes
-        )
-        if QMessageBox.question(
-            self, "Deprecate Version", message, buttons,
-            QMessageBox.StandardButton.Cancel
-        ) == QMessageBox.StandardButton.Yes:
+        buttons = QMessageBox.StandardButton.Cancel | QMessageBox.StandardButton.Yes
+        if (
+            QMessageBox.question(self, "Deprecate Version", message, buttons, QMessageBox.StandardButton.Cancel)
+            == QMessageBox.StandardButton.Yes
+        ):
             self.catalog_service.deprecate_version(version.id)
 
     def _lifecycle_completed(self, record):
-        self.status_label.setText(
-            f"v{record.number:04d} lifecycle changed to {record.status}."
-        )
+        self.status_label.setText(f"v{record.number:04d} lifecycle changed to {record.status}.")
         if self.current_stream_id:
             self.catalog_service.load_versions(self.current_stream_id)
 

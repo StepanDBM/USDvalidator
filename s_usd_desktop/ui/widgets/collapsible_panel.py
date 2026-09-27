@@ -21,9 +21,7 @@ class CollapsiblePanel(QWidget):
         self.toggle_button.setText(title)
         self.toggle_button.setCheckable(True)
         self.toggle_button.setChecked(expanded)
-        self.toggle_button.setToolButtonStyle(
-            Qt.ToolButtonStyle.ToolButtonTextBesideIcon
-        )
+        self.toggle_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         self.toggle_button.setSizePolicy(
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Fixed,
@@ -42,10 +40,6 @@ class CollapsiblePanel(QWidget):
         self.toggle_button.setChecked(expanded)
 
     def _set_expanded(self, expanded):
-        self.toggle_button.setArrowType(
-            Qt.ArrowType.DownArrow
-            if expanded
-            else Qt.ArrowType.RightArrow
-        )
+        self.toggle_button.setArrowType(Qt.ArrowType.DownArrow if expanded else Qt.ArrowType.RightArrow)
         self.content_widget.setVisible(expanded)
         self.updateGeometry()

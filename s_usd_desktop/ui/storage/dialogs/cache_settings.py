@@ -27,7 +27,7 @@ class CacheSettings:
         return CacheConfiguration(
             root=Path(self.settings.value("cache/root", str(default_cache_root()), str)),
             maximum_bytes=self.settings.value("cache/maximum_gib", 50, int) * 1024**3,
-            verify_on_access=self.settings.value("cache/verify_on_access", True, bool)
+            verify_on_access=self.settings.value("cache/verify_on_access", True, bool),
         )
 
     def save(self, configuration):
@@ -35,8 +35,6 @@ class CacheSettings:
         self.settings.setValue("cache/maximum_gib", configuration.maximum_bytes // 1024**3)
         self.settings.setValue("cache/verify_on_access", configuration.verify_on_access)
         self.settings.sync()
-
-
 
 
 class CacheSettingsDialog(QDialog):
@@ -81,7 +79,7 @@ class CacheSettingsDialog(QDialog):
         return CacheConfiguration(
             root=Path(self.root.text().strip()),
             maximum_bytes=self.maximum_gib.value() * 1024**3,
-            verify_on_access=self.verify.isChecked()
+            verify_on_access=self.verify.isChecked(),
         )
 
     def accept(self):
