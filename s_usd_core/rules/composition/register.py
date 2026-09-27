@@ -1,11 +1,29 @@
 # rules/composition/register.py
 
 from s_usd_core.contexts import StageHealthContext
-from s_usd_core.validation.check_ids import *
+from s_usd_core.validation.check_ids import (
+    USD_ASSET_PATHS_RELATIVE,
+    USD_COMPOSITION_LAYERS_VALID,
+    USD_NO_UNEXPECTED_ARCS,
+    USD_NO_UNRESOLVED_PAYLOADS,
+    USD_NO_UNRESOLVED_REFERENCES,
+    USD_PAYLOAD_COUNT_LIMIT,
+    USD_PAYLOADS_ALLOWED,
+    USD_REFERENCE_COUNT_LIMIT,
+)
 from s_usd_core.validation.enums import Severity
 from s_usd_core.validation.models import CheckDefinition
 
-from .checks import *
+from .checks import (
+    check_asset_paths_relative,
+    check_composition_layers_valid,
+    check_no_unexpected_arcs,
+    check_no_unresolved_payloads,
+    check_no_unresolved_references,
+    check_payload_count_limit,
+    check_payloads_allowed,
+    check_reference_count_limit,
+)
 
 
 def register_composition_checks(registry):

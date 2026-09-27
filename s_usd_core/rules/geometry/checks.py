@@ -1,7 +1,18 @@
 # rules/geometry/checks.py
 
 from s_usd_core.rules.common import target_results
-from s_usd_core.validation.check_ids import *
+from s_usd_core.validation.check_ids import (
+    USD_MESH_FACE_VERTEX_COUNTS_VALID,
+    USD_MESH_HAS_EXTENT,
+    USD_MESH_HAS_VALID_POINTS,
+    USD_MESH_HAS_VALID_TOPOLOGY,
+    USD_MESH_ORIENTATION_VALID,
+    USD_MESH_POINT_COUNT_LIMIT,
+    USD_MESH_POLYGON_COUNT_LIMIT,
+    USD_MESH_SUBDIVISION_SCHEME_VALID,
+    USD_STAGE_MESH_COUNT_LIMIT,
+    USD_STAGE_TOTAL_POLYGON_COUNT_LIMIT,
+)
 from s_usd_core.validation.enums import CheckStatus
 from s_usd_core.validation.models import CheckResult
 

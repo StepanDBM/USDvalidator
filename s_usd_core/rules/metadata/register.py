@@ -1,11 +1,31 @@
 # rules/metadata/register.py
 
 from s_usd_core.contexts import StageHealthContext
-from s_usd_core.validation.check_ids import *
+from s_usd_core.validation.check_ids import (
+    USD_DEFAULT_PRIM_AUTHORED,
+    USD_DEFAULT_PRIM_VALID,
+    USD_FRAME_RATE_VALID,
+    USD_METERS_PER_UNIT_AUTHORED,
+    USD_METERS_PER_UNIT_VALID,
+    USD_ROOT_PRIM_NAME_VALID,
+    USD_ROOT_PRIM_TYPE_VALID,
+    USD_TIME_CODES_VALID,
+    USD_UP_AXIS_VALID,
+)
 from s_usd_core.validation.enums import Severity
 from s_usd_core.validation.models import CheckDefinition
 
-from .checks import *
+from .checks import (
+    check_default_prim_authored,
+    check_default_prim_valid,
+    check_frame_rate_valid,
+    check_meters_per_unit_authored,
+    check_meters_per_unit_valid,
+    check_root_prim_name_valid,
+    check_root_prim_type_valid,
+    check_time_codes_valid,
+    check_up_axis_valid,
+)
 
 
 def register_metadata_checks(registry):

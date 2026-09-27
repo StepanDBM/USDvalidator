@@ -1,6 +1,12 @@
 # rules/animation/checks.py
 
-from s_usd_core.validation.check_ids import *
+from s_usd_core.validation.check_ids import (
+    USD_ANIMATION_FRAME_RATE_VALID,
+    USD_ANIMATION_HAS_NO_INVALID_TIME_SAMPLES,
+    USD_FRAME_RANGE_LENGTH_LIMIT,
+    USD_STAGE_FRAME_RANGE_VALID,
+    USD_TIME_SAMPLE_COUNT_LIMIT,
+)
 from s_usd_core.validation.enums import CheckStatus
 from s_usd_core.validation.models import CheckResult
 

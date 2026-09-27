@@ -1,11 +1,23 @@
 # rules/stage/register.py
 
 from s_usd_core.contexts import StageContext, StageHealthContext
-from s_usd_core.validation.check_ids import *
+from s_usd_core.validation.check_ids import (
+    USD_STAGE_CAN_OPEN,
+    USD_STAGE_HAS_PRIMS,
+    USD_STAGE_HAS_ROOT_PRIM,
+    USD_STAGE_PRIM_COUNT_LIMIT,
+    USD_STAGE_PRIM_DEPTH_LIMIT,
+)
 from s_usd_core.validation.enums import Severity
 from s_usd_core.validation.models import CheckDefinition
 
-from .checks import *
+from .checks import (
+    check_stage_can_open,
+    check_stage_has_prims,
+    check_stage_has_root_prim,
+    check_stage_prim_count_limit,
+    check_stage_prim_depth_limit,
+)
 
 
 def register_stage_checks(registry):

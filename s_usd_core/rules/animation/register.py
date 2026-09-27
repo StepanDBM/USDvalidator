@@ -1,11 +1,23 @@
 # rules/animation/register.py
 
 from s_usd_core.contexts import StageHealthContext
-from s_usd_core.validation.check_ids import *
+from s_usd_core.validation.check_ids import (
+    USD_ANIMATION_FRAME_RATE_VALID,
+    USD_ANIMATION_HAS_NO_INVALID_TIME_SAMPLES,
+    USD_FRAME_RANGE_LENGTH_LIMIT,
+    USD_STAGE_FRAME_RANGE_VALID,
+    USD_TIME_SAMPLE_COUNT_LIMIT,
+)
 from s_usd_core.validation.enums import Severity
 from s_usd_core.validation.models import CheckDefinition
 
-from .checks import *
+from .checks import (
+    check_animation_frame_rate_valid,
+    check_animation_has_no_invalid_time_samples,
+    check_frame_range_length_limit,
+    check_stage_frame_range_valid,
+    check_time_sample_count_limit,
+)
 
 
 def register_animation_checks(registry):
