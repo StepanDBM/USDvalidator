@@ -103,7 +103,8 @@ jobs:
             s_usd_service \
             s_usd_desktop \
             --output-format github
-            - name: Verify production source formatting
+
+      - name: Verify production source formatting
         run: |
           python -m ruff format \
             --check \
