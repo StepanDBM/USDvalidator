@@ -23,18 +23,17 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from s_usd_core.validation.config_fields import get_config_fields, get_fields_for_check
+from s_usd_core.validation.profiles import ValidationProfile
+from s_usd_core.validation.rule_config import ValidationRuleConfig
 from s_usd_desktop.ui.dialogs import CheckPickerDialog, OverridePickerDialog
 from s_usd_desktop.ui.menus.check_context_menu import CheckContextMenu
 from s_usd_desktop.ui.menus.override_context_menu import OverrideContextMenu
 from s_usd_desktop.ui.models.profile_draft import ProfileDraft
 from s_usd_desktop.ui.tooltips import TooltipText
-from s_usd_core.validation.config_fields import get_config_fields, get_fields_for_check
-from s_usd_core.validation.profiles import ValidationProfile
-from s_usd_core.validation.rule_config import ValidationRuleConfig
 
 from .collapsible_panel import CollapsiblePanel
 from .vertical_resize_handle import VerticalResizeHandle
-
 
 __all__ = ["ProfileDraft", "ProfileEditor"]
 

@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtCore import Signal
-from PySide6.QtGui import QColor
-from pxr import Gf, Sdf, Usd, UsdGeom
-from pxr.Usdviewq.common import SelectionHighlightModes
-from pxr.Usdviewq.viewSettingsDataModel import RefinementComplexities
+from pxr import Sdf, Usd, UsdGeom
+from pxr.Usdviewq.common import ClearColors, SelectionHighlightModes
 from pxr.Usdviewq.stageView import StageView
-from pxr.Usdviewq.common import ClearColors
+from pxr.Usdviewq.viewSettingsDataModel import RefinementComplexities
+from PySide6.QtCore import Signal
 
 
 class StageViewAdapter(StageView):

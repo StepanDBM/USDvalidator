@@ -2,22 +2,22 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtCore import QTimer, Qt, Signal
+from pxr.Usdviewq.common import RenderModes
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QFileDialog, QLabel, QMessageBox, QSplitter, QVBoxLayout, QWidget
-from pxr.Usdviewq.common import RenderModes
+
+from s_usd_desktop.ui.navigation import resolve_comparison_target, resolve_validation_target
 
 from .inspector import PrimInspector
 from .renderer_settings_dialog import RendererSettingsDialog
 from .stage_outliner import StageOutliner
 from .stage_view_adapter import StageViewAdapter
+from .timeline import TimelineWidget
 from .viewport_models import StageStatistics
 from .viewport_state import ViewportState
 from .viewport_toolbar import ViewportToolbar
 from .viewport_tools import ViewportTools
-from .timeline import TimelineWidget
-from s_usd_desktop.ui.navigation import resolve_comparison_target, resolve_validation_target
-
 
 DRAW_MODES = {
     "Smooth Shaded": RenderModes.SMOOTH_SHADED,

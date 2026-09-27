@@ -5,7 +5,6 @@ from pathlib import Path
 from .progress import CancellationToken, ProgressUpdate
 from .source_preflight import DiffMode
 
-
 SUMMARY_CONTEXT_LINES = 3
 SUMMARY_REGION_THRESHOLD = 15
 BINARY_MESSAGE = "Binary USD source. Text diff is unavailable."

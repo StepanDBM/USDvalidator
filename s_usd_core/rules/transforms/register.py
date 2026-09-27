@@ -1,22 +1,22 @@
 from s_usd_core.contexts import StageHealthContext
 from s_usd_core.validation.check_ids import (
-    USD_ROOT_TRANSFORM_IDENTITY,
-    USD_TRANSFORM_VALUES_FINITE,
-    USD_TRANSFORM_SCALE_NONZERO,
-    USD_NEGATIVE_SCALE_ALLOWED,
-    USD_XFORM_OP_COUNT_LIMIT,
     USD_MATRIX_XFORM_OPS_ALLOWED,
+    USD_NEGATIVE_SCALE_ALLOWED,
+    USD_ROOT_TRANSFORM_IDENTITY,
+    USD_TRANSFORM_SCALE_NONZERO,
+    USD_TRANSFORM_VALUES_FINITE,
+    USD_XFORM_OP_COUNT_LIMIT,
 )
 from s_usd_core.validation.enums import Severity
 from s_usd_core.validation.models import CheckDefinition
 
 from .checks import (
-    check_root_transform_identity,
-    check_transform_values_finite,
-    check_transform_scale_nonzero,
-    check_negative_scale_allowed,
-    check_xform_op_count_limit,
     check_matrix_xform_ops_allowed,
+    check_negative_scale_allowed,
+    check_root_transform_identity,
+    check_transform_scale_nonzero,
+    check_transform_values_finite,
+    check_xform_op_count_limit,
 )
 
 

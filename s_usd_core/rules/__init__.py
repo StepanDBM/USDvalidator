@@ -1,23 +1,23 @@
 from s_usd_core.validation.registry import ValidationRegistry
 
-from .stage import register_stage_checks
-from .metadata import register_metadata_checks
-from .composition import register_composition_checks
-from .geometry import register_geometry_checks
 from .animation import register_animation_checks
-from .dependencies import register_dependency_checks
-from .naming import register_naming_checks
-from .hierarchy import register_hierarchy_checks
-from .transforms import register_transforms_checks
-from .variants import register_variants_checks
 from .cameras import register_cameras_checks
+from .composition import register_composition_checks
+from .dependencies import register_dependency_checks
+from .geometry import register_geometry_checks
+from .hierarchy import register_hierarchy_checks
 from .instancing import register_instancing_checks
-from .packaging import register_packaging_checks
 from .layers import register_layers_checks
-from .uvs import register_uvs_checks
-from .normals import register_normals_checks
-from .shaders import register_shaders_checks
 from .materials import register_materials_checks
+from .metadata import register_metadata_checks
+from .naming import register_naming_checks
+from .normals import register_normals_checks
+from .packaging import register_packaging_checks
+from .shaders import register_shaders_checks
+from .stage import register_stage_checks
+from .transforms import register_transforms_checks
+from .uvs import register_uvs_checks
+from .variants import register_variants_checks
 
 
 def build_registry():

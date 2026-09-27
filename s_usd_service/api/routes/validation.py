@@ -3,11 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, status
 
 from s_usd_service.api.dependencies import DatabaseSession
-from s_usd_service.api.schemas.validation import (
-    ValidationRunCreate,
-    ValidationRunDetail,
-    ValidationRunRead
-)
+from s_usd_service.api.schemas.validation import ValidationRunCreate, ValidationRunDetail, ValidationRunRead
 from s_usd_service.database.repositories.validation import ValidationRunRepository
 
 router = APIRouter(tags=["Validation"])

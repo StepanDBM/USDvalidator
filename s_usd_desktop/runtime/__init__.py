@@ -3,13 +3,9 @@ from s_usd_desktop.runtime.bootstrap import (
     OpenUsdBootstrapResult,
     OpenUsdRuntimeLayout,
     bootstrap_openusd_runtime,
-    discover_openusd_runtime
+    discover_openusd_runtime,
 )
-from s_usd_desktop.runtime.capabilities import (
-    CapabilityProbe,
-    RuntimeCapabilities,
-    detect_runtime_capabilities
-)
+from s_usd_desktop.runtime.capabilities import CapabilityProbe, RuntimeCapabilities, detect_runtime_capabilities
 
 __all__ = [
     "CapabilityProbe",

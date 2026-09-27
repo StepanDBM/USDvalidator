@@ -1,8 +1,8 @@
 from s_usd_core.contexts import StageHealthContext
 from s_usd_core.validation.check_ids import (
     USD_MESH_NORMALS_AUTHORED,
-    USD_MESH_NORMALS_FINITE,
     USD_MESH_NORMALS_COUNT_VALID,
+    USD_MESH_NORMALS_FINITE,
     USD_MESH_NORMALS_INTERPOLATION_VALID,
 )
 from s_usd_core.validation.enums import Severity
@@ -10,8 +10,8 @@ from s_usd_core.validation.models import CheckDefinition
 
 from .checks import (
     check_mesh_normals_authored,
-    check_mesh_normals_finite,
     check_mesh_normals_count_valid,
+    check_mesh_normals_finite,
     check_mesh_normals_interpolation_valid,
 )
 

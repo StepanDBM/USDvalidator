@@ -22,7 +22,6 @@ from .source_preflight import (
 )
 from .text_diff import DiffLine, SourceDiffResult, build_side_by_side_diff, build_source_diff
 
-
 __all__ = [
     "CameraSnapshot",
     "InstancingSnapshot",

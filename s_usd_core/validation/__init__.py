@@ -5,7 +5,6 @@ from .models import CheckDefinition, CheckResult, CheckTargetResult, ValidationS
 from .publish_report import PublishReport
 from .registry import ValidationRegistry
 
-
 __all__ = [
     "CheckDefinition",
     "CheckResult",

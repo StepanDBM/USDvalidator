@@ -5,11 +5,7 @@ from typing import BinaryIO
 from uuid import uuid4
 
 from s_usd_service.storage.base import ObjectStorage
-from s_usd_service.storage.errors import (
-    InvalidStorageKeyError,
-    StorageLimitExceededError,
-    StorageObjectNotFoundError
-)
+from s_usd_service.storage.errors import InvalidStorageKeyError, StorageLimitExceededError, StorageObjectNotFoundError
 from s_usd_service.storage.models import StoredObject
 
 

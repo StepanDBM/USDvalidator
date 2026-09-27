@@ -2,9 +2,7 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QAbstractItemView, QMenu, QTreeWidget, QTreeWidgetItem
 
-
 from s_usd_desktop.ui.tooltips import TooltipText
-
 
 KIND_COLORS = {
     "ADDED": "#3fb950",

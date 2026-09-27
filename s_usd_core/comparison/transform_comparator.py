@@ -1,6 +1,5 @@
 from .models import ChangeImpact, ChangeKind, SemanticChange
 
-
 TRANSFORM_CHECK_IDS = {
     "op_names": ("usd.transform.xform_op_count_limit", "usd.transform.matrix_xform_ops_allowed"),
     "resets_stack": ("usd.transform.root_transform_identity",),

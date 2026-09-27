@@ -1,41 +1,40 @@
-from PySide6.QtCore import QUrl, Signal, Qt
+from PySide6.QtCore import Qt, QUrl, Signal
 from PySide6.QtGui import QAction, QDesktopServices
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QFrame,
-    QGridLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QListView,
-    QMessageBox,
     QMenu,
+    QMessageBox,
     QProgressBar,
     QPushButton,
     QSplitter,
     QTableView,
     QToolButton,
     QVBoxLayout,
-    QWidget
+    QWidget,
 )
 
 from s_usd_desktop.ui.storage.dialogs import (
+    CacheSettingsDialog,
     CreateAssetDialog,
     CreateProjectDialog,
     CreateStreamDialog,
     CreateVersionDialog,
     UploadFileDialog,
-    CacheSettingsDialog
 )
-from s_usd_desktop.ui.tooltips import TooltipText
 from s_usd_desktop.ui.storage.models import (
     AssetListModel,
     ProjectListModel,
     StoredFileTableModel,
     StreamListModel,
+    ValidationHistoryTableModel,
     VersionTableModel,
-    ValidationHistoryTableModel
 )
+from s_usd_desktop.ui.tooltips import TooltipText
 
 
 class StorageWorkspace(QWidget):

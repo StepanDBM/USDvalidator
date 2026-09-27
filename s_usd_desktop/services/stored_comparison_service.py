@@ -10,7 +10,7 @@ from s_usd_desktop.cache import (
     CacheLocation,
     DownloadCancellationToken,
     DownloadCancelledError,
-    VerifiedDownloader
+    VerifiedDownloader,
 )
 from s_usd_desktop.client import FileClient, SUsdvApiClient
 from s_usd_desktop.services.version_open_service import VersionOpenService

@@ -1,5 +1,7 @@
 from dataclasses import dataclass
+
 from pxr import Sdf
+
 
 @dataclass(frozen=True)
 class ValidationTarget:

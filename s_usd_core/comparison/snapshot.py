@@ -11,8 +11,8 @@ from .advanced_snapshot import extract_advanced_domains
 from .composition_snapshot import extract_extended_domains
 from .models import (
     AnimationSnapshot,
-    DependencySnapshot,
     CameraSnapshot,
+    DependencySnapshot,
     InstancingSnapshot,
     LayerSnapshot,
     MaterialBindingSnapshot,

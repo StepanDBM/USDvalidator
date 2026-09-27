@@ -1,12 +1,5 @@
 from PySide6.QtCore import Signal
-from PySide6.QtWidgets import (
-    QApplication,
-    QLabel,
-    QPlainTextEdit,
-    QPushButton,
-    QVBoxLayout,
-    QWidget
-)
+from PySide6.QtWidgets import QApplication, QLabel, QPlainTextEdit, QPushButton, QVBoxLayout, QWidget
 
 
 class UnavailableUsdViewportWidget(QWidget):

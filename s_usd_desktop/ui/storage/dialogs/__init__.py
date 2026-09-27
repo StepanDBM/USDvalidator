@@ -3,7 +3,7 @@ from s_usd_desktop.ui.storage.dialogs.catalog import (
     CreateAssetDialog,
     CreateProjectDialog,
     CreateStreamDialog,
-    CreateVersionDialog
+    CreateVersionDialog,
 )
 from s_usd_desktop.ui.storage.dialogs.upload import UploadFileDialog
 

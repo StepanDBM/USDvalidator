@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 
-from .profiles import ValidationProfile
 from .attribute_override import AttributeOverride
+from .profiles import ValidationProfile
 
 
 class ProfileRegistry:

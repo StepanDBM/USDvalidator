@@ -1,6 +1,7 @@
 # rules/dependencies/register.py
 
 from s_usd_core.contexts import StageHealthContext
+from s_usd_core.validation.check_ids import USD_DEPENDENCIES_RESOLVE, USD_PAYLOADS_RESOLVE, USD_REFERENCES_RESOLVE
 from s_usd_core.validation.enums import Severity
 from s_usd_core.validation.models import CheckDefinition
 
@@ -10,11 +11,6 @@ from .checks import (
     check_references_resolve,
 )
 
-from s_usd_core.validation.check_ids import (
-    USD_DEPENDENCIES_RESOLVE,
-    USD_REFERENCES_RESOLVE,
-    USD_PAYLOADS_RESOLVE
-)
 
 def register_dependency_checks(registry):
     registry.register(CheckDefinition(

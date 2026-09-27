@@ -3,19 +3,19 @@ from dataclasses import dataclass
 from PySide6.QtCore import QAbstractTableModel, QEvent, QModelIndex, QPoint, Qt
 from PySide6.QtGui import QColor, QFontDatabase, QKeySequence, QPainter, QPen, QShortcut
 from PySide6.QtWidgets import (
-    QApplication,
-    QMenu,
     QAbstractItemView,
+    QApplication,
     QHeaderView,
+    QMenu,
     QMessageBox,
     QTableView,
     QVBoxLayout,
     QWidget,
 )
 
-from .diff_toolbar import DiffToolbar
 from s_usd_desktop.ui.tooltips import TooltipText
 
+from .diff_toolbar import DiffToolbar
 
 CHANGED_COLLAPSE_THRESHOLD = 15
 UNCHANGED_COLLAPSE_THRESHOLD = 20

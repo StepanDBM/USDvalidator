@@ -5,20 +5,17 @@ from pxr import UsdGeom
 
 from s_usd_core.extraction.animation import AnimationExtractor
 from s_usd_core.extraction.geometry import GeometryExtractor
-from s_usd_core.extraction.pipeline import PipelineExtractor
 from s_usd_core.extraction.lookdev import LookdevExtractor
+from s_usd_core.extraction.pipeline import PipelineExtractor
 
 
 class StageHealthExtractor:
     def extract(self, stage, source_path, open_duration_seconds):
         source_path = Path(source_path)
         from s_usd_core.contexts import (
-            CompositionStatistics,
             FileHealth,
-            SceneStatistics,
             StageHealthContext,
             StageMetadata,
-            TypeCounts,
         )
 
         default_prim_path = self._get_default_prim_path(stage)

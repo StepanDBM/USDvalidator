@@ -1,7 +1,7 @@
 from PySide6.QtCore import QObject, Signal, Slot
 
-from s_usd_core.batch import CancellationToken, SourceDiscoveryOptions, discover_usd_files
-from s_usd_core.reporting import ExportOptions, export_batch
+from s_usd_core.batch import CancellationToken, discover_usd_files
+from s_usd_core.reporting import export_batch
 from s_usd_core.validation.batch_validator import BatchValidator
 
 

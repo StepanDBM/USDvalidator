@@ -1,5 +1,7 @@
 # rules/metadata/checks.py
 
+from pxr import Sdf
+
 from s_usd_core.validation.check_ids import (
     USD_DEFAULT_PRIM_AUTHORED,
     USD_DEFAULT_PRIM_VALID,
@@ -13,8 +15,6 @@ from s_usd_core.validation.check_ids import (
 )
 from s_usd_core.validation.enums import CheckStatus
 from s_usd_core.validation.models import CheckResult
-
-from pxr import Sdf
 
 
 def _result(

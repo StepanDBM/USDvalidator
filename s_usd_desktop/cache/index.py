@@ -8,7 +8,6 @@ from uuid import UUID
 from s_usd_desktop.cache.entry import CacheEntry
 from s_usd_desktop.cache.errors import CacheManifestError
 
-
 SCHEMA_VERSION = 1
 
 

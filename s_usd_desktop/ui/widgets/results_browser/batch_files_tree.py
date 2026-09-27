@@ -5,8 +5,6 @@ from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QAbstractItemView, QTreeWidget, QTreeWidgetItem
 
 from s_usd_core.batch.discovery_tree import build_report_tree
-
-
 from s_usd_desktop.ui.tooltips import TooltipText
 
 

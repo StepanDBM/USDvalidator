@@ -2,7 +2,6 @@ import hashlib
 import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from pathlib import Path
 
 from s_usd_desktop.cache.entry import CacheEntry, CacheEntryStatus
 from s_usd_desktop.cache.errors import (
@@ -10,7 +9,7 @@ from s_usd_desktop.cache.errors import (
     ChecksumMismatchError,
     DownloadCancelledError,
     SizeMismatchError,
-    StoredContentMissingError
+    StoredContentMissingError,
 )
 from s_usd_desktop.client.errors import ResourceNotFoundError
 

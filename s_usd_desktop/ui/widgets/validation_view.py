@@ -17,17 +17,15 @@ from PySide6.QtWidgets import (
 
 from s_usd_core.batch import SourceDiscoveryOptions
 from s_usd_core.reporting import ExportOptions
-from s_usd_desktop.ui.workers import ValidationWorker
 from s_usd_core.validation import PublishChecker
+from s_usd_desktop.ui.tooltips import TooltipText
+from s_usd_desktop.ui.workers import ValidationWorker
 
 from .collapsible_panel import CollapsiblePanel
 from .profile_selector import ProfileSelector
 from .results_browser import ResultsBrowser
 from .source_selector import SourceSelector
 from .validate_button import ValidateButton
-
-
-from s_usd_desktop.ui.tooltips import TooltipText
 
 
 class ValidationView(QWidget):

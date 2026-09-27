@@ -13,7 +13,6 @@ from .advanced_comparators import (
     TimeConfigurationComparator,
     ValueClipComparator,
 )
-from .models import CorrelationConfidence, ChangeKind, ComparisonResult, SemanticChange
 from .composition_comparators import (
     CollectionComparator,
     CompositionArcComparator,
@@ -23,6 +22,7 @@ from .composition_comparators import (
     SublayerComparator,
 )
 from .lookdev_comparators import MaterialBindingComparator, MaterialComparator, ShaderComparator
+from .models import ChangeKind, ComparisonResult, CorrelationConfidence, SemanticChange
 from .publish_domain_comparators import (
     CameraComparator,
     DependencyComparator,
@@ -31,8 +31,8 @@ from .publish_domain_comparators import (
     SurfaceComparator,
 )
 from .snapshot import StageComparisonSnapshotBuilder
-from .variant_comparator import VariantComparator
 from .transform_comparator import TransformComparator
+from .variant_comparator import VariantComparator
 
 
 class SemanticComparisonEngine:

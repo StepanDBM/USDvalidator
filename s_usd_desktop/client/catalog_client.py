@@ -1,10 +1,4 @@
-from s_usd_desktop.client.models import (
-    AssetRecord,
-    ProjectRecord,
-    ServiceHealth,
-    StreamRecord,
-    VersionRecord
-)
+from s_usd_desktop.client.models import AssetRecord, ProjectRecord, ServiceHealth, StreamRecord, VersionRecord
 
 
 class CatalogClient:

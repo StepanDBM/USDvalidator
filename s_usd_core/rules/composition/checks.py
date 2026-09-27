@@ -4,6 +4,7 @@ from s_usd_core.validation.check_ids import *
 from s_usd_core.validation.enums import CheckStatus
 from s_usd_core.validation.models import CheckResult
 
+
 def _result(check_id, label, category, runtime, passed, message, details=None, suggestion=""):
     return [CheckResult(
         check_id=check_id, label=label, category=category,

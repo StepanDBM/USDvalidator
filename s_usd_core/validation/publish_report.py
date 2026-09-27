@@ -2,9 +2,8 @@
 
 import json
 from dataclasses import dataclass, field
-from pathlib import Path
-
 from enum import Enum
+from pathlib import Path
 
 from s_usd_core.contexts import StageHealthContext
 
@@ -17,6 +16,7 @@ from .version import (
     TOOL_NAME,
     TOOL_VERSION,
 )
+
 
 #trying to solve the fields that may contain tuples, while JSON converts tuples into lists, my code doesn't internaly. I need to normalize these values when building the dictionary.
 # before having this normalization:

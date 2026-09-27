@@ -1,18 +1,18 @@
 from s_usd_core.contexts import StageHealthContext
 from s_usd_core.validation.check_ids import (
-    USD_SINGLE_ROOT_PRIM_REQUIRED,
-    USD_REQUIRED_HIERARCHY_PATHS_EXIST,
     USD_MESHES_UNDER_REQUIRED_SCOPE,
     USD_NO_MESHES_AT_PSEUDO_ROOT,
+    USD_REQUIRED_HIERARCHY_PATHS_EXIST,
+    USD_SINGLE_ROOT_PRIM_REQUIRED,
 )
 from s_usd_core.validation.enums import Severity
 from s_usd_core.validation.models import CheckDefinition
 
 from .checks import (
-    check_single_root_prim_required,
-    check_required_hierarchy_paths_exist,
     check_meshes_under_required_scope,
     check_no_meshes_at_pseudo_root,
+    check_required_hierarchy_paths_exist,
+    check_single_root_prim_required,
 )
 
 

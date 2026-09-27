@@ -1,16 +1,6 @@
-from PySide6.QtWidgets import (
-    QCheckBox,
-    QDialog,
-    QDialogButtonBox,
-    QDoubleSpinBox,
-    QFormLayout,
-    QLineEdit,
-    QVBoxLayout
-)
+from PySide6.QtWidgets import QCheckBox, QDialog, QDialogButtonBox, QDoubleSpinBox, QFormLayout, QLineEdit, QVBoxLayout
 
 from s_usd_desktop.services.desktop_settings import ConnectionPreferences
-
-
 from s_usd_desktop.ui.tooltips import TooltipText
 
 

@@ -11,7 +11,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-
 from s_usd_desktop.ui.tooltips import TooltipText
 
 

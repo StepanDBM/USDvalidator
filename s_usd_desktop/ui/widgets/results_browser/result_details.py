@@ -3,7 +3,6 @@ from html import escape
 
 from PySide6.QtWidgets import QTextBrowser
 
-
 from s_usd_desktop.ui.tooltips import TooltipText
 
 

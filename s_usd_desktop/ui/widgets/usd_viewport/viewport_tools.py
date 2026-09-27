@@ -1,7 +1,6 @@
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QCheckBox, QComboBox, QGridLayout, QGroupBox, QPushButton, QVBoxLayout, QWidget
 
-
 from s_usd_desktop.ui.tooltips import TooltipText
 
 

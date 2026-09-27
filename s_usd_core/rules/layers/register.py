@@ -3,8 +3,8 @@ from s_usd_core.validation.check_ids import (
     USD_LAYER_COUNT_LIMIT,
     USD_NO_ANONYMOUS_LAYERS,
     USD_NO_DIRTY_LAYERS,
-    USD_SUBLAYER_COUNT_LIMIT,
     USD_ROOT_LAYER_DEFAULT_PRIM_AUTHORED,
+    USD_SUBLAYER_COUNT_LIMIT,
 )
 from s_usd_core.validation.enums import Severity
 from s_usd_core.validation.models import CheckDefinition
@@ -13,8 +13,8 @@ from .checks import (
     check_layer_count_limit,
     check_no_anonymous_layers,
     check_no_dirty_layers,
-    check_sublayer_count_limit,
     check_root_layer_default_prim_authored,
+    check_sublayer_count_limit,
 )
 
 

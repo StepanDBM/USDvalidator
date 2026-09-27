@@ -1,8 +1,8 @@
 # rules/geometry/__init__.py
 
 from .checks import (
-    check_mesh_has_valid_points,
     check_mesh_face_vertex_counts_valid,
+    check_mesh_has_valid_points,
     check_mesh_has_valid_topology,
     check_mesh_polygon_count_limit,
 )

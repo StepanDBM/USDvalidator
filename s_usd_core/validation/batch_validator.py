@@ -1,7 +1,7 @@
+import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from time import perf_counter
-import traceback
 
 from .batch_report import BatchReport
 from .publish_checker import PublishChecker

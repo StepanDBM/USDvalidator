@@ -1,33 +1,33 @@
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
+    QDialog,
     QHBoxLayout,
     QLabel,
     QMainWindow,
-    QDialog,
     QTabBar,
     QTabWidget,
     QVBoxLayout,
     QWidget,
 )
 
-from s_usd_core.validation.profile_loader import ProfileLoader
 from s_usd_core.rules import build_registry
+from s_usd_core.validation.profile_loader import ProfileLoader
 from s_usd_desktop.services import ConnectionService
 from s_usd_desktop.ui.tooltips import TooltipText
 
+from .dialogs.connection_settings import ConnectionSettingsDialog
 from .stylesheet import (
+    dark_blue_orange_theme,
     dark_theme,
     light_theme,
-    dark_blue_orange_theme,
 )
-
-from .widgets.validation_view import ValidationView
-from .widgets.profile_editor import ProfileEditor
 from .widgets.comparison_browser import ComparisonView
-from .widgets.usd_viewport import create_usd_viewport
 from .widgets.connection import ConnectionIndicator
-from .dialogs.connection_settings import ConnectionSettingsDialog
+from .widgets.profile_editor import ProfileEditor
+from .widgets.usd_viewport import create_usd_viewport
+from .widgets.validation_view import ValidationView
+
 
 def _change_theme(self, index):
     themes = (

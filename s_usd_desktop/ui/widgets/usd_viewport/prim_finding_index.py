@@ -4,8 +4,8 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 
 from pxr import Sdf
-from s_usd_core.validation.enums import CheckStatus, Severity
 
+from s_usd_core.validation.enums import CheckStatus, Severity
 
 STATUS_RANK = {CheckStatus.ERROR: 4, CheckStatus.FAILED: 3, CheckStatus.SKIPPED: 1, CheckStatus.PASSED: 0}
 SEVERITY_RANK = {Severity.ERROR: 3, Severity.WARNING: 2, Severity.INFO: 1}

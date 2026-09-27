@@ -10,7 +10,7 @@ from s_usd_desktop.client.errors import (
     ResourceNotFoundError,
     ServiceUnavailableError,
     UnexpectedServiceError,
-    ValidationResponseError
+    ValidationResponseError,
 )
 
 

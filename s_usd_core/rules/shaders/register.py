@@ -1,20 +1,20 @@
 from s_usd_core.contexts import StageHealthContext
 from s_usd_core.validation.check_ids import (
+    USD_SHADER_ASSET_PATHS_RELATIVE,
     USD_SHADER_COUNT_LIMIT,
     USD_SHADER_ID_AUTHORED,
     USD_SHADER_IDS_ALLOWED,
     USD_SHADER_OUTPUTS_AUTHORED,
-    USD_SHADER_ASSET_PATHS_RELATIVE,
 )
 from s_usd_core.validation.enums import Severity
 from s_usd_core.validation.models import CheckDefinition
 
 from .checks import (
+    check_shader_asset_paths_relative,
     check_shader_count_limit,
     check_shader_id_authored,
     check_shader_ids_allowed,
     check_shader_outputs_authored,
-    check_shader_asset_paths_relative,
 )
 
 

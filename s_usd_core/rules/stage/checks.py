@@ -1,11 +1,15 @@
 # rules/stage/checks.py
 
 from s_usd_core.validation.check_ids import (
-    USD_STAGE_CAN_OPEN, USD_STAGE_HAS_PRIMS, USD_STAGE_HAS_ROOT_PRIM,
-    USD_STAGE_PRIM_COUNT_LIMIT, USD_STAGE_PRIM_DEPTH_LIMIT,
+    USD_STAGE_CAN_OPEN,
+    USD_STAGE_HAS_PRIMS,
+    USD_STAGE_HAS_ROOT_PRIM,
+    USD_STAGE_PRIM_COUNT_LIMIT,
+    USD_STAGE_PRIM_DEPTH_LIMIT,
 )
 from s_usd_core.validation.enums import CheckStatus
 from s_usd_core.validation.models import CheckResult
+
 
 def _result(check_id, label, category, runtime, passed, message, details=None, suggestion=""):
     return [CheckResult(

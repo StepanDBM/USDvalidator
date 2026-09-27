@@ -1,10 +1,6 @@
 from s_usd_desktop.cache.configuration import CacheConfiguration, default_cache_root
+from s_usd_desktop.cache.downloader import CacheLocation, DownloadCancellationToken, VerifiedDownloader
 from s_usd_desktop.cache.entry import CacheEntry, CacheEntryStatus
-from s_usd_desktop.cache.downloader import (
-    CacheLocation,
-    DownloadCancellationToken,
-    VerifiedDownloader
-)
 from s_usd_desktop.cache.errors import (
     CacheError,
     CacheManifestError,
@@ -14,12 +10,12 @@ from s_usd_desktop.cache.errors import (
     DownloadError,
     InvalidCachePathError,
     SizeMismatchError,
-    StoredContentMissingError
+    StoredContentMissingError,
 )
 from s_usd_desktop.cache.index import CacheIndex, VersionCacheManifest
 from s_usd_desktop.cache.manager import CacheManager
-from s_usd_desktop.cache.recognizer import ManagedCacheRecognizer, ManagedCacheSource
 from s_usd_desktop.cache.paths import CachePaths, normalize_relative_path, safe_component
+from s_usd_desktop.cache.recognizer import ManagedCacheRecognizer, ManagedCacheSource
 
 __all__ = [
     "CacheConfiguration",

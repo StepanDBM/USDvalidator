@@ -2,8 +2,8 @@ from dataclasses import dataclass, field
 
 from .animation_context import AnimationStatistics
 from .geometry_context import GeometryStatistics
-from .pipeline_context import PipelineStatistics
 from .lookdev_context import LookdevStatistics
+from .pipeline_context import PipelineStatistics
 
 
 @dataclass

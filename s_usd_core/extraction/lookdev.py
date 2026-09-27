@@ -1,5 +1,4 @@
 import math
-import os
 
 from pxr import Sdf, UsdGeom, UsdShade
 

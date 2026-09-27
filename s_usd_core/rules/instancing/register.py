@@ -1,20 +1,20 @@
 from s_usd_core.contexts import StageHealthContext
 from s_usd_core.validation.check_ids import (
     USD_INSTANCE_COUNT_LIMIT,
-    USD_POINT_INSTANCE_COUNT_LIMIT,
-    USD_POINT_INSTANCER_PROTOTYPES_VALID,
-    USD_POINT_INSTANCER_INDICES_VALID,
     USD_INSTANCE_PROTOTYPES_VALID,
+    USD_POINT_INSTANCE_COUNT_LIMIT,
+    USD_POINT_INSTANCER_INDICES_VALID,
+    USD_POINT_INSTANCER_PROTOTYPES_VALID,
 )
 from s_usd_core.validation.enums import Severity
 from s_usd_core.validation.models import CheckDefinition
 
 from .checks import (
     check_instance_count_limit,
-    check_point_instance_count_limit,
-    check_point_instancer_prototypes_valid,
-    check_point_instancer_indices_valid,
     check_instance_prototypes_valid,
+    check_point_instance_count_limit,
+    check_point_instancer_indices_valid,
+    check_point_instancer_prototypes_valid,
 )
 
 

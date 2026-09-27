@@ -1,18 +1,18 @@
 from s_usd_core.contexts import StageHealthContext
 from s_usd_core.validation.check_ids import (
-    USD_PRIM_NAMES_NO_WHITESPACE,
-    USD_PRIM_NAMES_NO_FORBIDDEN_TOKENS,
-    USD_PRIM_NAMES_MATCH_PATTERN,
     USD_FORBIDDEN_PRIM_NAMES,
+    USD_PRIM_NAMES_MATCH_PATTERN,
+    USD_PRIM_NAMES_NO_FORBIDDEN_TOKENS,
+    USD_PRIM_NAMES_NO_WHITESPACE,
 )
 from s_usd_core.validation.enums import Severity
 from s_usd_core.validation.models import CheckDefinition
 
 from .checks import (
-    check_prim_names_no_whitespace,
-    check_prim_names_no_forbidden_tokens,
-    check_prim_names_match_pattern,
     check_forbidden_prim_names,
+    check_prim_names_match_pattern,
+    check_prim_names_no_forbidden_tokens,
+    check_prim_names_no_whitespace,
 )
 
 

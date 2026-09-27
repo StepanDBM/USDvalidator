@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSpinBox,
     QVBoxLayout,
-    QWidget
+    QWidget,
 )
 
 from s_usd_desktop.cache import CacheConfiguration, default_cache_root

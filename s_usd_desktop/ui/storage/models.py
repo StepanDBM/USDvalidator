@@ -1,6 +1,6 @@
-from s_usd_desktop.ui.tooltips import TooltipText
-
 from PySide6.QtCore import QAbstractListModel, QAbstractTableModel, QModelIndex, Qt
+
+from s_usd_desktop.ui.tooltips import TooltipText
 
 
 class RecordListModel(QAbstractListModel):

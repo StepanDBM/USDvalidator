@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from PySide6.QtCore import QTimer, Qt, Signal
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import QDoubleSpinBox, QHBoxLayout, QLabel, QPushButton, QSlider, QWidget
-
 
 from s_usd_desktop.ui.tooltips import TooltipText
 

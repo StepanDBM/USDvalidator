@@ -1,7 +1,6 @@
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QFileDialog, QHBoxLayout, QLineEdit, QPushButton, QWidget
 
-
 from s_usd_desktop.ui.tooltips import TooltipText
 
 

@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 
-
 NORMAL_LINE_LIMIT = 100000
 EXTREME_LINE_LIMIT = 1000000
 NORMAL_BYTE_LIMIT = 50 * 1024 * 1024

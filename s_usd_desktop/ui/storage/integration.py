@@ -2,16 +2,16 @@ from PySide6.QtCore import QTimer
 
 from s_usd_desktop.cache import CacheManager
 from s_usd_desktop.services.catalog_service import CatalogService
+from s_usd_desktop.services.connection_service import ConnectionState
 from s_usd_desktop.services.download_service import DownloadService
-from s_usd_desktop.services.version_download_service import VersionDownloadService
-from s_usd_desktop.services.version_open_service import VersionOpenService
-from s_usd_desktop.services.validation_submission_service import ValidationSubmissionService
-from s_usd_desktop.services.validation_history_service import ValidationHistoryService
 from s_usd_desktop.services.stored_comparison_service import StoredComparisonService
 from s_usd_desktop.services.transfer_service import TransferService
-from s_usd_desktop.services.connection_service import ConnectionState
-from s_usd_desktop.ui.storage.workspace import StorageWorkspace
+from s_usd_desktop.services.validation_history_service import ValidationHistoryService
+from s_usd_desktop.services.validation_submission_service import ValidationSubmissionService
+from s_usd_desktop.services.version_download_service import VersionDownloadService
+from s_usd_desktop.services.version_open_service import VersionOpenService
 from s_usd_desktop.ui.storage.dialogs.cache_settings import CacheSettings
+from s_usd_desktop.ui.storage.workspace import StorageWorkspace
 
 
 def install_storage_workspace(window):

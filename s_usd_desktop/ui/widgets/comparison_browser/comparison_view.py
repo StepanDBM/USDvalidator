@@ -19,8 +19,8 @@ from PySide6.QtWidgets import (
 from s_usd_core.comparison.source_preflight import DiffMode, DiffScale, inspect_source_diff
 from s_usd_desktop.cache import ManagedCacheRecognizer, default_cache_root
 from s_usd_desktop.ui.dialogs.large_diff_dialog import LargeDiffDialog
-from s_usd_desktop.ui.workers import ComparisonWorker
 from s_usd_desktop.ui.tooltips import TooltipText
+from s_usd_desktop.ui.workers import ComparisonWorker
 
 from .change_details import ChangeDetails
 from .diff_view import FileDiffView

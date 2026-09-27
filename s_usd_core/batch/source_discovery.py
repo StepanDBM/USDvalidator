@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from fnmatch import fnmatch
 from pathlib import Path
 
-
 USD_EXTENSIONS = frozenset({".usd", ".usda", ".usdc", ".usdz"})
 
 

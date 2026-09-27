@@ -1,13 +1,8 @@
 # rules/dependencies/checks.py
 
+from s_usd_core.validation.check_ids import USD_DEPENDENCIES_RESOLVE, USD_PAYLOADS_RESOLVE, USD_REFERENCES_RESOLVE
 from s_usd_core.validation.enums import CheckStatus
 from s_usd_core.validation.models import CheckResult
-
-from s_usd_core.validation.check_ids import (
-    USD_DEPENDENCIES_RESOLVE,
-    USD_REFERENCES_RESOLVE,
-    USD_PAYLOADS_RESOLVE
-)
 
 
 def check_dependencies_resolve(context, runtime_context):

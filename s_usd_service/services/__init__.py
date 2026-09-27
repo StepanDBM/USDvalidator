@@ -4,6 +4,5 @@ from s_usd_service.services.reconciliation import StorageReconciliationService
 
 __all__ = ["FileLifecycleService", "FileTransferService", "StorageReconciliationService"]
 
-from s_usd_service.services.version_lifecycle import VersionLifecycleService
-
 from s_usd_service.services.content_fingerprint import VersionContentFingerprint
+from s_usd_service.services.version_lifecycle import VersionLifecycleService

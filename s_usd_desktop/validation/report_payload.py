@@ -1,10 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from s_usd_core.validation.version import (
-    REPORT_SCHEMA_VERSION,
-    TOOL_NAME,
-    TOOL_VERSION
-)
+from s_usd_core.validation.version import REPORT_SCHEMA_VERSION, TOOL_NAME, TOOL_VERSION
 
 
 def build_validation_run_payload(report, stored_file_id=None):

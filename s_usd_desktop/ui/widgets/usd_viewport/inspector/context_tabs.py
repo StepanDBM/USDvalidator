@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import json
 
-from PySide6.QtWidgets import QAbstractItemView, QPlainTextEdit, QTableWidget, QTableWidgetItem, QTabWidget
 from pxr import UsdShade
-
+from PySide6.QtWidgets import QAbstractItemView, QPlainTextEdit, QTableWidget, QTableWidgetItem, QTabWidget
 
 from s_usd_desktop.ui.tooltips import TooltipText
 

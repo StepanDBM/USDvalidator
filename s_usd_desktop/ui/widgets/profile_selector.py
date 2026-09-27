@@ -5,7 +5,6 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-
 from s_usd_desktop.ui.tooltips import TooltipText
 
 

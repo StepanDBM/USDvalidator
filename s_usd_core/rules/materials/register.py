@@ -1,19 +1,19 @@
 from s_usd_core.contexts import StageHealthContext
 from s_usd_core.validation.check_ids import (
-    USD_MATERIAL_COUNT_LIMIT,
-    USD_MATERIAL_SURFACE_OUTPUT_CONNECTED,
     USD_GEOMETRY_HAS_MATERIAL_BINDING,
     USD_MATERIAL_BINDINGS_RESOLVE,
+    USD_MATERIAL_COUNT_LIMIT,
+    USD_MATERIAL_SURFACE_OUTPUT_CONNECTED,
     USD_MATERIALS_UNDER_REQUIRED_SCOPE,
 )
 from s_usd_core.validation.enums import Severity
 from s_usd_core.validation.models import CheckDefinition
 
 from .checks import (
-    check_material_count_limit,
-    check_material_surface_output_connected,
     check_geometry_has_material_binding,
     check_material_bindings_resolve,
+    check_material_count_limit,
+    check_material_surface_output_connected,
     check_materials_under_required_scope,
 )
 

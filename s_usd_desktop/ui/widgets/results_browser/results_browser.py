@@ -1,7 +1,5 @@
-from pathlib import Path
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QLabel,
     QSplitter,
@@ -9,14 +7,13 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
 from .batch_files_tree import BatchFilesTree
 from .filter_bar import ResultsFilterBar
 from .result_details import ResultDetails
 from .results_tree import ResultsTree
 from .summary_header import SummaryHeader
-
-
-from s_usd_desktop.ui.tooltips import TooltipText
 
 
 class ResultsBrowser(QWidget):

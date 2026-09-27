@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+from pxr import Usd, UsdGeom
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QLineEdit, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
-from pxr import Usd, UsdGeom
-
-from ..viewport_models import PropertyRow
-
 
 from s_usd_desktop.ui.tooltips import TooltipText
+
+from ..viewport_models import PropertyRow
 
 
 class PropertyTable(QWidget):

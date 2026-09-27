@@ -5,7 +5,6 @@ from s_usd_service.database.repositories.errors import ConflictError, NotFoundEr
 from s_usd_service.domain.version_lifecycle import VersionStatus
 from s_usd_service.services.content_fingerprint import VersionContentFingerprint
 
-
 SUPPORTED_REPORT_SCHEMA_VERSIONS = frozenset({"1.0.0"})
 
 

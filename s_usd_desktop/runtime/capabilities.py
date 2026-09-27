@@ -1,8 +1,8 @@
-from dataclasses import dataclass
-from importlib import import_module
 import os
 import platform
 import sys
+from dataclasses import dataclass
+from importlib import import_module
 
 
 @dataclass(frozen=True, slots=True)

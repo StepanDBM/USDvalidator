@@ -14,8 +14,6 @@ from PySide6.QtWidgets import (
 )
 
 from s_usd_core.validation.attribute_override import AttributeOverride
-
-
 from s_usd_desktop.ui.tooltips import TooltipText
 
 

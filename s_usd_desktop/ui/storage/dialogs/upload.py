@@ -10,9 +10,8 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QVBoxLayout,
-    QWidget
+    QWidget,
 )
-
 
 from s_usd_desktop.ui.tooltips import TooltipText
 

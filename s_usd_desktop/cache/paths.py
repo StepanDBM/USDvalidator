@@ -3,7 +3,6 @@ from pathlib import Path, PurePosixPath
 
 from s_usd_desktop.cache.errors import InvalidCachePathError
 
-
 _SAFE_COMPONENT = re.compile(r"[^A-Za-z0-9._-]+")
 
 

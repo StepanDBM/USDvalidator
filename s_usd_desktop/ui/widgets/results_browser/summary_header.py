@@ -8,7 +8,6 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-
 SUMMARY_HEIGHT = 72
 METRIC_WIDTH = 76
 

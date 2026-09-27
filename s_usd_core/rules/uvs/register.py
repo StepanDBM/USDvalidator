@@ -1,18 +1,18 @@
 from s_usd_core.contexts import StageHealthContext
 from s_usd_core.validation.check_ids import (
-    USD_MESH_UV_SET_REQUIRED,
-    USD_MESH_UV_SET_COUNT_LIMIT,
     USD_MESH_UV_INDICES_VALID,
     USD_MESH_UV_INTERPOLATION_VALID,
+    USD_MESH_UV_SET_COUNT_LIMIT,
+    USD_MESH_UV_SET_REQUIRED,
 )
 from s_usd_core.validation.enums import Severity
 from s_usd_core.validation.models import CheckDefinition
 
 from .checks import (
-    check_mesh_uv_set_required,
-    check_mesh_uv_set_count_limit,
     check_mesh_uv_indices_valid,
     check_mesh_uv_interpolation_valid,
+    check_mesh_uv_set_count_limit,
+    check_mesh_uv_set_required,
 )
 
 

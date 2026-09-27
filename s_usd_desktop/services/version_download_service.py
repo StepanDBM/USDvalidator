@@ -1,11 +1,6 @@
 from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal, Slot
 
-from s_usd_desktop.cache import (
-    CacheEntryStatus,
-    DownloadCancellationToken,
-    DownloadCancelledError,
-    VerifiedDownloader
-)
+from s_usd_desktop.cache import CacheEntryStatus, DownloadCancellationToken, DownloadCancelledError, VerifiedDownloader
 from s_usd_desktop.client import FileClient, SUsdvApiClient
 
 

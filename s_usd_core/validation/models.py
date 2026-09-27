@@ -3,7 +3,6 @@ from typing import Any, Callable
 
 from .enums import CheckStatus, Severity
 
-
 CheckFunction = Callable[[Any, Any], list["CheckResult"]]
 
 
