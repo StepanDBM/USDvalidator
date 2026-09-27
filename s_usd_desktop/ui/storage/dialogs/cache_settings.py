@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 )
 
 from s_usd_desktop.cache import CacheConfiguration, default_cache_root
+from s_usd_desktop.ui.tooltips import TooltipText
 
 
 class CacheSettings:
@@ -36,7 +37,6 @@ class CacheSettings:
         self.settings.sync()
 
 
-from s_usd_desktop.ui.tooltips import TooltipText
 
 
 class CacheSettingsDialog(QDialog):

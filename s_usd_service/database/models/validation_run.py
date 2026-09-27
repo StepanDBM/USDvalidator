@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Uuid
@@ -7,6 +7,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from s_usd_service.database.base_class import Base
 from s_usd_service.database.models.mixins import IdMixin, TimestampMixin
+
+if TYPE_CHECKING:
+    from s_usd_service.database.models.stored_file import StoredFile
+    from s_usd_service.database.models.version import Version
 
 
 class ValidationRun(IdMixin, TimestampMixin, Base):

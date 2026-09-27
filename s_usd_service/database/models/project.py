@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from s_usd_service.database.base_class import Base
 from s_usd_service.database.models.mixins import IdMixin, TimestampMixin
+
+if TYPE_CHECKING:
+    from s_usd_service.database.models.asset import Asset
 
 
 class Project(IdMixin, TimestampMixin, Base):

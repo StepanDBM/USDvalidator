@@ -119,7 +119,6 @@ class PrimRowDelegate(QStyledItemDelegate):
         validation_visible = bool(
             index.data(Qt.ItemDataRole.UserRole + 6)
         )
-        context_only = index.data(Qt.ItemDataRole.UserRole + 20) == 2
         display_mode = index.data(Qt.ItemDataRole.UserRole + 11) or "All"
         comparison = index.data(Qt.ItemDataRole.UserRole + 10)
         animated = int(index.data(Qt.ItemDataRole.UserRole + 8) or 0)

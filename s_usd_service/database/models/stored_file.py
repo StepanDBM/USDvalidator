@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import BigInteger, ForeignKey, String, UniqueConstraint, Uuid
@@ -5,6 +6,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from s_usd_service.database.base_class import Base
 from s_usd_service.database.models.mixins import IdMixin, TimestampMixin
+
+if TYPE_CHECKING:
+    from s_usd_service.database.models.validation_run import ValidationRun
+    from s_usd_service.database.models.version import Version
 
 
 class StoredFile(IdMixin, TimestampMixin, Base):

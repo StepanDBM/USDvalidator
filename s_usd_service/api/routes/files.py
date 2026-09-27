@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Annotated
 from urllib.parse import quote
 from uuid import UUID
 
@@ -35,9 +36,9 @@ def upload_file(
     version_id: UUID,
     database: DatabaseSession,
     storage: ObjectStorageDependency,
-    file: UploadFile = File(...),
-    role: str = Form(default="other"),
-    relative_path: str | None = Form(default=None)
+    file: Annotated[UploadFile, File()],
+    role: Annotated[str, Form()] = "other",
+    relative_path: Annotated[str | None, Form()] = None
 ):
     try:
         stored_file = FileTransferService(database, storage).upload(

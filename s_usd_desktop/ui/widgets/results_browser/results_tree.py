@@ -4,6 +4,8 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QApplication, QMenu, QTreeWidget, QTreeWidgetItem
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
 STATUS_COLORS = {
     "PASSED": "#4CAF50",
     "FAILED": "#F44336",
@@ -12,7 +14,6 @@ STATUS_COLORS = {
 }
 
 
-from s_usd_desktop.ui.tooltips import TooltipText
 
 
 class ResultsTree(QTreeWidget):

@@ -1,6 +1,8 @@
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QApplication, QLabel, QPlainTextEdit, QPushButton, QVBoxLayout, QWidget
 
+from s_usd_desktop.ui.tooltips import TooltipText
+
 
 class UnavailableUsdViewportWidget(QWidget):
     validation_requested = Signal(str, bool)

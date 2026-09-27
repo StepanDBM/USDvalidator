@@ -79,9 +79,9 @@ class LookdevExtractor:
         direct_targets = direct_rel.GetTargets() if direct_rel else []
 
         try:
-            material, relationship = api.ComputeBoundMaterial()
+            material, _ = api.ComputeBoundMaterial()
         except Exception:
-            material, relationship = None, None
+            material = None
 
         if not material and not direct_targets:
             return None

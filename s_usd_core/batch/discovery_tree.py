@@ -33,7 +33,7 @@ def build_report_tree(reports, root=None):
     root_path = Path(root).expanduser().resolve() if root else common_directory(paths)
     root_node = DiscoveryNode(root_path.name or str(root_path), root_path)
 
-    for report, path in sorted(zip(reports, paths), key=lambda pair: pair[1].as_posix().lower()):
+    for report, path in sorted(zip(reports, paths, strict=True), key=lambda pair: pair[1].as_posix().lower()):
         parent = root_node
         try:
             relative = path.relative_to(root_path)
