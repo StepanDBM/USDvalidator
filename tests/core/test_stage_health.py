@@ -5,7 +5,7 @@ from pathlib import Path
 from s_usd_core.validation import PublishChecker
 
 
-FIXTURES_DIR = Path(__file__).parent / "fixtures"
+FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures"
 
 
 def get_report():

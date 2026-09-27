@@ -3,7 +3,8 @@ from pathlib import Path
 from s_usd_core.comparison import ChangeKind, SemanticComparisonEngine, build_side_by_side_diff
 
 
-FIXTURES = Path(__file__).parent / "fixtures"
+FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
+
 
 
 def test_semantic_comparison_finds_hierarchy_geometry_and_animation_changes():

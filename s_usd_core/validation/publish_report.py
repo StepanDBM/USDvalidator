@@ -4,6 +4,8 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from enum import Enum
+
 from s_usd_core.contexts import StageHealthContext
 
 from .enums import CheckStatus, Severity
@@ -16,6 +18,22 @@ from .version import (
     TOOL_VERSION,
 )
 
+#trying to solve the fields that may contain tuples, while JSON converts tuples into lists, my code doesn't internaly. I need to normalize these values when building the dictionary.
+# before having this normalization:
+# report.to_dict()["results"][63]["targets"][0]["expected"]
+# returned: ("rightHanded",)
+# now: json.loads(report.to_json())["results"][63]["targets"][0]["expected"]
+# Returns: ["rightHanded"] so now both return: ["rightHanded"]
+def _json_compatible(value):
+    if isinstance(value, dict):
+        return {str(key): _json_compatible(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_compatible(item) for item in value]
+    if isinstance(value, Enum):
+        return value.value
+    if isinstance(value, Path):
+        return value.as_posix()
+    return value
 
 @dataclass
 class PublishReport:
@@ -109,15 +127,15 @@ class PublishReport:
             "location": PublishReport._serialize_path(result.location),
             "layer": PublishReport._serialize_path(result.layer),
             "suggestion": result.suggestion,
-            "details": result.details,
+            "details": _json_compatible(result.details),
             "check_version": result.check_version,
             "targets": [
                 {
                     "prim_path": PublishReport._serialize_path(target.prim_path),
                     "property_path": PublishReport._serialize_path(target.property_path),
                     "status": target.status.value,
-                    "observed": target.observed,
-                    "expected": target.expected,
+                    "observed": _json_compatible(target.observed),
+                    "expected": _json_compatible(target.expected),
                     "message": target.message,
                 }
                 for target in result.targets

@@ -44,7 +44,9 @@ class PrimOutlinerProxy(QSortFilterProxyModel):
                 count = self._matching_descendant_count(source_index)
                 if count:
                     base = super().data(index, role) or source_index.data(role) or ""
-                    suffix = f"Shown because {count} descendant{'s' if count != 1 else ''} match the active filters."
+                    noun = "descendant" if count == 1 else "descendants"
+                    verb = "matches" if count == 1 else "match"
+                    suffix = f"Shown because {count} {noun} {verb} the active filters."
                     return f"{base}\n\n{suffix}" if base else suffix
         return super().data(index, role)
 

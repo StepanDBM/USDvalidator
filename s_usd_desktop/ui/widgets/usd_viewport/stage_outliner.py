@@ -37,6 +37,10 @@ class StageOutliner(QWidget):
         super().__init__(parent)
         self.primary_path = ""
         self._expansion_before_filter = None
+
+        self._selection_before_filter = None
+        self._filter_change_in_progress = False
+
         self.filter_edit = QLineEdit()
         self.filter_edit.setPlaceholderText("Search prim name, path or type...")
         self.tree = QTreeView()
@@ -163,9 +167,10 @@ class StageOutliner(QWidget):
 
     def set_stage(self, stage):
         self.primary_path = ""
+        self._expansion_before_filter = None
+        self._selection_before_filter = None
         self.model.set_stage(stage)
         self._rebuild_type_menu()
-        self._expansion_before_filter = None
         self.tree.expandToDepth(1)
 
     def set_comparison_changes(self, changes):
@@ -258,15 +263,33 @@ class StageOutliner(QWidget):
 
     def _apply_filter_change(self, change):
         was_active = self.proxy.filters_active
+
         if not was_active:
             self._expansion_before_filter = self._expanded_paths()
-        change()
+            self._selection_before_filter = (
+                tuple(self.selected_paths()),
+                self.primary_path
+            )
+
+        self._filter_change_in_progress = True
+        try:
+            change()
+        finally:
+            self._filter_change_in_progress = False
+
         if self.proxy.filters_active:
             self.tree.expandAll()
-        elif self._expansion_before_filter is not None:
+            return
+
+        if self._expansion_before_filter is not None:
             self.tree.collapseAll()
             self._restore_expanded_paths(self._expansion_before_filter)
             self._expansion_before_filter = None
+
+        if self._selection_before_filter is not None:
+            paths, primary_path = self._selection_before_filter
+            self._selection_before_filter = None
+            self.select_paths(paths, primary_path)
 
     def _rebuild_type_menu(self):
         self.type_menu.clear()
@@ -316,12 +339,30 @@ class StageOutliner(QWidget):
             self._emit_selection()
 
     def _emit_selection(self, *args):
+        if self._filter_change_in_progress:
+            return
+
         paths = self.selected_paths()
+
         if self.primary_path not in paths:
             current = self.tree.currentIndex()
-            self.primary_path = current.data(Qt.ItemDataRole.UserRole) if current.isValid() else ""
+            self.primary_path = (
+                current.data(Qt.ItemDataRole.UserRole)
+                if current.isValid()
+                else ""
+            )
+
+        if self.proxy.filters_active:
+            self._selection_before_filter = (
+                tuple(paths),
+                self.primary_path
+            )
+
         if paths:
-            self.paths_selected.emit(paths, self.primary_path or paths[-1])
+            self.paths_selected.emit(
+                paths,
+                self.primary_path or paths[-1]
+            )
 
     def _add_shortcuts(self):
         shortcuts = (

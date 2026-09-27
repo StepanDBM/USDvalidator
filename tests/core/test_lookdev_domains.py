@@ -13,7 +13,7 @@ from s_usd_core.validation.profiles import ValidationProfile
 from s_usd_core.validation.publish_checker import PublishChecker
 from s_usd_core.validation.rule_config import ValidationRuleConfig
 
-FIXTURES = Path(__file__).parent / "fixtures"
+FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 CHECKS = frozenset({
     USD_GEOMETRY_HAS_MATERIAL_BINDING,
     USD_MATERIAL_SURFACE_OUTPUT_CONNECTED,

@@ -12,17 +12,19 @@ from s_usd_core.validation.version import (
 )
 
 
-FIXTURE = Path(__file__).parent / "fixtures" / "valid_stage.usda"
+FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures"
+VALID_FIXTURE = FIXTURES_DIR / "valid_stage.usda"
+INVALID_FIXTURE = FIXTURES_DIR / "invalid_policy.usda"
 
 
 def test_publish_report_has_versioned_contract():
-    data = PublishChecker().check(FIXTURE).to_dict()
+    data = PublishChecker().check(INVALID_FIXTURE).to_dict()
 
     assert data["schema"] == {
         "name": REPORT_SCHEMA_NAME,
         "version": REPORT_SCHEMA_VERSION,
     }
-    assert data["generator"]["name"] == "USDvalidator"
+    assert data["generator"]["name"] == "S-USDv"
     assert data["validation"]["timestamp_utc"].endswith("Z")
     assert len(data["validation"]["profile"]["configuration_fingerprint"]) == 64
     assert len(data["validation"]["check_catalog"]["fingerprint"]) == 64
@@ -31,13 +33,16 @@ def test_publish_report_has_versioned_contract():
 def test_configuration_fingerprint_is_stable_and_sensitive():
     first = ValidationRuleConfig()
     second = ValidationRuleConfig()
+
     assert configuration_fingerprint(first) == configuration_fingerprint(second)
+
     second.geometry.polygon_count_limit += 1
+
     assert configuration_fingerprint(first) != configuration_fingerprint(second)
 
 
 def test_manifest_has_versioned_contract():
-    report = PublishChecker().check(FIXTURE)
+    report = PublishChecker().check(VALID_FIXTURE)
     data = PublishManifest(report).to_dict()
 
     assert data["schema"] == {

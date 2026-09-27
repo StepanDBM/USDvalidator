@@ -7,7 +7,6 @@ from s_usd_core.validation.version import (
     REPORT_SCHEMA_VERSION,
 )
 
-
 def test_publish_report_serializes_to_stable_json():
     checker = PublishChecker()
     report = checker.check("tests/fixtures/valid_stage.usda")

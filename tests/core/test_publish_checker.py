@@ -6,7 +6,7 @@ from s_usd_core.validation import CheckStatus, PublishChecker
 from s_usd_core.rules import build_registry
 
 
-FIXTURES_DIR = Path(__file__).parent / "fixtures"
+FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures"
 
 def test_valid_stage_opens():
     source_path = FIXTURES_DIR / "valid_stage.usda"

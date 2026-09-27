@@ -7,9 +7,9 @@ from pxr import Usd
 
 from s_usd_core.extraction.animation import AnimationExtractor
 
-
+FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures"
 def test_animation_extractor_lists_properties_and_samples():
-    path = Path(__file__).parent / "fixtures/animated_viewport.usda"
+    path = FIXTURES_DIR / "animated_viewport.usda"
     result = AnimationExtractor().extract(Usd.Stage.Open(str(path)))
     item = next(value for value in result.properties if value.property_path.endswith("xformOp:translate"))
     assert item.time_samples == (1.0, 24.0, 48.0)
@@ -17,7 +17,7 @@ def test_animation_extractor_lists_properties_and_samples():
 
 
 def test_animation_fixture_has_expected_playback_range():
-    path = Path(__file__).parent / "fixtures/animated_viewport.usda"
+    path = FIXTURES_DIR / "animated_viewport.usda"
     stage = Usd.Stage.Open(str(path))
     assert stage.GetStartTimeCode() == 1
     assert stage.GetEndTimeCode() == 48

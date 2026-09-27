@@ -8,8 +8,9 @@ from pxr import Usd
 
 from s_usd_desktop.ui.widgets.usd_viewport.timeline import authored_time_range
 
+FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures"
 
 def test_authored_range_uses_actual_samples():
-    path = Path(__file__).parent / "fixtures/animated_viewport.usda"
+    path = FIXTURES_DIR / "animated_viewport.usda"
     stage = Usd.Stage.Open(str(path))
     assert authored_time_range(stage) == (1.0, 48.0)

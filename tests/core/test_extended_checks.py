@@ -12,7 +12,8 @@ from s_usd_core.validation.check_ids import (
 )
 from s_usd_core.validation.profiles import ValidationProfile
 
-FIXTURE = Path(__file__).parent / "fixtures" / "invalid_policy.usda"
+FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures"
+FIXTURE = FIXTURES_DIR / "invalid_policy.usda"
 
 
 def get_result(report, check_id):
