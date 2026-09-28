@@ -1,67 +1,70 @@
-# Quality Gates
+## Chunk 3 baseline
 
-## Chunk 3.1: Ruff source lint
+The repository maintains independent functional, quality, dependency, and semantic-security gates.
 
-The repository uses Ruff 0.16.9 to statically inspect production Python source under:
+### Tool versions
 
-- `s_usd_core`
-- `s_usd_service`
-- `s_usd_desktop`
+- Python 3.12
+- Ruff 0.16.9
+- Bandit 1.9.4
+- pip-audit 2.10.1
+- CodeQL Action v4
 
-The lint gate is configured in `pyproject.toml` and runs independently from the functional test job in `.github/workflows/ci.yml`.
+### Local baseline
 
-## Local commands
+- Ruff lint: passing
+- Ruff formatting: 277 production files compliant
+- Bandit: no active findings
+- pip-audit: no known vulnerabilities
+- Functional tests: 287 passed
 
-Install the pinned quality dependency:
+### Hosted CI
 
-```powershell
-.\.venv-ci\Scripts\python.exe -m pip install -r .\requirements-quality.txt
-```
+The CI workflow runs three independent jobs:
 
-Inspect the active Ruff version:
+1. Python 3.12 tests
+2. Source quality and security
+3. Python dependency audit
 
-```powershell
-.\.venv-ci\Scripts\python.exe -m ruff version
-```
+The CodeQL workflow runs two independent semantic analyses:
 
-Run the source lint gate without modifying files:
+1. Python
+2. GitHub Actions
 
-```powershell
-.\.venv-ci\Scripts\python.exe -m ruff check `
-    .\s_usd_core `
-    .\s_usd_service `
-    .\s_usd_desktop
-```
+### CodeQL coverage
 
-Show a summary grouped by rule:
+- Python: 379 of 379 files scanned
+- GitHub Actions: 2 of 2 workflow files scanned
 
-```powershell
-.\.venv-ci\Scripts\python.exe -m ruff check `
-    .\s_usd_core `
-    .\s_usd_service `
-    .\s_usd_desktop `
-    --statistics
-```
+### Required checks for main
 
-Apply only Ruff fixes classified as safe:
+The `main` branch requires the following checks:
 
-```powershell
-.\.venv-ci\Scripts\python.exe -m ruff check `
-    .\s_usd_core `
-    .\s_usd_service `
-    .\s_usd_desktop `
-    --fix
-```
+- Python 3.12 tests
+- Source quality and security
+- Python dependency audit
+- Analyze Python
+- Analyze GitHub Actions
 
-Review every automatic change with `git diff` and rerun the complete test suite before committing.
+Branches must be up to date with `main` before merging. Force pushes and branch deletion are blocked.
 
-## Initial rule families
+### Exception policy
 
-- `E4`: import-related pycodestyle errors
-- `E7`: statement-level pycodestyle errors
-- `E9`: runtime and syntax-like errors
-- `F`: Pyflakes correctness checks
-- `I`: import ordering
-- `B`: flake8-bugbear probable bug patterns
+Security findings must be fixed or reviewed individually. Suppressions must identify the exact rule and include a concrete justification. Broad rule suppression is not accepted.
 
-Line-length enforcement is excluded from Chunk 3.1. Repository formatting is handled separately in Chunk 3.2.
+Dependency vulnerability exceptions must reference a specific advisory identifier and be reviewed when an upstream fix becomes available.
+
+
+## CI 3 Verification
+
+CI 3 established the following required repository gates:
+
+- Python 3.12 tests
+- Ruff source lint
+- Ruff source formatting
+- Bandit Python security scanning
+- pip-audit dependency vulnerability scanning
+- CodeQL Python analysis
+- CodeQL GitHub Actions analysis
+
+The protected `main` branch requires the configured CI and CodeQL checks to complete successfully before pull requests can be merged.
