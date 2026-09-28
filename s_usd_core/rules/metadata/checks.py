@@ -185,7 +185,7 @@ def check_root_prim_name_valid(context, runtime_context):
     if path_text.startswith("/"):
         try:
             path_valid = Sdf.Path(path_text).IsRootPrimPath()
-        except Exception:
+        except Exception:  # nosec B110 - Ingvalid USD paths are handled as failed Validations.
             pass
     passed = name_valid and path_valid
 

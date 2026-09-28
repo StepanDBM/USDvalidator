@@ -24,7 +24,7 @@ def resolve_validation_target(report, result):
             continue
         try:
             path = Sdf.Path(text)
-        except Exception:
+        except Exception:  # nosec B112 - Invalid target candidates are intentionally skipped.
             continue
         if path.IsPropertyPath():
             return ValidationTarget(str(report.source_path), path.GetPrimPath().pathString, path.pathString, "property")

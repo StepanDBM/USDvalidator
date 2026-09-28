@@ -78,10 +78,7 @@ class PrimOutlinerModel(QAbstractItemModel):
         self._emit_all_rows_changed()
 
     def validation_results_for_paths(self, paths, include_descendants=False):
-        return self.findings.results_for_paths(
-            paths,
-            include_descendants=include_descendants,
-        )
+        return self.findings.results_for_paths(paths, include_descendants=include_descendants)
 
     def set_stage(self, stage):
         self.beginResetModel()
@@ -224,7 +221,7 @@ class PrimOutlinerModel(QAbstractItemModel):
                 if attribute.ValueMightBeTimeVarying() or samples:
                     property_count += 1
                     sample_count += samples
-            except Exception:
+            except Exception:  # nosec B112 - Unreadable USD properties are omitted from animation metadata.
                 continue
         return property_count, sample_count
 

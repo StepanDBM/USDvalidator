@@ -382,7 +382,7 @@ class StageViewAdapter(StageView):
         self._selected_path = ""
         try:
             self._dataModel.selection.clearPrims()
-        except Exception:
+        except Exception:  # nosec B110 - Viewport selection cleanup is best-effort.
             pass
 
     def shutdown(self):

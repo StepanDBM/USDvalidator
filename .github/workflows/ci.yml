@@ -76,7 +76,7 @@ jobs:
         run: python scripts/ci/run_tests.py tests -v
 
   lint:
-    name: Ruff source quality
+    name: Source quality and security
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
@@ -111,3 +111,13 @@ jobs:
             s_usd_core \
             s_usd_service \
             s_usd_desktop
+      - name: Scan production source with Bandit
+        run: |
+          python -m bandit \
+            -c pyproject.toml \
+            -r \
+            s_usd_core \
+            s_usd_service \
+            s_usd_desktop \
+            -ll \
+            -ii

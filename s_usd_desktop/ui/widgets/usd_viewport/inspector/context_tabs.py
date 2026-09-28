@@ -134,7 +134,7 @@ class ContextTabs(QTabWidget):
         for purpose in (UsdShade.Tokens.preview, UsdShade.Tokens.full, UsdShade.Tokens.allPurpose):
             try:
                 material, relationship = api.ComputeBoundMaterial(purpose)
-            except Exception:
+            except Exception:  # nosec B112 - Unsupported material purposes are skipped.
                 continue
             material_path = material.GetPath().pathString if material else "<unbound>"
             relationship_path = relationship.GetPath().pathString if relationship else ""
