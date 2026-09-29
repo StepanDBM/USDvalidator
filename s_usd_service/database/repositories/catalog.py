@@ -1,6 +1,7 @@
+from datetime import datetime, timezone
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -28,14 +29,37 @@ class CatalogRepository:
             f"Project code '{data['code']}' already exists in workspace",
         )
 
-    def list_projects(self, user_id: UUID):
+    def list_projects(self, user_id: UUID, *, workspace_id=None, status=None, search=None, created_by_user_id=None):
         statement = (
             select(Project)
             .join(WorkspaceMembership, WorkspaceMembership.workspace_id == Project.workspace_id)
             .where(WorkspaceMembership.user_id == user_id)
-            .order_by(Project.code)
         )
-        return list(self.database.scalars(statement).all())
+        if workspace_id is not None:
+            statement = statement.where(Project.workspace_id == workspace_id)
+        if status is not None:
+            statement = statement.where(Project.status == status)
+        if created_by_user_id is not None:
+            statement = statement.where(Project.created_by_user_id == created_by_user_id)
+        if search:
+            pattern = f"%{search.strip()}%"
+            statement = statement.where(
+                or_(Project.code.ilike(pattern), Project.name.ilike(pattern), Project.description.ilike(pattern))
+            )
+        return list(self.database.scalars(statement.order_by(Project.code)).all())
+
+    def update_project(self, project_id: UUID, data):
+        project = self.get_project(project_id)
+        for field, value in data.items():
+            setattr(project, field, value)
+        if "status" in data:
+            project.archived_at = datetime.now(timezone.utc) if data["status"] == "archived" else None
+        self.database.commit()
+        self.database.refresh(project)
+        return project
+
+    def archive_project(self, project_id: UUID):
+        return self.update_project(project_id, {"status": "archived"})
 
     def get_project(self, project_id: UUID):
         project = self.database.get(Project, project_id)
@@ -44,7 +68,9 @@ class CatalogRepository:
         return project
 
     def create_asset(self, project_id: UUID, data):
-        self.get_project(project_id)
+        project = self.get_project(project_id)
+        if project.status == "archived":
+            raise ConflictError("Archived projects cannot accept new assets")
         return self._commit(
             Asset(project_id=project_id, **data), f"Asset code '{data['code']}' already exists in project"
         )

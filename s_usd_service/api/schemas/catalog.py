@@ -4,6 +4,7 @@ from uuid import UUID
 from pydantic import Field, field_validator
 
 from s_usd_service.api.schemas.common import ApiModel
+from s_usd_service.domain.projects import PROJECT_STATUSES
 
 
 class ProjectCreate(ApiModel):
@@ -11,11 +12,36 @@ class ProjectCreate(ApiModel):
     code: str = Field(min_length=1, max_length=32)
     name: str = Field(min_length=1, max_length=128)
     description: str = Field(default="", max_length=2000)
+    default_validation_profile: str = Field(default="default", min_length=1, max_length=128)
 
     @field_validator("code")
     @classmethod
     def normalize_code(cls, value):
         return value.strip().upper()
+
+    @field_validator("name", "default_validation_profile")
+    @classmethod
+    def strip_required_text(cls, value):
+        return value.strip()
+
+
+class ProjectUpdate(ApiModel):
+    name: str | None = Field(default=None, min_length=1, max_length=128)
+    description: str | None = Field(default=None, max_length=2000)
+    status: str | None = None
+    default_validation_profile: str | None = Field(default=None, min_length=1, max_length=128)
+
+    @field_validator("name", "default_validation_profile")
+    @classmethod
+    def strip_optional_text(cls, value):
+        return value.strip() if value is not None else value
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, value):
+        if value is not None and value not in PROJECT_STATUSES:
+            raise ValueError(f"status must be one of: {', '.join(PROJECT_STATUSES)}")
+        return value
 
 
 class ProjectRead(ProjectCreate):
@@ -23,6 +49,7 @@ class ProjectRead(ProjectCreate):
     workspace_id: UUID
     created_by_user_id: UUID | None
     status: str
+    archived_at: datetime | None
     created_at: datetime
     updated_at: datetime
 
