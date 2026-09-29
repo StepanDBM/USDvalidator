@@ -47,11 +47,15 @@ class CreateProjectDialog(FormDialog):
         code = self.required_text(self.code, "Code")
         name = self.required_text(self.name, "Name")
         profile = self.required_text(self.default_validation_profile, "Default validation profile")
-        return None if not code or not name or not profile else (
-            code,
-            name,
-            self.description.toPlainText().strip(),
-            profile,
+        return (
+            None
+            if not code or not name or not profile
+            else (
+                code,
+                name,
+                self.description.toPlainText().strip(),
+                profile,
+            )
         )
 
     def accept(self):

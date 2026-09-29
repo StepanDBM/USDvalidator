@@ -57,9 +57,7 @@ def get_project(project_id: UUID, database: DatabaseSession, current_user: Curre
 
 
 @router.patch("/{project_id}", response_model=ProjectRead)
-def update_project(
-    project_id: UUID, payload: ProjectUpdate, database: DatabaseSession, current_user: CurrentUser
-):
+def update_project(project_id: UUID, payload: ProjectUpdate, database: DatabaseSession, current_user: CurrentUser):
     AuthorizationRepository(database, current_user).require_project(project_id, Permission.MANAGE_PROJECTS)
     return CatalogRepository(database).update_project(project_id, payload.model_dump(exclude_unset=True))
 
