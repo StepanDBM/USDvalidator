@@ -7,6 +7,7 @@ from s_usd_service.api.schemas.common import ApiModel
 
 
 class ProjectCreate(ApiModel):
+    workspace_id: UUID | None = None
     code: str = Field(min_length=1, max_length=32)
     name: str = Field(min_length=1, max_length=128)
     description: str = Field(default="", max_length=2000)
@@ -19,6 +20,8 @@ class ProjectCreate(ApiModel):
 
 class ProjectRead(ProjectCreate):
     id: UUID
+    workspace_id: UUID
+    created_by_user_id: UUID | None
     status: str
     created_at: datetime
     updated_at: datetime

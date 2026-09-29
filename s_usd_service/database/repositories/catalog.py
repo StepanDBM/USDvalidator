@@ -4,7 +4,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from s_usd_service.database.models import Asset, Project, Stream, Version
+from s_usd_service.database.models import Asset, Project, Stream, Version, WorkspaceMembership
 from s_usd_service.database.repositories.errors import ConflictError, NotFoundError
 
 
@@ -22,11 +22,20 @@ class CatalogRepository:
             self.database.rollback()
             raise ConflictError(conflict_message) from error
 
-    def create_project(self, data):
-        return self._commit(Project(**data), f"Project code '{data['code']}' already exists")
+    def create_project(self, workspace_id: UUID, created_by_user_id: UUID, data):
+        return self._commit(
+            Project(workspace_id=workspace_id, created_by_user_id=created_by_user_id, **data),
+            f"Project code '{data['code']}' already exists in workspace",
+        )
 
-    def list_projects(self):
-        return list(self.database.scalars(select(Project).order_by(Project.code)).all())
+    def list_projects(self, user_id: UUID):
+        statement = (
+            select(Project)
+            .join(WorkspaceMembership, WorkspaceMembership.workspace_id == Project.workspace_id)
+            .where(WorkspaceMembership.user_id == user_id)
+            .order_by(Project.code)
+        )
+        return list(self.database.scalars(statement).all())
 
     def get_project(self, project_id: UUID):
         project = self.database.get(Project, project_id)

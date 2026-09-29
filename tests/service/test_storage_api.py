@@ -1,14 +1,22 @@
 from io import BytesIO
 from uuid import uuid4
 
+from sqlalchemy import select
+
 from s_usd_service.api.dependencies import get_object_storage
-from s_usd_service.database.models import Asset, Project, StoredFile, Stream, Version
+from s_usd_service.database.models import Asset, Project, StoredFile, Stream, Version, WorkspaceMembership
 from s_usd_service.database.session import SessionLocal
 
 
 def seed_api_file(storage):
     with SessionLocal() as database:
-        project = Project(code=f"P{uuid4().hex[:8]}", name="Nebula")
+        membership = database.scalar(select(WorkspaceMembership))
+        project = Project(
+            workspace_id=membership.workspace_id,
+            created_by_user_id=membership.user_id,
+            code=f"P{uuid4().hex[:8]}",
+            name="Nebula",
+        )
         asset = Asset(project=project, code="satellite", name="Satellite", asset_type="prop")
         stream = Stream(asset=asset, name="model")
         version = Version(stream=stream, number=1, status="uploaded")
@@ -23,7 +31,7 @@ def seed_api_file(storage):
             content_type="application/octet-stream",
             size_bytes=result.size_bytes,
             sha256=result.sha256,
-            status="available"
+            status="available",
         )
         database.add(stored_file)
         database.commit()
