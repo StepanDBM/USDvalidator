@@ -30,7 +30,7 @@ def application():
 
 
 def test_successful_connection(monkeypatch):
-    expected = ServiceHealth("healthy", "S-USDv Service", "0.3.0")
+    expected = ServiceHealth("healthy", "S-USDv Service", "0.2.0")
     monkeypatch.setattr(ConnectionService, "_check_health", staticmethod(lambda _: expected))
     service = ConnectionService(FakeSettings(), ImmediatePool())
     states = []

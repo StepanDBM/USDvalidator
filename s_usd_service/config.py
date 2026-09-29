@@ -8,7 +8,7 @@ class ServiceSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="S_USDV_", env_file=".env", extra="ignore")
 
     service_name: str = "S-USDv Service"
-    service_version: str = "0.3.0"
+    service_version: str = "0.2.0"
     api_prefix: str = "/api/v1"
     data_root: Path = Path(".s_usdv_data")
     database_url: str = "sqlite:///./.s_usdv_data/s_usdv.db"

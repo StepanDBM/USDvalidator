@@ -14,7 +14,7 @@ DATE = "2026-09-21T10:00:00+00:00"
 
 def handler(request):
     responses = {
-        ("GET", "/api/v1/health"): {"status": "healthy", "service": "S-USDv Service", "version": "0.3.0"},
+        ("GET", "/api/v1/health"): {"status": "healthy", "service": "S-USDv Service", "version": "0.2.0"},
         ("GET", "/api/v1/projects"): [{
             "id": PROJECT_ID,
             "code": "ORB",
