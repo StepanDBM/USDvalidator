@@ -14,3 +14,7 @@ class StorageLimitExceededError(StorageError):
     def __init__(self, maximum_bytes):
         self.maximum_bytes = maximum_bytes
         super().__init__(f"Upload exceeds the {maximum_bytes}-byte limit")
+
+
+class StorageConfigurationError(StorageError):
+    pass
