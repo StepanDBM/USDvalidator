@@ -1,9 +1,10 @@
 from fastapi import APIRouter
 
-from s_usd_service.api.routes import assets, files, health, projects, storage, streams, validation, versions
+from s_usd_service.api.routes import assets, auth, files, health, projects, storage, streams, validation, versions
 
 api_router = APIRouter()
 api_router.include_router(health.router)
+api_router.include_router(auth.router)
 api_router.include_router(projects.router)
 api_router.include_router(assets.router)
 api_router.include_router(streams.router)

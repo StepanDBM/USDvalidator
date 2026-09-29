@@ -5,7 +5,6 @@ from sqlalchemy import engine_from_config, pool
 
 from s_usd_service.config import get_settings
 from s_usd_service.database.base_class import Base
-from s_usd_service.database.models import Asset, Project, StoredFile, Stream, ValidationRun, Version
 
 config = context.config
 config.set_main_option("sqlalchemy.url", get_settings().database_url)
@@ -22,7 +21,9 @@ def run_migrations_offline():
 
 
 def run_migrations_online():
-    connectable = engine_from_config(config.get_section(config.config_ini_section), prefix="sqlalchemy.", poolclass=pool.NullPool)
+    connectable = engine_from_config(
+        config.get_section(config.config_ini_section), prefix="sqlalchemy.", poolclass=pool.NullPool
+    )
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata, render_as_batch=True)
         with context.begin_transaction():
