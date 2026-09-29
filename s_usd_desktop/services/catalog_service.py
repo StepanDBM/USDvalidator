@@ -33,7 +33,7 @@ class CatalogService(QObject):
             self._generations[scope] += 1
 
     def load_projects(self):
-        self._submit("projects", self.projects_loaded, self._catalog_call, "list_projects")
+        self._submit("projects", self.projects_loaded, self._list_workspace_projects)
 
     def load_assets(self, project_id):
         self._submit("assets", self.assets_loaded, self._catalog_call, "list_assets", project_id, context=project_id)
@@ -89,6 +89,14 @@ class CatalogService(QObject):
         worker.signals.finished.connect(lambda current=worker: self._workers.discard(current))
         self._workers.add(worker)
         self.thread_pool.start(worker)
+
+    def _list_workspace_projects(self):
+        projects = self._catalog_call("list_projects")
+        session_service = getattr(self.connection_service.parent(), "session_service", None)
+        workspace = getattr(session_service, "current_workspace", None)
+        if workspace is None:
+            return ()
+        return tuple(project for project in projects if str(project.workspace_id) == workspace.id)
 
     def _catalog_call(self, method_name, *args):
         configuration = self.connection_service.preferences.to_api_configuration()

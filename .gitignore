@@ -312,8 +312,6 @@ site/
 # -----------------------------------------------------------------------------
 
 # Database migrations must always be committed.
-!migrations/
-!migrations/**
 !alembic.ini
 
 # USD fixtures are part of the test suite and must remain tracked.

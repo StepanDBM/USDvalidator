@@ -2,3 +2,6 @@
 
 # Desktop UI and offscreen Qt tests.
 PySide6>=6.8,<7
+
+# Store desktop refresh tokens in the operating-system credential vault.
+keyring>=25,<27

@@ -43,3 +43,10 @@ class DesktopSettings:
         self.settings.setValue("service/request_timeout", preferences.request_timeout)
         self.settings.setValue("service/auto_connect", preferences.auto_connect)
         self.settings.sync()
+
+    def current_workspace_id(self):
+        return self.settings.value("service/current_workspace_id", "", str)
+
+    def set_current_workspace_id(self, workspace_id):
+        self.settings.setValue("service/current_workspace_id", workspace_id)
+        self.settings.sync()

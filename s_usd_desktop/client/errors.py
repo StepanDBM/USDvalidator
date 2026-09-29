@@ -18,6 +18,10 @@ class AuthenticationError(SUsdvClientError):
     pass
 
 
+class AuthorizationError(SUsdvClientError):
+    pass
+
+
 class ResourceNotFoundError(SUsdvClientError):
     pass
 

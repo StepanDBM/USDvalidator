@@ -94,8 +94,8 @@ def test_storage_models_expose_contextual_row_tooltips():
         project.set_records((
             SimpleNamespace(
                 id="p1",
-                code="KAN",
-                name="Kaneda",
+                code="HOME",
+                name="Home Workspace",
                 description="Project"
             ),
         ))
