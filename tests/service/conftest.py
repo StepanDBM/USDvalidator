@@ -18,10 +18,13 @@ from s_usd_service.config import get_settings
 
 get_settings.cache_clear()
 
+from sqlalchemy import select
+
 from s_usd_service.api.dependencies import get_object_storage
 from s_usd_service.app import create_application
 from s_usd_service.database.base_class import Base
-from s_usd_service.database.session import engine
+from s_usd_service.database.models.user import User
+from s_usd_service.database.session import SessionLocal, engine
 
 
 @pytest.fixture(autouse=True)
@@ -42,5 +45,30 @@ def database_schema():
 
 @pytest.fixture
 def client():
+    with TestClient(create_application()) as test_client:
+        credentials = {
+            "email": "test-owner@example.com",
+            "display_name": "Test Owner",
+            "password": "correct horse battery staple",
+        }
+        assert test_client.post("/api/v1/auth/register", json=credentials).status_code == 201
+        login = test_client.post(
+            "/api/v1/auth/login",
+            json={"email": credentials["email"], "password": credentials["password"]},
+        )
+        assert login.status_code == 200
+        test_client.headers["Authorization"] = f"Bearer {login.json()['access_token']}"
+        workspace = test_client.post("/api/v1/workspaces", json={"code": "TEST", "name": "Test Workspace"})
+        assert workspace.status_code == 201
+        test_client.workspace_id = workspace.json()["id"]
+        with SessionLocal() as database:
+            user = database.scalar(select(User).where(User.email == credentials["email"]))
+            user.is_platform_admin = True
+            database.commit()
+        yield test_client
+
+
+@pytest.fixture
+def anonymous_client():
     with TestClient(create_application()) as test_client:
         yield test_client

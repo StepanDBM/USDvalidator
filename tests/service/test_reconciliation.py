@@ -1,15 +1,44 @@
 from io import BytesIO
 from uuid import uuid4
 
-from s_usd_service.database.models import Asset, Project, StoredFile, Stream, Version
+from sqlalchemy import select
+
+from s_usd_service.database.models import (
+    Asset,
+    Project,
+    StoredFile,
+    Stream,
+    User,
+    Version,
+    Workspace,
+    WorkspaceMembership,
+)
 from s_usd_service.database.session import SessionLocal
+from s_usd_service.security.passwords import hash_password
 from s_usd_service.services.file_lifecycle import FileLifecycleService
 from s_usd_service.services.reconciliation import StorageReconciliationService
 from s_usd_service.storage.local import LocalObjectStorage
 
 
 def seed_file(database, storage, key="projects/ORBIT/assets/rover/v0001/root.usda"):
-    project = Project(code=f"P{uuid4().hex[:8]}", name="Orbit")
+    membership = database.scalar(select(WorkspaceMembership))
+    if membership is None:
+        user = User(
+            email="reconciliation@example.com",
+            normalized_email="reconciliation@example.com",
+            display_name="Reconciliation Test",
+            password_hash=hash_password("correct horse battery staple"),
+        )
+        workspace = Workspace(code=f"W{uuid4().hex[:8]}", name="Reconciliation")
+        membership = WorkspaceMembership(workspace=workspace, user=user, role="owner")
+        database.add(membership)
+        database.flush()
+    project = Project(
+        workspace_id=membership.workspace_id,
+        created_by_user_id=membership.user_id,
+        code=f"P{uuid4().hex[:8]}",
+        name="Orbit",
+    )
     asset = Asset(project=project, code="rover", name="Rover", asset_type="prop")
     stream = Stream(asset=asset, name="model")
     version = Version(stream=stream, number=1, status="uploaded")
@@ -23,7 +52,7 @@ def seed_file(database, storage, key="projects/ORBIT/assets/rover/v0001/root.usd
         content_type="application/octet-stream",
         size_bytes=result.size_bytes,
         sha256=result.sha256,
-        status="available"
+        status="available",
     )
     database.add(stored_file)
     database.commit()
@@ -129,10 +158,7 @@ def test_repair_reports_consistency_before_and_after(tmp_path):
     with SessionLocal() as database:
         orphaned_key = "projects/COSMOS/orphan/root.usda"
         storage.write_stream(BytesIO(b"orphan"), orphaned_key)
-        report = StorageReconciliationService(database, storage).reconcile(
-            repair=True,
-            delete_orphans=True
-        )
+        report = StorageReconciliationService(database, storage).reconcile(repair=True, delete_orphans=True)
 
         assert report.consistent_before is False
         assert report.consistent_after is True
