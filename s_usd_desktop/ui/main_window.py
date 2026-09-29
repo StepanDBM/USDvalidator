@@ -5,6 +5,8 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QMessageBox,
+    QPushButton,
     QTabBar,
     QTabWidget,
     QVBoxLayout,
@@ -14,9 +16,12 @@ from PySide6.QtWidgets import (
 from s_usd_core.rules import build_registry
 from s_usd_core.validation.profile_loader import ProfileLoader
 from s_usd_desktop.services import ConnectionService
+from s_usd_desktop.services.session_service import SessionService, SessionState
 from s_usd_desktop.ui.tooltips import TooltipText
 
 from .dialogs.connection_settings import ConnectionSettingsDialog
+from .dialogs.login import LoginDialog
+from .dialogs.workspace import CreateWorkspaceDialog, ManageWorkspaceDialog
 from .stylesheet import (
     dark_blue_orange_theme,
     dark_theme,
@@ -53,6 +58,7 @@ class MainWindow(QMainWindow):
 
         self.registry = build_registry()
         self.connection_service = ConnectionService(parent=self)
+        self.session_service = SessionService(self.connection_service, parent=self)
 
         self._build_ui()
         self._connect_signals()
@@ -97,6 +103,26 @@ class MainWindow(QMainWindow):
         self.connection_indicator = ConnectionIndicator()
         self.connection_indicator.setToolTip(TooltipText.SERVICE_INDICATOR)
         top_layout.addWidget(self.connection_indicator)
+        self.workspace_selector = QComboBox()
+        self.workspace_selector.setMinimumWidth(170)
+        self.workspace_selector.setPlaceholderText("No workspace")
+        self.workspace_selector.setEnabled(False)
+        top_layout.addWidget(self.workspace_selector)
+        self.create_workspace_button = QPushButton("+")
+        self.create_workspace_button.setFixedWidth(30)
+        self.create_workspace_button.setToolTip(
+            "Create a new workspace. The signed-in user automatically becomes the workspace Owner."
+        )
+        self.create_workspace_button.setEnabled(False)
+        top_layout.addWidget(self.create_workspace_button)
+        self.manage_workspace_button = QPushButton("Manage")
+        self.manage_workspace_button.setToolTip(
+            "View the selected workspace and add existing active users as workspace members."
+        )
+        self.manage_workspace_button.setEnabled(False)
+        top_layout.addWidget(self.manage_workspace_button)
+        self.session_button = QPushButton("Sign in")
+        top_layout.addWidget(self.session_button)
         top_layout.addSpacing(10)
         top_layout.addWidget(QLabel("Theme"))
         self.theme_selector = QComboBox()
@@ -134,6 +160,14 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
     def _connect_signals(self):
+        self.session_button.clicked.connect(self._toggle_session)
+        self.create_workspace_button.clicked.connect(self._create_workspace)
+        self.manage_workspace_button.clicked.connect(self._manage_workspace)
+        self.workspace_selector.currentIndexChanged.connect(self._workspace_selected)
+        self.session_service.state_changed.connect(self._session_state_changed)
+        self.session_service.workspaces_changed.connect(self._set_workspaces)
+        self.session_service.authentication_failed.connect(self._show_authentication_failure)
+        self.connection_service.connected.connect(lambda _health: self.session_service.restore())
         self.profile_editor.profiles_changed.connect(self._refresh_validation_profiles)
         self.tab_bar.currentChanged.connect(self.tabs.setCurrentIndex)
         self.tabs.currentChanged.connect(self.tab_bar.setCurrentIndex)
@@ -157,6 +191,77 @@ class MainWindow(QMainWindow):
         self.connection_indicator.set_state(
             state, health or self.connection_service.health, error or self.connection_service.last_error
         )
+
+    def _toggle_session(self):
+        if self.session_service.state == SessionState.AUTHENTICATED:
+            self.session_service.sign_out()
+            return
+
+        dialog = LoginDialog(self.connection_service.preferences.base_url, self)
+        if dialog.exec() != QDialog.Accepted:
+            return
+
+        email, password, remember = dialog.credentials()
+        if not self.session_service.sign_in(email, password, remember):
+            self._show_authentication_failure(self.session_service.last_error)
+
+    def _session_state_changed(self, state):
+        authenticated = state == SessionState.AUTHENTICATED
+        self.session_button.setText("Sign out" if authenticated else "Sign in")
+        self.session_button.setEnabled(state != SessionState.AUTHENTICATING)
+        self.workspace_selector.setEnabled(authenticated and self.workspace_selector.count() > 0)
+        self.create_workspace_button.setEnabled(authenticated)
+        self.manage_workspace_button.setEnabled(authenticated and self.workspace_selector.count() > 0)
+
+    def _set_workspaces(self, workspaces):
+        selected_id = self.connection_service.settings.current_workspace_id()
+        self.workspace_selector.blockSignals(True)
+        self.workspace_selector.clear()
+
+        for workspace in workspaces:
+            self.workspace_selector.addItem(f"{workspace.code} · {workspace.name}", workspace.id)
+
+        selected_index = self.workspace_selector.findData(selected_id)
+        fallback_index = 0 if workspaces else -1
+        self.workspace_selector.setCurrentIndex(selected_index if selected_index >= 0 else fallback_index)
+        self.workspace_selector.blockSignals(False)
+        authenticated = self.session_service.state == SessionState.AUTHENTICATED
+        self.workspace_selector.setEnabled(authenticated and bool(workspaces))
+        self.manage_workspace_button.setEnabled(authenticated and bool(workspaces))
+
+        if workspaces:
+            self._workspace_selected(self.workspace_selector.currentIndex())
+
+    def _create_workspace(self):
+        dialog = CreateWorkspaceDialog(self)
+        while dialog.exec() == QDialog.Accepted:
+            data = dialog.workspace_data()
+            try:
+                workspace = self.session_service.create_workspace(**data)
+            except Exception as error:
+                dialog.show_error(getattr(error, "message", str(error)))
+                continue
+            QMessageBox.information(
+                self,
+                "Workspace created",
+                f"Workspace {workspace.code} was created. You are its Owner.",
+            )
+            break
+
+    def _manage_workspace(self):
+        workspace = self.session_service.current_workspace
+        if workspace is None:
+            QMessageBox.information(self, "Manage Workspace", "Select a workspace first.")
+            return
+        ManageWorkspaceDialog(workspace, self.session_service, self).exec()
+
+    def _workspace_selected(self, index):
+        if index >= 0:
+            self.session_service.select_workspace(self.workspace_selector.itemData(index))
+
+    def _show_authentication_failure(self, message):
+        if self.isVisible():
+            QMessageBox.warning(self, "S-USDv authentication", message)
 
     def _show_connection_settings(self):
         dialog = ConnectionSettingsDialog(self.connection_service.preferences, self)

@@ -17,13 +17,9 @@ def run_qt(code):
         env=environment,
         capture_output=True,
         text=True,
-        timeout=30
+        timeout=30,
     )
-    assert result.returncode == 0, (
-        f"Qt subprocess failed.\n"
-        f"stdout:\n{result.stdout}\n"
-        f"stderr:\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"Qt subprocess failed.\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"
 
 
 def test_storage_controls_have_explanatory_tooltips():
@@ -94,8 +90,8 @@ def test_storage_models_expose_contextual_row_tooltips():
         project.set_records((
             SimpleNamespace(
                 id="p1",
-                code="KAN",
-                name="Kaneda",
+                code="HOME",
+                name="Home Workspace",
                 description="Project"
             ),
         ))
@@ -103,7 +99,7 @@ def test_storage_models_expose_contextual_row_tooltips():
             project.index(0, 0),
             Qt.ItemDataRole.ToolTipRole
         )
-        assert "KAN" in project_tooltip
+        assert "HOME" in project_tooltip
 
         version = VersionTableModel()
         version.set_records((

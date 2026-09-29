@@ -1,8 +1,8 @@
 def test_vertical_catalog_flow(client):
-    project = client.post("/api/v1/projects", json={"code": "kan", "name": "Kaneda"})
+    project = client.post("/api/v1/projects", json={"code": "HOME", "name": "Home Workspace"})
     assert project.status_code == 201
     project_data = project.json()
-    assert project_data["code"] == "KAN"
+    assert project_data["code"] == "HOME"
 
     asset = client.post(f"/api/v1/projects/{project_data['id']}/assets", json={"code": "Hero", "name": "Hero Character", "asset_type": "character"})
     assert asset.status_code == 201
@@ -27,7 +27,7 @@ def test_vertical_catalog_flow(client):
 
 
 def test_duplicate_project_returns_conflict(client):
-    payload = {"code": "KAN", "name": "Kaneda"}
+    payload = {"code": "HOME", "name": "Home Workspace"}
     assert client.post("/api/v1/projects", json=payload).status_code == 201
     response = client.post("/api/v1/projects", json=payload)
     assert response.status_code == 409

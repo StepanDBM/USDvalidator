@@ -33,7 +33,7 @@ class CatalogService(QObject):
             self._generations[scope] += 1
 
     def load_projects(self):
-        self._submit("projects", self.projects_loaded, self._catalog_call, "list_projects")
+        self._submit("projects", self.projects_loaded, self._list_workspace_projects)
 
     def load_assets(self, project_id):
         self._submit("assets", self.assets_loaded, self._catalog_call, "list_assets", project_id, context=project_id)
@@ -77,11 +77,12 @@ class CatalogService(QObject):
     def deprecate_version(self, version_id):
         self._submit("lifecycle", self.version_deprecated, self._catalog_call, "deprecate_version", version_id)
 
-    def _submit(self, scope, result_signal, function, method_name, *args, context=None):
+    def _submit(self, scope, result_signal, function, method_name=None, *args, context=None):
         self._generations[scope] += 1
         generation = self._generations[scope]
         self.loading_changed.emit(scope, True)
-        worker = RequestWorker(function, method_name, *args)
+        worker_args = args if method_name is None else (method_name, *args)
+        worker = RequestWorker(function, *worker_args)
         worker.signals.result.connect(
             lambda result, s=scope, g=generation, c=context: self._handle_result(s, g, c, result, result_signal)
         )
@@ -89,6 +90,22 @@ class CatalogService(QObject):
         worker.signals.finished.connect(lambda current=worker: self._workers.discard(current))
         self._workers.add(worker)
         self.thread_pool.start(worker)
+
+    def _list_workspace_projects(self):
+        projects = self._catalog_call("list_projects")
+        parent_getter = getattr(self.connection_service, "parent", None)
+        parent = parent_getter() if callable(parent_getter) else None
+        session_service = getattr(parent, "session_service", None)
+        workspace = getattr(session_service, "current_workspace", None)
+
+        if workspace is None:
+            return projects
+
+        return tuple(
+            project
+            for project in projects
+            if project.workspace_id is not None and str(project.workspace_id) == workspace.id
+        )
 
     def _catalog_call(self, method_name, *args):
         configuration = self.connection_service.preferences.to_api_configuration()

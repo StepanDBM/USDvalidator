@@ -31,11 +31,15 @@ class ProjectRecord:
     status: str
     created_at: datetime
     updated_at: datetime
+    workspace_id: UUID | None = None
+    created_by_user_id: UUID | None = None
 
     @classmethod
     def from_dict(cls, data):
         return cls(
             id=parse_uuid(data["id"]),
+            workspace_id=parse_uuid(data.get("workspace_id", "00000000-0000-0000-0000-000000000000")),
+            created_by_user_id=parse_uuid(data["created_by_user_id"]) if data.get("created_by_user_id") else None,
             code=data["code"],
             name=data["name"],
             description=data["description"],

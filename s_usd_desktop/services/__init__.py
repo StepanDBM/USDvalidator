@@ -2,6 +2,7 @@ from s_usd_desktop.services.catalog_service import CatalogService
 from s_usd_desktop.services.connection_service import ConnectionService, ConnectionState
 from s_usd_desktop.services.desktop_settings import ConnectionPreferences, DesktopSettings
 from s_usd_desktop.services.download_service import DownloadService
+from s_usd_desktop.services.session_service import SessionService, SessionState
 from s_usd_desktop.services.stored_comparison_service import (
     ComparisonPairReadiness,
     StoredComparisonService,
@@ -41,4 +42,6 @@ __all__ = [
     "ConnectionService",
     "ConnectionState",
     "DesktopSettings",
+    "SessionService",
+    "SessionState",
 ]
