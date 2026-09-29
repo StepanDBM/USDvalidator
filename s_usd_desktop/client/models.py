@@ -33,6 +33,8 @@ class ProjectRecord:
     updated_at: datetime
     workspace_id: UUID | None = None
     created_by_user_id: UUID | None = None
+    default_validation_profile: str = "default"
+    archived_at: datetime | None = None
 
     @classmethod
     def from_dict(cls, data):
@@ -46,6 +48,8 @@ class ProjectRecord:
             status=data["status"],
             created_at=parse_datetime(data["created_at"]),
             updated_at=parse_datetime(data["updated_at"]),
+            default_validation_profile=data.get("default_validation_profile", "default"),
+            archived_at=parse_datetime(data["archived_at"]) if data.get("archived_at") else None,
         )
 
 

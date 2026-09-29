@@ -37,14 +37,22 @@ class CreateProjectDialog(FormDialog):
         self.name = QLineEdit()
         self.description = QPlainTextEdit()
         self.description.setMaximumHeight(90)
+        self.default_validation_profile = QLineEdit("default")
         self.form.addRow("Code", self.code)
         self.form.addRow("Name", self.name)
         self.form.addRow("Description", self.description)
+        self.form.addRow("Default Validation Profile", self.default_validation_profile)
 
     def values(self):
         code = self.required_text(self.code, "Code")
         name = self.required_text(self.name, "Name")
-        return None if not code or not name else (code, name, self.description.toPlainText().strip())
+        profile = self.required_text(self.default_validation_profile, "Default validation profile")
+        return None if not code or not name or not profile else (
+            code,
+            name,
+            self.description.toPlainText().strip(),
+            profile,
+        )
 
     def accept(self):
         if self.values():

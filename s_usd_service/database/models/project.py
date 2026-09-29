@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
@@ -24,7 +25,9 @@ class Project(IdMixin, TimestampMixin, Base):
     code: Mapped[str] = mapped_column(String(32), index=True)
     name: Mapped[str] = mapped_column(String(128))
     description: Mapped[str] = mapped_column(Text, default="")
-    status: Mapped[str] = mapped_column(String(32), default="active")
+    status: Mapped[str] = mapped_column(String(32), default="active", index=True)
+    default_validation_profile: Mapped[str] = mapped_column(String(128), default="default")
+    archived_at: Mapped[datetime | None] = mapped_column(nullable=True)
     workspace: Mapped[Workspace] = relationship(back_populates="projects")
     created_by: Mapped[User | None] = relationship()
     assets: Mapped[list[Asset]] = relationship(back_populates="project", cascade="all, delete-orphan")

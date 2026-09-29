@@ -49,8 +49,25 @@ class CatalogService(QObject):
     def load_files(self, version_id):
         self._submit("files", self.files_loaded, self._file_call, "list_files", version_id, context=version_id)
 
-    def create_project(self, code, name, description=""):
-        self._submit("mutation", self.project_created, self._catalog_call, "create_project", code, name, description)
+    def create_project(self, code, name, description="", default_validation_profile="default"):
+        arguments = (code, name, description)
+
+        if default_validation_profile != "default":
+            arguments += (default_validation_profile,)
+
+        self._submit(
+            "mutation",
+            self.project_created,
+            self._catalog_call,
+            "create_project",
+            *arguments,
+        )
+
+    def update_project(self, project_id, **changes):
+        self._submit("mutation", self.project_created, self._update_project, project_id, changes)
+
+    def archive_project(self, project_id):
+        self._submit("mutation", self.project_created, self._catalog_call, "archive_project", project_id)
 
     def create_asset(self, project_id, code, name, asset_type, description=""):
         self._submit(
@@ -106,6 +123,11 @@ class CatalogService(QObject):
             for project in projects
             if project.workspace_id is not None and str(project.workspace_id) == workspace.id
         )
+
+    def _update_project(self, project_id, changes):
+        configuration = self.connection_service.preferences.to_api_configuration()
+        with SUsdvApiClient(configuration) as api:
+            return CatalogClient(api).update_project(project_id, **changes)
 
     def _catalog_call(self, method_name, *args):
         configuration = self.connection_service.preferences.to_api_configuration()
