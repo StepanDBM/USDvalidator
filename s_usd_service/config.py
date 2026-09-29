@@ -27,6 +27,10 @@ class ServiceSettings(BaseSettings):
     token_clock_skew_seconds: int = 30
     allow_registration: bool = True
     maximum_active_sessions: int = 10
+    validation_worker_enabled: bool = True
+    validation_worker_poll_seconds: float = 1.0
+    validation_job_maximum_attempts: int = 3
+    validation_job_retry_delay_seconds: int = 5
     allowed_file_roles: tuple[str, ...] = (
         "root_layer",
         "dependency",

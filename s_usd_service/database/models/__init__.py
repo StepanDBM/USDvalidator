@@ -4,6 +4,7 @@ from s_usd_service.database.models.refresh_session import RefreshSession
 from s_usd_service.database.models.stored_file import StoredFile
 from s_usd_service.database.models.stream import Stream
 from s_usd_service.database.models.user import User
+from s_usd_service.database.models.validation_job import ValidationJob
 from s_usd_service.database.models.validation_run import ValidationRun
 from s_usd_service.database.models.version import Version
 from s_usd_service.database.models.workspace import Workspace
@@ -16,6 +17,7 @@ __all__ = [
     "StoredFile",
     "Stream",
     "User",
+    "ValidationJob",
     "ValidationRun",
     "Version",
     "Workspace",

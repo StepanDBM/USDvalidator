@@ -9,6 +9,7 @@ from s_usd_service.api.routes import (
     storage,
     streams,
     validation,
+    validation_jobs,
     versions,
     workspaces,
 )
@@ -22,5 +23,6 @@ api_router.include_router(assets.router)
 api_router.include_router(streams.router)
 api_router.include_router(versions.router)
 api_router.include_router(validation.router)
+api_router.include_router(validation_jobs.router)
 api_router.include_router(files.router)
 api_router.include_router(storage.router)
