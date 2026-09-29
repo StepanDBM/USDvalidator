@@ -12,6 +12,7 @@ class ServiceSettings(BaseSettings):
     api_prefix: str = "/api/v1"
     data_root: Path = Path(".s_usdv_data")
     database_url: str = "sqlite:///./.s_usdv_data/s_usdv.db"
+    storage_provider: str = "local"
     storage_root: Path = Path(".s_usdv_data/storage")
     temporary_root: Path = Path(".s_usdv_data/temp")
     storage_chunk_size: int = 1024 * 1024

@@ -6,10 +6,14 @@ from uuid import uuid4
 
 from s_usd_service.storage.base import ObjectStorage
 from s_usd_service.storage.errors import InvalidStorageKeyError, StorageLimitExceededError, StorageObjectNotFoundError
-from s_usd_service.storage.models import StoredObject
+from s_usd_service.storage.models import StorageHealth, StorageObjectMetadata, StoredObject
 
 
 class LocalObjectStorage(ObjectStorage):
+    @property
+    def provider_name(self) -> str:
+        return "local"
+
     def __init__(self, root: Path, temporary_root: Path, chunk_size: int = 1024 * 1024):
         if chunk_size <= 0:
             raise ValueError("chunk_size must be greater than zero")
@@ -58,6 +62,12 @@ class LocalObjectStorage(ObjectStorage):
     def exists(self, storage_key: str) -> bool:
         return self._resolve(storage_key).is_file()
 
+    def stat(self, storage_key: str) -> StorageObjectMetadata:
+        path = self._resolve(storage_key)
+        if not path.is_file():
+            raise StorageObjectNotFoundError(f"Stored object not found: {storage_key}")
+        return StorageObjectMetadata(storage_key=self._normalize_key(storage_key), size_bytes=path.stat().st_size)
+
     def delete(self, storage_key: str) -> bool:
         path = self._resolve(storage_key)
         if not path.exists():
@@ -71,6 +81,14 @@ class LocalObjectStorage(ObjectStorage):
             return iter(())
 
         return (path.relative_to(self.root).as_posix() for path in self.root.rglob("*") if path.is_file())
+
+    def health(self) -> StorageHealth:
+        try:
+            self.root.mkdir(parents=True, exist_ok=True)
+            self.temporary_root.mkdir(parents=True, exist_ok=True)
+        except OSError as error:
+            return StorageHealth(provider=self.provider_name, available=False, detail=str(error))
+        return StorageHealth(provider=self.provider_name, available=True)
 
     def resolve_local_path(self, storage_key: str) -> Path:
         return self._resolve(storage_key)

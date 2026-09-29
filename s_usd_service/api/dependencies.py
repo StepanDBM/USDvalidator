@@ -9,7 +9,7 @@ from s_usd_service.config import get_settings
 from s_usd_service.database.models.user import User
 from s_usd_service.database.session import get_db
 from s_usd_service.security.tokens import InvalidAccessToken, decode_access_token
-from s_usd_service.storage.local import LocalObjectStorage
+from s_usd_service.storage import ObjectStorage, create_object_storage
 
 DatabaseSession = Annotated[Session, Depends(get_db)]
 _bearer = HTTPBearer(auto_error=False)
@@ -17,13 +17,10 @@ _bearer = HTTPBearer(auto_error=False)
 
 @lru_cache
 def get_object_storage():
-    settings = get_settings()
-    return LocalObjectStorage(
-        root=settings.storage_root, temporary_root=settings.temporary_root, chunk_size=settings.storage_chunk_size
-    )
+    return create_object_storage(get_settings())
 
 
-ObjectStorageDependency = Annotated[LocalObjectStorage, Depends(get_object_storage)]
+ObjectStorageDependency = Annotated[ObjectStorage, Depends(get_object_storage)]
 
 
 def get_current_user(
