@@ -29,12 +29,19 @@ def test_v0_2_contract_artifacts_exist():
 
 
 def test_existing_report_and_manifest_schemas_remain_readable():
-    legacy_report = json.loads((ROOT / "report.json").read_text(encoding="utf-8-sig"))
-    legacy_batch = json.loads((ROOT / "batch_report.json").read_text(encoding="utf-8-sig"))
+    fixture_root = ROOT / "tests" / "fixtures" / "release"
+    legacy_report = json.loads((fixture_root / "legacy_validation_report.json").read_text(encoding="utf-8-sig"))
+    legacy_batch = json.loads((fixture_root / "legacy_batch_report.json").read_text(encoding="utf-8-sig"))
 
     assert legacy_report["schema_version"]
     assert {"source", "summary", "results"} <= legacy_report.keys()
     assert legacy_batch["schema_version"]
     assert {"batch", "reports"} <= legacy_batch.keys()
-    assert (REPORT_SCHEMA_NAME, REPORT_SCHEMA_VERSION) == ("s-usdv.validation_report", "1.0.0")
-    assert (MANIFEST_SCHEMA_NAME, MANIFEST_SCHEMA_VERSION) == ("s-usdv.publish_manifest", "1.0.0")
+    assert (REPORT_SCHEMA_NAME, REPORT_SCHEMA_VERSION) == (
+        "s-usdv.validation_report",
+        "1.0.0",
+    )
+    assert (MANIFEST_SCHEMA_NAME, MANIFEST_SCHEMA_VERSION) == (
+        "s-usdv.publish_manifest",
+        "1.0.0",
+    )
