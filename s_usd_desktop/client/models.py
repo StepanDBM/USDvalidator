@@ -25,14 +25,14 @@ class ServiceHealth:
 @dataclass(frozen=True, slots=True)
 class ProjectRecord:
     id: UUID
-    workspace_id: UUID
-    created_by_user_id: UUID | None
     code: str
     name: str
     description: str
     status: str
     created_at: datetime
     updated_at: datetime
+    workspace_id: UUID | None = None
+    created_by_user_id: UUID | None = None
 
     @classmethod
     def from_dict(cls, data):

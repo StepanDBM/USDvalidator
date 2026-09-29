@@ -64,9 +64,9 @@ def test_main_window_workspace_controls_are_authenticated_only(application, monk
 
     monkeypatch.setattr(MainWindow, "_change_theme", lambda *_: None)
     window = MainWindow()
-    window._session_state_changed(SessionState.SIGNED_OUT)
+    window.session_service._set_state(SessionState.SIGNED_OUT)
     assert not window.create_workspace_button.isEnabled()
-    window._session_state_changed(SessionState.AUTHENTICATED)
+    window.session_service._set_state(SessionState.AUTHENTICATED)
     assert window.create_workspace_button.isEnabled()
     window._set_workspaces((SimpleNamespace(id="one", code="ONE", name="One"),))
     assert window.workspace_selector.isEnabled()
