@@ -3,9 +3,8 @@ from uuid import UUID
 
 from pydantic import Field, field_validator
 
-from s_usd_service.domain.projects import PROJECT_STATUSES
-
 from s_usd_service.api.schemas.common import ApiModel
+from s_usd_service.domain.projects import PROJECT_STATUSES
 
 
 class ProjectCreate(ApiModel):
