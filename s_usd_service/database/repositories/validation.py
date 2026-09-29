@@ -13,7 +13,7 @@ class ValidationRunRepository:
     def __init__(self, database: Session):
         self.database = database
 
-    def create(self, version_id: UUID, data):
+    def create(self, version_id: UUID, data, *, commit=True):
         version = self.database.get(Version, version_id)
         if not version:
             raise NotFoundError("Version not found")
@@ -39,8 +39,11 @@ class ValidationRunRepository:
         )
         self.database.add(run)
         VersionLifecycleService(self.database).mark_after_validation(version, run)
-        self.database.commit()
-        self.database.refresh(run)
+        if commit:
+            self.database.commit()
+            self.database.refresh(run)
+        else:
+            self.database.flush()
         return run
 
     def list_for_version(self, version_id: UUID):

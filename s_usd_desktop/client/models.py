@@ -224,3 +224,62 @@ class ValidationRunRecord:
             updated_at=parse_datetime(data["updated_at"]),
             report=data.get("report"),
         )
+
+
+@dataclass(frozen=True, slots=True)
+class ValidationJobRecord:
+    id: UUID
+    workspace_id: UUID
+    version_id: UUID
+    stored_file_id: UUID
+    requested_by_user_id: UUID
+    validation_run_id: UUID | None
+    idempotency_key: str
+    profile_name: str
+    status: str
+    progress_current: int
+    progress_total: int
+    attempt_count: int
+    maximum_attempts: int
+    requested_at: datetime
+    started_at: datetime | None
+    completed_at: datetime | None
+    cancelled_at: datetime | None
+    heartbeat_at: datetime | None
+    next_attempt_at: datetime | None
+    error_code: str
+    error_message: str
+
+    @property
+    def progress_percent(self):
+        if self.progress_total <= 0:
+            return None
+        return max(0, min(100, round(self.progress_current * 100 / self.progress_total)))
+
+    @property
+    def terminal(self):
+        return self.status in {"cancelled", "succeeded", "failed"}
+
+    @classmethod
+    def from_dict(cls, data):
+        optional_times = ("started_at", "completed_at", "cancelled_at", "heartbeat_at", "next_attempt_at")
+        values = {name: parse_datetime(data[name]) if data.get(name) else None for name in optional_times}
+        return cls(
+            id=parse_uuid(data["id"]),
+            workspace_id=parse_uuid(data["workspace_id"]),
+            version_id=parse_uuid(data["version_id"]),
+            stored_file_id=parse_uuid(data["stored_file_id"]),
+            requested_by_user_id=parse_uuid(data["requested_by_user_id"]),
+            validation_run_id=parse_uuid(data["validation_run_id"]) if data.get("validation_run_id") else None,
+            idempotency_key=data["idempotency_key"],
+            profile_name=data["profile_name"],
+            status=data["status"],
+            progress_current=int(data["progress_current"]),
+            progress_total=int(data["progress_total"]),
+            attempt_count=int(data["attempt_count"]),
+            maximum_attempts=int(data["maximum_attempts"]),
+            requested_at=parse_datetime(data["requested_at"]),
+            error_code=data["error_code"],
+            error_message=data["error_message"],
+            **values,
+        )

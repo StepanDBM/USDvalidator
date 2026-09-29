@@ -45,3 +45,5 @@ __all__ = [
     "SessionService",
     "SessionState",
 ]
+
+from s_usd_desktop.services.validation_job_service import ValidationJobService

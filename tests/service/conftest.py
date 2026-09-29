@@ -11,6 +11,7 @@ os.environ["S_USDV_STORAGE_ROOT"] = (TEST_DATA / "storage").as_posix()
 os.environ["S_USDV_TEMPORARY_ROOT"] = (TEST_DATA / "temp").as_posix()
 os.environ["S_USDV_TOKEN_SIGNING_KEY"] = "pytest-signing-key-at-least-32-bytes-long"
 os.environ["S_USDV_ALLOW_REGISTRATION"] = "true"
+os.environ["S_USDV_VALIDATION_WORKER_ENABLED"] = "false"
 
 from fastapi.testclient import TestClient
 
