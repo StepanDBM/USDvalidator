@@ -9,6 +9,8 @@ os.environ["S_USDV_DATABASE_URL"] = f"sqlite:///{TEST_DB.as_posix()}"
 os.environ["S_USDV_DATA_ROOT"] = TEST_DATA.as_posix()
 os.environ["S_USDV_STORAGE_ROOT"] = (TEST_DATA / "storage").as_posix()
 os.environ["S_USDV_TEMPORARY_ROOT"] = (TEST_DATA / "temp").as_posix()
+os.environ["S_USDV_TOKEN_SIGNING_KEY"] = "pytest-signing-key-at-least-32-bytes-long"
+os.environ["S_USDV_ALLOW_REGISTRATION"] = "true"
 
 from fastapi.testclient import TestClient
 
@@ -34,6 +36,7 @@ def database_schema():
 
     if TEST_DATA.exists():
         import shutil
+
         shutil.rmtree(TEST_DATA)
 
 
